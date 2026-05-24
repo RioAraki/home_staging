@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Patrick+Hand&display=swap');
+
+:root {
+  /* Blueprint palette */
+  --bg: #102a47;
+  --bg-darker: #0b1f36;
+  --paper: #f6f4ec;
+  --gridline: #5a8ec0;
+  --pen: #ffffff;
+  --pen-soft: rgba(255, 255, 255, 0.7);
+  --accent: #ffe169;
+  --danger: #ff7b7b;
+
+  font-family: 'Patrick Hand', system-ui, sans-serif;
+  color: var(--pen);
+  background: var(--bg);
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 100vh;
+}
+
+body {
+  background: var(--bg);
+}

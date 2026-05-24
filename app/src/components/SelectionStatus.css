@@ -1,0 +1,166 @@
+.selection-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border: 1px dashed var(--pen-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 12px;
+  min-height: 60px;
+}
+
+.selection-status.empty {
+  border-style: dashed;
+  justify-content: center;
+}
+
+.selection-status.empty .hint {
+  color: var(--pen-soft);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.sel-label {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--accent);
+}
+
+.sel-piece {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sel-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.95rem;
+}
+
+.sel-clear {
+  margin-left: auto;
+  background: transparent;
+  border: 1px dashed var(--danger);
+  color: var(--danger);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.sel-clear:hover {
+  background: rgba(255, 123, 123, 0.10);
+}
+
+.sel-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  flex-direction: column;
+}
+
+.sel-rotate {
+  background: transparent;
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.sel-rotate:hover {
+  background: rgba(255, 225, 105, 0.10);
+}
+
+.sel-skip {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen-soft);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.sel-skip:hover {
+  color: var(--pen);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sel-joker {
+  background: transparent;
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.sel-joker:hover:not(:disabled) {
+  background: rgba(255, 225, 105, 0.10);
+}
+
+.sel-joker.on {
+  background: rgba(255, 225, 105, 0.20);
+  border-style: solid;
+}
+
+.sel-joker.spent,
+.sel-joker:disabled {
+  border-color: var(--pen-soft);
+  color: var(--pen-soft);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.selection-status.mirroring {
+  border-color: var(--accent);
+  background: rgba(255, 225, 105, 0.06);
+}
+
+.mirror-tag {
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.joker-avail {
+  margin-left: 6px;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.joker-spent {
+  margin-left: 6px;
+  color: var(--pen-soft);
+  font-size: 0.9rem;
+  text-decoration: line-through;
+}
+
+.sel-hint {
+  color: var(--pen-soft);
+  font-size: 0.85rem;
+}
+
+kbd {
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--pen-soft);
+  border-radius: 3px;
+  padding: 0 5px;
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+.sel-error {
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 123, 123, 0.15);
+  color: var(--danger);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}

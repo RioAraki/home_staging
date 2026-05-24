@@ -1,0 +1,169 @@
+/* Face-down card (extends previous CardBack styling) */
+.card.down {
+  position: relative;
+  width: 48px;
+  height: 68px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid var(--pen);
+  border-radius: 4px;
+  color: var(--pen);
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+
+.card.down:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.card.down:disabled,
+.card.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.card.down .card-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.card.down .card-corner {
+  position: absolute;
+  font-size: 11px;
+  color: var(--pen-soft);
+}
+
+.card.down .top-left { top: 3px; left: 5px; }
+.card.down .bottom-right { bottom: 3px; right: 5px; transform: rotate(180deg); }
+
+/* Face-up card */
+.card.up {
+  position: relative;
+  min-width: 110px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid var(--pen);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: var(--pen);
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.card.up.selected {
+  border-color: var(--accent);
+  background: rgba(255, 225, 105, 0.10);
+}
+
+.card.up.placed {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  color: var(--pen-soft);
+}
+
+.card-header .num {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--pen);
+}
+
+.card-header .badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-header .selected-badge {
+  background: rgba(255, 225, 105, 0.2);
+  color: var(--accent);
+}
+
+.card-header .placed-badge {
+  background: rgba(120, 220, 120, 0.18);
+  color: rgba(180, 240, 180, 0.95);
+}
+
+.card-header .skipped-badge {
+  background: rgba(180, 180, 180, 0.18);
+  color: rgba(200, 200, 200, 0.95);
+}
+
+.card.up.skipped {
+  opacity: 0.45;
+  border-style: dotted;
+}
+
+.skip-card-btn {
+  margin-top: 6px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen-soft);
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.85rem;
+}
+
+.skip-card-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--pen);
+}
+
+.skip-card-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.card-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  border-radius: 4px;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: var(--pen);
+  font-family: inherit;
+}
+
+.option-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.option-btn.on {
+  border-style: solid;
+  border-color: var(--accent);
+  background: rgba(255, 225, 105, 0.10);
+}
+
+.option-btn .opt-name {
+  font-size: 0.85rem;
+  text-align: left;
+  flex: 1;
+}

@@ -1,0 +1,188 @@
+[
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/1289667909928268019/230E4EAA27F64C7FFA81E3DBD2DD8D24070C4F13/",
+    "roles": [
+      "URL"
+    ],
+    "dim": [],
+    "parent_names": [
+      "ui_x_x"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc1289667909928268019230E4EAA27F64C7FFA81E3DBD2DD8D24070C4F13.png",
+    "size_mb": 0.00478
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/1289667909928269422/57F9F3A262BFF0AE4CDACB81D08A6326A37A4B21/",
+    "roles": [
+      "URL"
+    ],
+    "dim": [],
+    "parent_names": [
+      "ui_a_x"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc128966790992826942257F9F3A262BFF0AE4CDACB81D08A6326A37A4B21.png",
+    "size_mb": 0.004793
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/1289667909928270670/790215476BFA5A7FF866338C69BEAD8A84A712C6/",
+    "roles": [
+      "URL"
+    ],
+    "dim": [],
+    "parent_names": [
+      "ui_x_b"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc1289667909928270670790215476BFA5A7FF866338C69BEAD8A84A712C6.png",
+    "size_mb": 0.004812
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/1289667909928275631/2A3AA4FBB79C00FFEF03C214F96B90892304B311/",
+    "roles": [
+      "URL"
+    ],
+    "dim": [],
+    "parent_names": [
+      "ui_a_b"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc12896679099282756312A3AA4FBB79C00FFEF03C214F96B90892304B311.png",
+    "size_mb": 0.00472
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370106927/540C20DBEA311C043D02C819F76C4AAD4E85D784/",
+    "roles": [
+      "ImageURL"
+    ],
+    "dim": [],
+    "parent_names": [],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370106927540C20DBEA311C043D02C819F76C4AAD4E85D784.jpg",
+    "size_mb": 0.620405
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370116170/005C46C912AC5343220C3FA292FFDC4E6407EC30/",
+    "roles": [
+      "ImageURL"
+    ],
+    "dim": [],
+    "parent_names": [],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370116170005C46C912AC5343220C3FA292FFDC4E6407EC30.jpg",
+    "size_mb": 0.555787
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370116317/B2E8E09C53330304154C3B354D80879B918B9338/",
+    "roles": [
+      "ImageSecondaryURL"
+    ],
+    "dim": [],
+    "parent_names": [],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370116317B2E8E09C53330304154C3B354D80879B918B9338.jpg",
+    "size_mb": 0.582019
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370151720/FBCC74AB38EA069CAFDDDC00AE1D303AB1470FDD/",
+    "roles": [
+      "ImageURL"
+    ],
+    "dim": [],
+    "parent_names": [],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370151720FBCC74AB38EA069CAFDDDC00AE1D303AB1470FDD.png",
+    "size_mb": 0.21092
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370151856/A712F4DA4AA1FD323A81FC8BC44675B3FA5CDC61/",
+    "roles": [
+      "ImageSecondaryURL"
+    ],
+    "dim": [],
+    "parent_names": [],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370151856A712F4DA4AA1FD323A81FC8BC44675B3FA5CDC61.png",
+    "size_mb": 0.251973
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370433854/DD42D86FC3BCFE6C5D4312DEB12BEC7D1056515D/",
+    "roles": [
+      "FaceURL"
+    ],
+    "dim": [
+      [
+        5,
+        2
+      ]
+    ],
+    "parent_names": [
+      "DeckCustom"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370433854DD42D86FC3BCFE6C5D4312DEB12BEC7D1056515D.jpg",
+    "size_mb": 1.09688
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370433918/C3C74BD9BF20A03275EDD216CD635A9118C84DC7/",
+    "roles": [
+      "BackURL"
+    ],
+    "dim": [
+      [
+        5,
+        2
+      ]
+    ],
+    "parent_names": [
+      "DeckCustom"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370433918C3C74BD9BF20A03275EDD216CD635A9118C84DC7.jpg",
+    "size_mb": 1.244893
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370463596/B9241FA211F6858EE5994C5BC79C4C6C9B5E5D55/",
+    "roles": [
+      "BackURL"
+    ],
+    "dim": [
+      [
+        6,
+        6
+      ]
+    ],
+    "parent_names": [
+      "Card",
+      "Deck"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370463596B9241FA211F6858EE5994C5BC79C4C6C9B5E5D55.jpg",
+    "size_mb": 1.685694
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370463682/913082B0150CF7C91A33A6EEF34E21DAAF38DC3C/",
+    "roles": [
+      "FaceURL"
+    ],
+    "dim": [
+      [
+        6,
+        6
+      ]
+    ],
+    "parent_names": [
+      "Card",
+      "Deck"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc31064975370463682913082B0150CF7C91A33A6EEF34E21DAAF38DC3C.jpg",
+    "size_mb": 2.513086
+  },
+  {
+    "url": "https://steamusercontent-a.akamaihd.net/ugc/31064975370464304/51B4AD8E546F30AF7CCA1C98A783916991F00935/",
+    "roles": [
+      "BackURL"
+    ],
+    "dim": [
+      [
+        6,
+        6
+      ]
+    ],
+    "parent_names": [
+      "Card",
+      "Deck"
+    ],
+    "cache_file": "httpssteamusercontentaakamaihdnetugc3106497537046430451B4AD8E546F30AF7CCA1C98A783916991F00935.jpg",
+    "size_mb": 1.712464
+  }
+]

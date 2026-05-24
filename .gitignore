@@ -1,0 +1,39 @@
+# ─── Node / Vite ──────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+*.local
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Python helpers in md/ ────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# ─── OS junk ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ─── Editors ──────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ─── Project debug artifacts (created while iterating on auto-detect) ──
+md/images/scenarios/_debug_*.png
+md/images/scenarios/_paper_only.png
+md/images/scenarios/_grid_detect.png
+md/images/scenarios/_training_floorplan_crop.png
+md/images/scenarios/_training_grid_zoom.png
+
+# Pdftotext intermediate dumps (regenerate any time with pdftotext)
+md/manual_raw.txt
+md/spiralbuch_raw.txt

@@ -1,0 +1,271 @@
+.endgame-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 20, 38, 0.85);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: auto;
+}
+
+.endgame-card {
+  background: var(--bg);
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  padding: 24px 28px;
+  width: min(600px, 100%);
+  color: var(--pen);
+  font-family: 'Patrick Hand', sans-serif;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.endgame-card h2 {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 2.2rem;
+  color: var(--accent);
+}
+
+.endgame-sub {
+  margin: 0.25rem 0 1rem;
+  color: var(--pen-soft);
+}
+
+.endgame-section {
+  margin-bottom: 1.2rem;
+}
+
+.endgame-section h3 {
+  margin: 0 0 6px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--pen);
+}
+
+.endgame-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.endgame-table th,
+.endgame-table td {
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px dashed var(--pen-soft);
+}
+
+.endgame-table th {
+  color: var(--pen-soft);
+  font-weight: normal;
+  font-size: 0.85rem;
+}
+
+.endgame-table tfoot td {
+  font-weight: 700;
+  border-bottom: none;
+  padding-top: 8px;
+}
+
+.endgame-table tr.empty-room td {
+  color: var(--danger);
+}
+
+.endgame-table tr.inaccessible-room td {
+  color: var(--danger);
+  text-decoration: line-through;
+}
+
+.endgame-table .dropped {
+  color: var(--danger);
+  text-decoration: line-through;
+  font-size: 0.85rem;
+  margin-left: 4px;
+}
+
+.note.bad {
+  border-left-color: var(--danger);
+  color: var(--danger);
+}
+
+.penalty-tag {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.bonus-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bonus-list li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.bonus-marker {
+  width: 16px;
+  text-align: center;
+}
+
+.bonus-list li.earned .bonus-marker {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.bonus-list li.missed {
+  color: var(--pen-soft);
+}
+
+.bonus-list li.earned .bonus-points {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.bonus-text {
+  flex: 1;
+}
+
+.bonus-points {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  min-width: 32px;
+  text-align: right;
+}
+
+.bonus-total {
+  margin-top: 6px;
+  text-align: right;
+  color: var(--pen-soft);
+}
+
+.endgame-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 16px 0 8px;
+  padding: 12px 16px;
+  background: rgba(255, 225, 105, 0.10);
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+}
+
+.big-total {
+  font-family: 'Caveat', cursive;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.endgame-notes {
+  margin-top: 10px;
+}
+
+.note {
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid var(--pen-soft);
+  padding: 6px 10px;
+  margin: 6px 0;
+  color: var(--pen-soft);
+  font-size: 0.9rem;
+}
+
+.endgame-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.play-again-btn {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.play-again-btn:hover {
+  filter: brightness(1.1);
+}
+
+.endgame-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.endgame-dismiss {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: 'Patrick Hand', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.endgame-dismiss:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--pen);
+}
+
+.endgame-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dismiss-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.dismiss-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--pen);
+}
+
+/* Floating chip when the score panel is dismissed */
+.endgame-chip {
+  position: fixed;
+  bottom: 20px;
+  right: 24px;
+  z-index: 50;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.endgame-chip strong {
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin: 0 4px;
+}
+
+.endgame-chip:hover {
+  filter: brightness(1.1);
+}

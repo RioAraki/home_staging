@@ -1,0 +1,18 @@
+.furniture-shape {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.shape-svg {
+  display: block;
+}
+
+.shape-name {
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.85rem;
+  color: var(--pen);
+  text-align: center;
+  max-width: 120px;
+}

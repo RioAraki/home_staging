@@ -1,0 +1,3499 @@
+scenarios:
+- id: training
+  title_zh: 训练任务：1 室 + 厨房 + 浴室
+  title_en: 'Training Scenario: 1 Room, Kitchen, Bathroom'
+  chapter_zh: —
+  difficulty: training
+  pages_in_book:
+  - 4
+  - 5
+  page_image: images/scenarios/page_03.png
+  rooms:
+  - slot: I
+    name_zh: 起居室
+    name_en: Living room
+    furniture_numbers:
+    - 2
+    - 15
+    - 19
+  - slot: II
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 5
+    - 7
+  - slot: III
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ................
+      .....IIIIII.....
+      .....IIIIII.....
+      .....IIIIII.....
+      .....IIIIII.....
+      .....IIIIII.....
+      .....IIIIII.....
+      .....IIIIII.....
+      ................
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 浴室完全装满（装齐 8、9、10）
+    text_en: Bathroom fully furnished (8, 9, 10)
+    points: 3
+    condition:
+      all_installed_in_room:
+        room_slot: III
+        furniture:
+        - 8
+        - 9
+        - 10
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 214
+      indoor: 42
+    cells_by_zone: {}
+    building_bbox:
+    - 4
+    - 5
+    - 11
+    - 11
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 3
+    bonus_points: 1
+- id: alpine_wellness_hut
+  title_zh: 阿尔卑斯疗养小屋
+  title_en: The Alpine Wellness Hut
+  chapter_zh: 高山疗养
+  difficulty: easy
+  pages_in_book:
+  - 8
+  - 9
+  page_image: images/scenarios/page_05.png
+  rooms:
+  - slot: I
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 4
+    - 7
+    - 20
+  - slot: II
+    name_zh: 通铺
+    name_en: Dormitory
+    furniture_numbers:
+    - 12
+    - 13
+  - slot: III
+    name_zh: 养生区
+    name_en: Wellness oasis
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+    - 11
+    - 18
+    - 21
+    - 31
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ..IIIIIIIIIIII..
+      ..IIIIIIIIIIII..
+      ..IIIIIIIIIIII..
+      ..IIIIIIIIIIII..
+      ..IIIIIIIIIIII..
+      .......IIIIIII..
+      .......IIIIIII..
+      .......IIIIIII..
+      .......IIIIIII..
+      .......IIIIIII..
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 每张家具卡都至少装了一份
+    text_en: At least 1 piece from every furniture card is placed
+    points: 5
+    condition:
+      at_least_one_per_card:
+        cards:
+        - 4
+        - 7
+        - 20
+        - 12
+        - 13
+        - 8
+        - 9
+        - 10
+        - 11
+        - 18
+        - 21
+        - 31
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 161
+      indoor: 95
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 2
+    - 13
+    - 14
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 3
+    bonus_points: 1
+- id: mountain_surgery
+  title_zh: 山中诊所
+  title_en: The Mountain Surgery
+  chapter_zh: 高山疗养
+  difficulty: easy
+  pages_in_book:
+  - 10
+  - 11
+  page_image: images/scenarios/page_06.png
+  rooms:
+  - slot: I
+    name_zh: 家用办公室
+    name_en: Home office
+    furniture_numbers:
+    - 16
+    - 18
+    - 21
+    - 24
+    - 31
+    - 32
+    - 33
+  - slot: II
+    name_zh: 候诊室
+    name_en: Waiting room
+    furniture_numbers:
+    - 1
+    - 19
+  - slot: III
+    name_zh: 前台
+    name_en: Reception
+    furniture_numbers:
+    - 3
+    - 17
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ...IIIIIIIII....
+      ...IIIIIIIII....
+      ...IIIIIIIII....
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ...IIIIIIIII....
+      ...IIIIIIIII....
+      ...IIIIIIIII....
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: no_carpet_on_porch
+      kind: drawing_constraint
+      text_zh: 前廊上不要铺地毯。
+      text_en: Do not place the carpet on the front porch.
+    scoring: []
+  bonus_points:
+  - text_zh: 家用办公室的所有家具都至少装了一份
+    text_en: Home-office furniture all installed at least once
+    points: 10
+    condition:
+      all_installed_in_room:
+        room_slot: I
+        furniture:
+        - 16
+        - 18
+        - 21
+        - 24
+        - 31
+        - 32
+        - 33
+  - text_zh: 候诊室至多 2 扇门且为方形
+    text_en: Waiting room has at most 2 doors and is square
+    points: 3
+    condition:
+      room_shape_square_and_max_doors:
+        room_slot: II
+        max_doors: 2
+  - text_zh: 前台有朝北的窗
+    text_en: Reception has a north-facing window
+    points: 3
+    condition:
+      room_has_window_facing:
+        room_slot: III
+        direction: N
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 175
+      indoor: 81
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 3
+    - 12
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 3
+    bonus_points: 3
+- id: castle_cafe
+  title_zh: 城堡咖啡馆
+  title_en: '"Castle Café"'
+  chapter_zh: 高山疗养
+  difficulty: easy
+  pages_in_book:
+  - 12
+  - 13
+  page_image: images/scenarios/page_07.png
+  rooms:
+  - slot: I
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 3
+    - 7
+  - slot: II
+    name_zh: 客用洗手间
+    name_en: Guest restroom
+    furniture_numbers:
+    - 8
+    - 9
+  - slot: III
+    name_zh: 用餐区
+    name_en: Dining area
+    furniture_numbers:
+    - 4
+    - 5
+    - 19
+    - 30
+  grid:
+    ascii: |
+      ................
+      ................
+      ..III......III..
+      ..III......III..
+      ..IIIIIIIIIIII..
+      ...IIIIIIIIII...
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊，所有房间直接与用餐区相连。
+      notes_en: No hallway; all rooms connect directly to the dining area.
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 用餐区至少 16 把椅子
+    text_en: Dining area has at least 16 chairs
+    points: 5
+    condition:
+      chairs_in_room_min:
+        room_slot: III
+        min: 16
+  - text_zh: 至少装 1 个马桶（8）和 1 个洗手台（9）
+    text_en: At least 1 toilet (8) and 1 sink (9) installed
+    points: 5
+    condition:
+      all_installed:
+        furniture:
+        - 8
+        - 9
+  - text_zh: 装了 2 个置物架（3）
+    text_en: 2 shelves (3) installed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 3
+        min: 2
+  - text_zh: 装了吧台（30）
+    text_en: Counter (30) installed
+    points: 5
+    condition:
+      count_installed:
+        furniture: 30
+        min: 1
+  - text_zh: 每张紧邻至少 1 株植物的桌子
+    text_en: Per table adjacent to at least one plant
+    points: 1
+    condition:
+      per_table_adjacent_to_plant: {}
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 158
+      indoor: 98
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 2
+    - 14
+    - 14
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 3
+    bonus_points: 5
+- id: rehearsal_room_old_barn
+  title_zh: 旧谷仓里的排练房
+  title_en: The Rehearsal Room in the Old Barn
+  chapter_zh: 奇幻迷
+  difficulty: easy
+  pages_in_book:
+  - 16
+  - 17
+  page_image: images/scenarios/page_09.png
+  rooms:
+  - slot: I
+    name_zh: 排练房
+    name_en: Rehearsal room
+    furniture_numbers:
+    - 7
+    - 15
+    - 17
+    - 20
+    - 21
+    - 27
+    - 28
+    - 29
+    - 33
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ....IIIIIIII....
+      ........IIII....
+      ........IIII....
+      ........IIII....
+      ........IIII....
+      ................
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors:
+    - cell:
+      - 11
+      - 9
+      edge: S
+      target: front_door
+      verify: true
+      notes_zh: 2 格宽门带（左半）
+      notes_en: 2-cell door zone (left half)
+    - cell:
+      - 11
+      - 10
+      edge: S
+      target: front_door
+      verify: true
+      notes_zh: 2 格宽门带（右半）
+      notes_en: 2-cell door zone (right half)
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: false
+      forced_cells:
+      - - 11
+        - 9
+      - - 11
+        - 10
+    drawing:
+    - id: door_zone_clear
+      kind: drawing_constraint
+      text_zh: 门带后面的 2 格必须保持空格（即 E 格的 open-space）。
+      text_en: The 2 squares behind the door zone must stay empty.
+    - id: instruments_orientation
+      kind: drawing_constraint
+      text_zh: 17 号乐器与 27 号麦克风必须按同样朝向绘制。
+      text_en: Instruments (17) and microphone (27) must be drawn the same way.
+    - id: no_furniture_on_carpet
+      kind: drawing_constraint
+      text_zh: 不要把家具压在地毯上。
+      text_en: Do not place furniture on the carpet.
+    scoring: []
+  bonus_points:
+  - text_zh: 每件乐器到麦克风（27）和音箱（28）都不超过 2 格
+    text_en: Each musical instrument ≤ 2 squares from mic (27) and amp (28)
+    points: 2
+    condition:
+      each_distance_at_most:
+        instrument: 17
+        targets:
+        - 27
+        - 28
+        max: 2
+  - text_zh: 装了地毯（33）
+    text_en: Carpet (33) placed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 33
+        min: 1
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 208
+      indoor: 48
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 4
+    - 11
+    - 12
+    pre_drawn_counts:
+      doors: 2
+      windows: 0
+      walls_interior: 0
+    rooms: 1
+    bonus_points: 2
+- id: game_store_old_town
+  title_zh: 老城里的桌游店
+  title_en: The Game Store in the Old Town
+  chapter_zh: 奇幻迷
+  difficulty: easy
+  pages_in_book:
+  - 18
+  - 19
+  page_image: images/scenarios/page_10.png
+  rooms:
+  - slot: I
+    name_zh: 卖场
+    name_en: Salesroom
+    furniture_numbers:
+    - 3
+    - 4
+    - 5
+    - 15
+    - 20
+    - 23
+    - 30
+    - 33
+  grid:
+    ascii: |
+      ................
+      ................
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIIII.....
+      ....IIIIII......
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows:
+    - cell:
+      - 3
+      - 3
+      edge: N
+      notes_zh: 大橱窗 — 沿北墙，柜台必须正对它
+      notes_en: Large shop window along the north wall — counter must face it
+      verify: true
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊。
+      notes_en: No hallway.
+    front_door:
+      on_exterior_wall_anywhere: false
+      forced_cells: []
+      notes_zh: 大门设在南侧，与橱窗相对；具体位置见户型。
+      notes_en: Front door on south wall opposite the shop window.
+    drawing:
+    - id: socket_constraint
+      kind: drawing_constraint
+      text_zh: 插座 S 必须被吧台（30）盖住，或位于其他家具下，或落在可走区。
+      text_en: Socket S must be covered by the counter (30), under another piece of furniture, or in a walkable area.
+    - id: customer_walk_zone
+      kind: drawing_constraint
+      text_zh: 吧台与橱窗之间必须留给顾客可走的区域。
+      text_en: Walkable customer area must remain between counter and shop window.
+    - id: no_furniture_on_carpet
+      kind: drawing_constraint
+      text_zh: 不要把家具压在地毯上。
+      text_en: Do not place furniture on the carpet.
+    scoring: []
+  bonus_points:
+  - text_zh: 摆了 5 个置物架（3）
+    text_en: 5 shelves (3) placed
+    points: 5
+    condition:
+      count_installed:
+        furniture: 3
+        min: 5
+  - text_zh: 吧台（30）覆盖了橱窗前的插座
+    text_en: Counter (30) covers the shop-window socket
+    points: 5
+    condition:
+      covers_marker:
+        furniture: 30
+        marker: socket_marker
+  - text_zh: 装了儿童玩具（23）
+    text_en: Children's toys (23) installed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 23
+        min: 1
+  - text_zh: 铺了地毯（33）
+    text_en: Carpet (33) placed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 33
+        min: 1
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 173
+      indoor: 83
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 4
+    - 14
+    - 11
+    pre_drawn_counts:
+      doors: 0
+      windows: 1
+      walls_interior: 0
+    rooms: 1
+    bonus_points: 4
+- id: beutlers_end
+  title_zh: Beutler 的归宿
+  title_en: Beutler's End
+  chapter_zh: 奇幻迷
+  difficulty: medium
+  pages_in_book:
+  - 20
+  - 21
+  page_image: images/scenarios/page_11.png
+  rooms:
+  - slot: I
+    name_zh: 男人窝
+    name_en: Mancave
+    furniture_numbers:
+    - 1
+    - 4
+    - 7
+    - 13
+    - 14
+    - 19
+    - 21
+    - 23
+    - 24
+    - 25
+    - 27
+    - 29
+    - 31
+  grid:
+    ascii: |
+      ................
+      ................
+      ..III.......I...
+      .IIIII.III.III..
+      .IIIIIIIIIIIIII.
+      .IIIIIIIII.III..
+      ..IIIIIII...I...
+      ...IIIIIII.II...
+      ..IIIIIIII..I...
+      .IIIIIIIII......
+      .IIIIIIIII......
+      .IIIII.III......
+      ..III...........
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones:
+    mancave:
+      room_slot: I
+      name_zh: 男人窝
+      name_en: Mancave
+    bathroom:
+      room_slot: null
+      name_zh: 浴室
+      name_en: Bathroom
+      connects_to:
+      - mancave
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊；男人窝只直接连到浴室。
+      notes_en: No hallway; mancave only connects directly to the bathroom.
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 多台电视（29）之间至少相距 6 格
+    text_en: TVs (29) are at least 6 squares apart
+    points: 5
+    condition:
+      pairwise_distance_min:
+        furniture: 29
+        min: 6
+  - text_zh: 小厨房（7）与大桌（4）相距不超 4 格
+    text_en: Small kitchen (7) and large table (4) ≤ 4 squares apart
+    points: 5
+    condition:
+      distance_at_most:
+        a: 7
+        b: 4
+        max: 4
+  - text_zh: 小床（13）与大冰箱（14）相距不超 4 格
+    text_en: Small bed (13) and large fridge (14) ≤ 4 squares apart
+    points: 5
+    condition:
+      distance_at_most:
+        a: 13
+        b: 14
+        max: 4
+  - text_zh: 沙发组（21）与壁炉（31）相距不超 4 格
+    text_en: Lounge (21) and fireplace (31) ≤ 4 squares apart
+    points: 5
+    condition:
+      distance_at_most:
+        a: 21
+        b: 31
+        max: 4
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 160
+      indoor: 96
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 1
+    - 13
+    - 15
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 1
+    bonus_points: 4
+- id: renovated_clubhouse
+  title_zh: 翻新过的俱乐部
+  title_en: The Renovated Clubhouse
+  chapter_zh: 俱乐部生活
+  difficulty: medium
+  pages_in_book:
+  - 24
+  - 25
+  page_image: images/scenarios/page_13.png
+  rooms:
+  - slot: I
+    name_zh: 俱乐部
+    name_en: Clubroom
+    furniture_numbers:
+    - 5
+    - 7
+    - 20
+    - 21
+    - 22
+    - 25
+    - 28
+    - 30
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊
+      notes_en: No hallway
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: fire_damage_x_marks
+      kind: setup_inter_player
+      text_zh: |
+        开局时，每位玩家在【左手玩家】的户型上画 10 个 X 交叉记号，代表火灾损坏。
+        所有 X 必须紧贴外墙；之后这些格子不能被覆盖。
+        其后，4/10 的 X 可以在翻开第一张家具卡前被「修复」（擦掉）。
+      text_en: |
+        At setup, each player draws 10 X marks (fire damage) on the floor plan of
+        the player to their left. All Xs must be adjacent to an exterior wall and
+        cannot be built over. After that, 4 of the 10 may be erased before the
+        first furniture card is revealed.
+      adds_cell_feature: charred
+    scoring: []
+  bonus_points:
+  - text_zh: 大门朝北
+    text_en: Front door faces north
+    points: 3
+    condition:
+      front_door_facing:
+        direction: N
+  - text_zh: 所有爱好装备（25）都装齐
+    text_en: All hobby equipment (25) installed
+    points: 5
+    condition:
+      all_variants_installed:
+        furniture: 25
+  - text_zh: 吧台（30）距大门不超 2 格
+    text_en: Counter (30) ≤ 2 squares from front door
+    points: 3
+    condition:
+      distance_to_front_door_at_most:
+        furniture: 30
+        max: 2
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 175
+      indoor: 81
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 4
+    - 12
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 1
+    bonus_points: 3
+- id: eccentric_small_animal_breeder
+  title_zh: 偏执的小动物饲养家
+  title_en: The Eccentric Small Animal Breeder
+  chapter_zh: 俱乐部生活
+  difficulty: medium
+  pages_in_book:
+  - 26
+  - 27
+  page_image: images/scenarios/page_14.png
+  rooms:
+  - slot: I
+    name_zh: 动物房
+    name_en: Animal room
+    furniture_numbers:
+    - 15
+    - 22
+    - 24
+    - 33
+  - slot: II
+    name_zh: 卧室
+    name_en: Bedroom
+    furniture_numbers:
+    - 13
+    - 14
+  - slot: III
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 11
+  - slot: IV
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 4
+    - 7
+    - 19
+    - 27
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ........IIIII...
+      ........IIIII...
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: three_markers_on_24
+      kind: setup
+      text_zh: 在 24 号家具（宠物用品）上放 3 枚标记盘。
+      text_en: Place 3 furniture markers on card 24 (pet supplies).
+    - id: no_furniture_on_carpet
+      kind: drawing_constraint
+      text_zh: 不要把家具压在地毯上。
+      text_en: Do not place furniture on the carpet.
+    scoring: []
+  bonus_points:
+  - text_zh: 宠物用品（24）安装 3 份
+    text_en: Pet supplies (24) installed 3 times
+    points: 5
+    condition:
+      count_installed:
+        furniture: 24
+        min: 3
+  - text_zh: 每个矩形房间
+    text_en: Per room with a rectangular floor plan
+    points: 3
+    condition:
+      per_rectangular_room: {}
+  - text_zh: 起居/餐厅有朝南的窗
+    text_en: Living/dining room has a south-facing window
+    points: 3
+    condition:
+      room_has_window_facing:
+        room_slot: IV
+        direction: S
+  - text_zh: 铺了地毯（33）
+    text_en: Carpet (33) placed
+    points: 4
+    condition:
+      count_installed:
+        furniture: 33
+        min: 1
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 166
+      indoor: 90
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 3
+    - 13
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 4
+    bonus_points: 4
+- id: tiny_houses
+  title_zh: 微型小屋
+  title_en: Tiny Houses
+  chapter_zh: 俱乐部生活
+  difficulty: medium
+  pages_in_book:
+  - 28
+  - 29
+  page_image: images/scenarios/page_15.png
+  rooms:
+  - slot: I
+    name_zh: 3 × 起居/餐厅
+    name_en: 3 × Living/dining
+    furniture_numbers:
+    - 5
+    - 7
+    - 12
+    - 19
+    - 20
+    - 21
+    - 29
+  - slot: II
+    name_zh: 3 × 浴室
+    name_en: 3 × Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      .IIIIII..IIIIII.
+      .IIIIII..IIIIII.
+      .IIIIII..IIIIII.
+      .III.....IIIIII.
+      .III........III.
+      .III............
+      .....IIIIII.....
+      .....IIIIII.....
+      .....IIIIII.....
+      .....IIIIIII....
+      ..........II....
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones:
+    tiny_house_a:
+      name_zh: 小屋甲
+      name_en: Tiny house A
+    tiny_house_b:
+      name_zh: 小屋乙
+      name_en: Tiny house B
+    tiny_house_c:
+      name_zh: 小屋丙
+      name_en: Tiny house C
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊；浴室直接连到起居/餐厅
+      notes_en: No hallway; bathroom connects directly to the living/dining room
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: identical_furnishing
+      kind: drawing_constraint
+      text_zh: 三栋小屋家具完全相同，不能压在彼此或外扩占地。每栋户型不同（手画），但占用方格分布必须一致。
+      text_en: All three tiny houses must be furnished identically; each has a different outline but the same occupied-square
+        pattern.
+    scoring: []
+  bonus_points:
+  - text_zh: 所有大门朝同一方向
+    text_en: All front doors point in the same direction
+    points: 5
+    condition:
+      all_front_doors_same_direction: {}
+  - text_zh: 三栋家具完全相同
+    text_en: The three houses are furnished identically
+    points: 5
+    condition:
+      all_zones_furnished_identically:
+        zones:
+        - tiny_house_a
+        - tiny_house_b
+        - tiny_house_c
+  - text_zh: 每栋里浴室（8）紧邻小厨房（7）
+    text_en: In each house, bathroom (8) adjacent to small kitchen (7)
+    points: 5
+    condition:
+      per_zone:
+        zones:
+        - tiny_house_a
+        - tiny_house_b
+        - tiny_house_c
+        require:
+          adjacent:
+            a: 8
+            b: 7
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 175
+      indoor: 81
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 1
+    - 14
+    - 15
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 2
+    bonus_points: 3
+- id: startup_tower
+  title_zh: 创业塔
+  title_en: Startup Tower
+  chapter_zh: 成功故事
+  difficulty: medium
+  pages_in_book:
+  - 32
+  - 33
+  page_image: images/scenarios/page_17.png
+  rooms:
+  - slot: I
+    name_zh: CEO 办公室
+    name_en: CEO office
+    furniture_numbers:
+    - 2
+    - 16
+  - slot: II
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+  - slot: III
+    name_zh: 会议室
+    name_en: Conference room
+    furniture_numbers:
+    - 4
+    - 7
+    - 19
+    - 29
+  - slot: IV
+    name_zh: 办公区
+    name_en: Office space
+    furniture_numbers:
+    - 17
+    - 24
+    - 26
+  grid:
+    ascii: |
+      ................
+      ................
+      .....IIIII...I..
+      ....IIIIIII..I..
+      ...IIIIIIIII....
+      ..IIIIIIIIIII...
+      ..IIIIIIIIIII...
+      ..IIIIIIIIIII...
+      ..IIIIIIIIIII...
+      ..IIIIIIIIIII...
+      ...IIIIIIIII....
+      ....IIIIIII..II.
+      .....IIIII......
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors:
+    - cell:
+      - 7
+      - 12
+      edge: E
+      target: front_door
+      notes_zh: 东侧楼梯入口
+      notes_en: East-side staircase entrance
+      verify: true
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊，所有房间都连到办公区
+      notes_en: No hallway all rooms connect to office space
+    front_door:
+      on_exterior_wall_anywhere: false
+      forced_cells:
+      - - 7
+        - 12
+      - - 8
+        - 12
+    drawing:
+    - id: load_bearing_walls
+      kind: layout_constraint
+      text_zh: 两堵承重墙不能被覆盖
+      text_en: Two load-bearing wall pillars cannot be built over
+    scoring: []
+  bonus_points:
+  - text_zh: 办公区有朝西的窗
+    text_en: Office space west-facing window
+    points: 5
+    condition:
+      room_has_window_facing:
+        room_slot: IV
+        direction: W
+  - text_zh: 办公区至少 5 张小办公桌（17）
+    text_en: At least 5 small desks (17) in office space
+    points: 5
+    condition:
+      count_installed_in_room:
+        room_slot: IV
+        furniture: 17
+        min: 5
+  - text_zh: CEO 办公室有能看到会议室的窗
+    text_en: CEO office has window facing conference room
+    points: 3
+    condition:
+      window_with_view:
+        from_room: I
+        to_room: III
+  - text_zh: 装了运动器材（26）
+    text_en: Sports device (26) installed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 26
+        min: 1
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 155
+      indoor: 101
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 2
+    - 13
+    - 15
+    pre_drawn_counts:
+      doors: 1
+      windows: 0
+      walls_interior: 0
+    rooms: 4
+    bonus_points: 4
+- id: state_of_the_art_villa
+  title_zh: 顶配私人别墅
+  title_en: The State-of-the-Art Villa
+  chapter_zh: 成功故事
+  difficulty: medium
+  pages_in_book:
+  - 34
+  - 35
+  page_image: images/scenarios/page_18.png
+  rooms:
+  - slot: I
+    name_zh: 家用办公室
+    name_en: Home office
+    furniture_numbers:
+    - 15
+    - 17
+  - slot: II
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 11
+    - 19
+  - slot: III
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 6
+    - 14
+  - slot: IV
+    name_zh: 客餐厅
+    name_en: Living/dining area
+    furniture_numbers:
+    - 4
+    - 20
+    - 26
+    - 29
+    - 32
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ................
+      ................
+      ................
+      .IIIII....IIIII.
+      .IIIII....IIIII.
+      .IIIII....IIIII.
+      .IIIIIIIIIIIIII.
+      .IIIIIIIIIIIIII.
+      .IIIIIIIIIIIIII.
+      .IIIIIIIIIIIIII.
+      .IIIIIIIIIIIIII.
+      .IIIIIIIIIIIIII.
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors:
+    - cell:
+      - 2
+      - 7
+      edge: N
+      target: front_door
+      notes_zh: 北侧入口走廊
+      notes_en: North entrance hallway
+      verify: true
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+      notes_zh: 走廊必须包含预设开放空间脊
+      notes_en: Hallway must include the marked open-space spine
+    front_door:
+      on_exterior_wall_anywhere: false
+      forced_cells:
+      - - 2
+        - 7
+      - - 3
+        - 7
+    drawing:
+    - id: tower_view_window
+      kind: drawing_constraint
+      text_zh: 家用办公室必须有一扇窗能从中看到那座塔
+      text_en: Home office must have a window with view of the tower
+    scoring: []
+  bonus_points:
+  - text_zh: 家用办公室有朝北的窗
+    text_en: Home office north-facing window
+    points: 3
+    condition:
+      room_has_window_facing:
+        room_slot: I
+        direction: N
+  - text_zh: 每个正方形的房间
+    text_en: Per room with a square footprint
+    points: 5
+    condition:
+      per_square_room: {}
+  - text_zh: 每个矩形（非正方）的房间
+    text_en: Per rectangular non-square room
+    points: 3
+    condition:
+      per_rectangular_non_square_room: {}
+  - text_zh: 安装了养生区（11）
+    text_en: Wellness area (11) installed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 11
+        min: 1
+  - text_zh: 展示了 2 件艺术品（32）
+    text_en: 2 pieces of art (32) displayed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 32
+        min: 2
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 142
+      indoor: 114
+    cells_by_zone: {}
+    building_bbox:
+    - 6
+    - 1
+    - 15
+    - 15
+    pre_drawn_counts:
+      doors: 1
+      windows: 0
+      walls_interior: 0
+    rooms: 4
+    bonus_points: 5
+- id: shared_apartment_good_connections
+  title_zh: 网速极佳的合租公寓
+  title_en: Shared Apartment with Good Connections
+  chapter_zh: 成功故事
+  difficulty: medium
+  pages_in_book:
+  - 36
+  - 37
+  page_image: images/scenarios/page_19.png
+  rooms:
+  - slot: I
+    name_zh: 房间 1
+    name_en: Room 1
+    furniture_numbers:
+    - 13
+    - 23
+  - slot: II
+    name_zh: 房间 2
+    name_en: Room 2
+    furniture_numbers:
+    - 3
+    - 13
+    - 17
+  - slot: III
+    name_zh: 房间 3
+    name_en: Room 3
+    furniture_numbers:
+    - 12
+    - 15
+  - slot: IV
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: V
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 4
+    - 7
+    - 29
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIIII..
+      ....IIIIIIIIII..
+      ....IIIIIIIIII..
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 房间 1 和房间 2 占用格数相同
+    text_en: Rooms 1 and 2 have same number of squares
+    points: 3
+    condition:
+      rooms_same_size:
+        room_slots:
+        - I
+        - II
+  - text_zh: 房间 3 比房间 1、2 都大
+    text_en: Room 3 bigger than rooms 1 and 2
+    points: 3
+    condition:
+      room_size_greater:
+        room_slot: III
+        than:
+        - I
+        - II
+  - text_zh: 每个矩形房间
+    text_en: Per rectangular room
+    points: 3
+    condition:
+      per_rectangular_room: {}
+  - text_zh: 房间 1、2、3 全部装满
+    text_en: Rooms 1
+    2 and 3 fully furnished: null
+    points: 8
+    condition:
+      rooms_fully_furnished:
+        room_slots:
+        - I
+        - II
+        - III
+  - text_zh: 房间 1、2、3 都不挨南侧外墙
+    text_en: Rooms 1
+    2 and 3 do not touch southern exterior wall: null
+    points: 5
+    condition:
+      rooms_not_touching_edge:
+        room_slots:
+        - I
+        - II
+        - III
+        edge: S
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 172
+      indoor: 84
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 4
+    - 12
+    - 14
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 5
+    bonus_points: 5
+- id: forgotten_railway_wagon
+  title_zh: 被遗忘的列车车厢
+  title_en: The Forgotten Railway Wagon
+  chapter_zh: 老工厂区
+  difficulty: hard
+  pages_in_book:
+  - 40
+  - 41
+  page_image: images/scenarios/page_21.png
+  rooms:
+  - slot: I
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: II
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 3
+    - 5
+    - 7
+    - 13
+    - 15
+    - 16
+    - 19
+    - 20
+    - 27
+    - 32
+  grid:
+    ascii: |
+      ................
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors:
+    - cell:
+      - 3
+      - 5
+      edge: W
+      target: front_door_candidate
+      verify: true
+    - cell:
+      - 3
+      - 8
+      edge: E
+      target: front_door_candidate
+      verify: true
+    - cell:
+      - 13
+      - 5
+      edge: W
+      target: front_door_candidate
+      verify: true
+    - cell:
+      - 13
+      - 8
+      edge: E
+      target: front_door_candidate
+      verify: true
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: false
+      forced_cells:
+      - - 3
+        - 5
+      - - 3
+        - 8
+      - - 13
+        - 5
+      - - 13
+        - 8
+    drawing:
+    - id: neighbor_walls
+      kind: setup_inter_player
+      text_zh: 开局时每位玩家在右手玩家的车厢上画 3 段墙，位置随意，可触碰外墙。
+      text_en: At setup each player draws 3 wall segments on right neighbor wagon any location even touching exterior wall.
+    scoring: []
+  bonus_points:
+  - text_zh: 两张小桌相距不超 2 格
+    text_en: Two small tables within 2 squares
+    points: 3
+    condition:
+      distance_at_most:
+        a: 5
+        b: 7
+        max: 2
+  - text_zh: 大床与大办公桌相距不超 3 格
+    text_en: Large bed and large desk within 3 squares
+    points: 3
+    condition:
+      distance_at_most:
+        a: 13
+        b: 16
+        max: 3
+  - text_zh: 长桌沿外墙摆
+    text_en: Long desk along exterior wall
+    points: 2
+    condition:
+      along_exterior_wall:
+        furniture: 16
+  - text_zh: 浴室呈矩形
+    text_en: Bathroom is rectangular
+    points: 3
+    condition:
+      room_shape_rectangular:
+        room_slot: I
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 200
+      indoor: 56
+    cells_by_zone: {}
+    building_bbox:
+    - 1
+    - 6
+    - 15
+    - 10
+    pre_drawn_counts:
+      doors: 4
+      windows: 0
+      walls_interior: 0
+    rooms: 2
+    bonus_points: 4
+- id: airy_loft
+  title_zh: 通透的 Loft
+  title_en: The Airy Loft
+  chapter_zh: 老工厂区
+  difficulty: hard
+  pages_in_book:
+  - 42
+  - 43
+  page_image: images/scenarios/page_22.png
+  rooms:
+  - slot: I
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 2
+    - 4
+    - 6
+    - 15
+    - 20
+    - 24
+    - 25
+    - 26
+    - 31
+    - 32
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ................
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIII....
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones:
+    living_dining:
+      room_slot: I
+      name_zh: 起居/餐厅
+      name_en: Living/dining room
+    bathroom:
+      room_slot: null
+      name_zh: 浴室
+      name_en: Bathroom
+      connects_to:
+      - living_dining
+  pre_drawn:
+    walls_interior: []
+    doors:
+    - cell:
+      - 11
+      - 7
+      edge: S
+      target: front_door
+      notes_zh: 南墙三角，强制大门位置
+      notes_en: South-wall triangle marks the front door location
+      verify: true
+    windows: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊；浴室直接连到起居/餐厅。
+      notes_en: No hallway; bathroom connects directly to the living/dining room.
+    front_door:
+      on_exterior_wall_anywhere: false
+      forced_cells:
+      - - 11
+        - 7
+    drawing:
+    - id: right_neighbour_columns
+      kind: setup_inter_player
+      text_zh: |
+        开局时，每位玩家在【右手玩家】的户型上画 3 根 1x1 立柱。
+        位置随意，但不能压到既有家具/自由空间；立柱本身之后也不能被覆盖。
+      text_en: |
+        At setup, each player draws 3 columns (1×1) onto the floor plan of
+        the player to their right. Columns may go anywhere except on
+        existing furniture / open-space cells, and may not be built over.
+      adds_cell_feature: column
+    scoring: []
+  bonus_points:
+  - text_zh: 大厨房（6）与大桌（4）相距不超 4 格
+    text_en: Big kitchen (6) and big table (4) ≤ 4 squares apart
+    points: 5
+    condition:
+      distance_at_most:
+        a: 6
+        b: 4
+        max: 4
+  - text_zh: 宠物配件（24）与小沙发（2）相距不超 4 格
+    text_en: Pet accessories (24) and small sofa (2) ≤ 4 squares apart
+    points: 5
+    condition:
+      distance_at_most:
+        a: 24
+        b: 2
+        max: 4
+  - text_zh: 展示了 3 件艺术品（32）
+    text_en: 3 pieces of art (32) displayed
+    points: 5
+    condition:
+      count_installed:
+        furniture: 32
+        min: 3
+  - text_zh: 装了壁炉（31）
+    text_en: Fireplace (31) installed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 31
+        min: 1
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 177
+      indoor: 79
+    cells_by_zone: {}
+    building_bbox:
+    - 4
+    - 3
+    - 12
+    - 13
+    pre_drawn_counts:
+      doors: 1
+      windows: 0
+      walls_interior: 0
+    rooms: 1
+    bonus_points: 4
+- id: cozy_beer_garden
+  title_zh: 惬意的啤酒花园
+  title_en: The Cozy Beer Garden
+  chapter_zh: 老工厂区
+  difficulty: hard
+  pages_in_book:
+  - 44
+  - 45
+  page_image: images/scenarios/page_23.png
+  rooms:
+  - slot: I
+    name_zh: 洗手间小屋
+    name_en: Toilet house
+    furniture_numbers:
+    - 8
+    - 9
+  - slot: II
+    name_zh: 厨房小屋
+    name_en: Kitchen house
+    furniture_numbers:
+    - 7
+  - slot: III
+    name_zh: 花园
+    name_en: Garden
+    furniture_numbers:
+    - 4
+    - 5
+    - 21
+    - 23
+    - 27
+  grid:
+    ascii: |
+      ................
+      ................
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊，小屋直接通向花园
+      notes_en: No hallway small houses connect directly to garden
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: neighbor_storage_2x2
+      kind: setup_inter_player
+      text_zh: 开局可在右手玩家户型任意位置画一个 2x2 储物间
+      text_en: At setup may draw a 2x2 storage on right neighbor floor plan at any location
+    - id: free_kitchen_house
+      kind: drawing_constraint
+      text_zh: 厨房小屋大小、位置随你画
+      text_en: Kitchen house can be drawn at any size and location
+    - id: free_toilet_house
+      kind: drawing_constraint
+      text_zh: 洗手间小屋大小、位置随你画
+      text_en: Toilet house can be drawn at any size and location
+    - id: four_entrance_doors
+      kind: drawing_constraint
+      text_zh: 任意时刻可以画 4 道入口门
+      text_en: 4 entrance doors may be drawn at any time
+    scoring: []
+  bonus_points:
+  - text_zh: 花园里至少 15 个座位
+    text_en: At least 15 seats in the garden
+    points: 5
+    condition:
+      seats_in_room_min:
+        room_slot: III
+        min: 15
+  - text_zh: 啤酒花园每个方向都能进入
+    text_en: Garden accessible from every direction
+    points: 3
+    condition:
+      front_doors_all_directions: {}
+  - text_zh: 乐器紧邻一棵树
+    text_en: Musical instrument adjacent to a tree
+    points: 3
+    condition:
+      adjacent_to_feature:
+        furniture: 27
+        feature: tree
+  - text_zh: 洗手间小屋不挨厨房小屋
+    text_en: Toilet house does not border kitchen house
+    points: 2
+    condition:
+      rooms_not_adjacent:
+        room_slots:
+        - I
+        - II
+  - text_zh: 每棵树至少 6 邻格被家具或自由空间环绕
+    text_en: Per tree surrounded on at least 6 neighbors
+    points: 2
+    condition:
+      tree_surrounded_min:
+        min_neighbors: 6
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 146
+      indoor: 110
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 3
+    - 13
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 3
+    bonus_points: 5
+- id: mysterious_aristocrat
+  title_zh: 神秘贵族
+  title_en: The Mysterious Aristocrat
+  chapter_zh: 海之呼唤
+  difficulty: hard
+  pages_in_book:
+  - 48
+  - 49
+  page_image: images/scenarios/page_25.png
+  rooms:
+  - slot: I
+    name_zh: 卧室
+    name_en: Bedroom
+    furniture_numbers:
+    - 13
+    - 17
+    - 20
+  - slot: II
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: III
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 4
+    - 15
+    - 31
+    - 32
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ................
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: secret_room
+      kind: drawing_constraint
+      text_zh: |
+        密室 2x2，通过 1 格宽、任意长度 ≥1、最多 1 次 90 度转弯的密道进入。
+        密道末端必须接到某个房间或走廊；末端是大镜柜（可决定向左/右滑）。
+        密室与密道都不能贴外墙，都不能放家具。
+        可在任意时刻分阶段画。
+      text_en: |
+        Secret room is 2x2, reached by a 1-cell-wide passage of any length >= 1
+        with at most one 90-degree turn. Passage must end in a room or hallway,
+        terminating in a large mirrored cabinet that slides left or right.
+        Neither the secret room nor the passage may touch an exterior wall or
+        contain furniture. May be drawn in stages at any time.
+      adds_zone:
+        id: secret_room
+        shape: 2x2
+      adds_zone_passage: true
+    scoring: []
+  bonus_points:
+  - text_zh: 每一格属于密道或密室的方格
+    text_en: Per square that is part of the secret passage or room
+    points: 2
+    condition:
+      count_cells_in_zone:
+        zone: secret_room_or_passage
+  - text_zh: 每展示一件艺术品
+    text_en: Per piece of art (32) displayed
+    points: 2
+    condition:
+      count_installed:
+        furniture: 32
+        min: 1
+        per_unit: true
+  - text_zh: 装了壁炉
+    text_en: Fireplace (31) installed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 31
+        min: 1
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 176
+      indoor: 80
+    cells_by_zone: {}
+    building_bbox:
+    - 4
+    - 3
+    - 12
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 3
+    bonus_points: 3
+- id: lonely_watchtower
+  title_zh: 孤独的瞭望塔
+  title_en: The Lonely Watchtower
+  chapter_zh: 海之呼唤
+  difficulty: hard
+  pages_in_book:
+  - 50
+  - 51
+  page_image: images/scenarios/page_26.png
+  rooms:
+  - slot: I
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: II
+    name_zh: 起居/餐厅
+    name_en: Living/dining area
+    furniture_numbers:
+    - 2
+    - 3
+    - 5
+    - 7
+    - 13
+    - 15
+    - 19
+    - 21
+    - 25
+    - 29
+    - 31
+  grid:
+    ascii: |
+      ...........II...
+      ..........IIIII.
+      ..........IIII..
+      ...........II...
+      .......III......
+      ......IIIII.....
+      ......IIIIII....
+      ......IIIII.....
+      .......III......
+      ..IIII..........
+      .IIIIII.........
+      .IIIIII.........
+      .IIIIIII........
+      .IIIIII.........
+      ..IIII..........
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones:
+    top_floor:
+      room_slot: II
+      name_zh: 顶层
+      name_en: Top floor
+      level: 3
+    upper_floor:
+      room_slot: II
+      name_zh: 上层
+      name_en: Upper floor
+      level: 2
+    ground_floor:
+      room_slot: II
+      name_zh: 底层
+      name_en: Ground floor
+      level: 1
+  pre_drawn:
+    walls_interior:
+    - - 12
+      - 1
+      - 12
+      - 2
+    - - 12
+      - 3
+      - 13
+      - 3
+    doors: []
+    windows:
+    - cell:
+      - 2
+      - 14
+      edge: E
+      notes: top floor east window
+      verify: true
+    - cell:
+      - 6
+      - 4
+      edge: W
+      notes: upper floor west window
+      verify: true
+    - cell:
+      - 10
+      - 1
+      edge: W
+      notes: ground floor west window
+      verify: true
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无内部隔断（除浴室外）。三层共同视作起居/餐厅。
+      notes_en: No interior partition walls (except the bathroom). All three floors are treated as one living/dining area.
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: external_staircase
+      kind: layout_constraint
+      text_zh: 三层之间没有内部楼梯，靠外部楼梯相连。每一层都是独立的连通区。
+      text_en: No interior staircase between floors; an external stair connects them. Each floor is its own connected region.
+    scoring: []
+  bonus_points:
+  - text_zh: 每层楼都有一台电视（29）
+    text_en: There is a television (29) on each floor
+    points: 5
+    condition:
+      per_zone:
+        zones:
+        - top_floor
+        - upper_floor
+        - ground_floor
+        require:
+          count_installed:
+            furniture: 29
+            min: 1
+  - text_zh: 小厨房（7）与小桌（5）在同一层
+    text_en: Small kitchen (7) and small table (5) are on the same floor
+    points: 5
+    condition:
+      same_zone:
+        a: 7
+        b: 5
+  - text_zh: 小床（13）与小衣柜（15）在同一层
+    text_en: Small bed (13) and small wardrobe (15) are on the same floor
+    points: 5
+    condition:
+      same_zone:
+        a: 13
+        b: 15
+  - text_zh: 小沙发（2）与壁炉（31）在同一层
+    text_en: Small sofa (2) and fireplace (31) are on the same floor
+    points: 5
+    condition:
+      same_zone:
+        a: 2
+        b: 31
+  - text_zh: 每个指定窗户前的自由空间格
+    text_en: Per open-space cell in front of a specified window
+    points: 2
+    condition:
+      per_open_space_in_front_of_preset_window: {}
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 188
+      indoor: 68
+    cells_by_zone: {}
+    building_bbox:
+    - 0
+    - 1
+    - 15
+    - 15
+    pre_drawn_counts:
+      doors: 0
+      windows: 3
+      walls_interior: 2
+    rooms: 2
+    bonus_points: 5
+- id: dreamy_yacht
+  title_zh: 梦幻游艇
+  title_en: The Dreamy Yacht
+  chapter_zh: 海之呼唤
+  difficulty: hard
+  pages_in_book:
+  - 52
+  - 53
+  page_image: images/scenarios/page_27.png
+  rooms:
+  - slot: I
+    name_zh: 船舱卧室
+    name_en: Berth
+    furniture_numbers:
+    - 13
+    - 15
+  - slot: II
+    name_zh: 厨房
+    name_en: Galley
+    furniture_numbers:
+    - 5
+    - 7
+  - slot: III
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: IV
+    name_zh: 客厅
+    name_en: Lounge
+    furniture_numbers:
+    - 1
+    - 4
+    - 14
+    - 19
+    - 29
+  grid:
+    ascii: |
+      ................
+      ...III..........
+      ..IIIII.........
+      ..IIIII.........
+      ..IIIII...III...
+      ..IIIII..IIIII..
+      ..IIIII...IIII..
+      ...IIII..IIIII..
+      ..IIIII..IIIII..
+      ..IIIII.........
+      ..IIIII.........
+      ..IIIII.........
+      ...III..........
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones:
+    lower_deck:
+      name_zh: 下甲板
+      name_en: Lower deck
+      level: 1
+    upper_deck:
+      name_zh: 上甲板
+      name_en: Upper deck
+      level: 2
+  pre_drawn:
+    doors: []
+    windows:
+    - cell:
+      - 4
+      - 4
+      edge: W
+      notes: hull window
+      verify: true
+    - cell:
+      - 6
+      - 3
+      edge: W
+      notes: hull window
+      verify: true
+    - cell:
+      - 8
+      - 3
+      edge: W
+      notes: hull window
+      verify: true
+    - cell:
+      - 4
+      - 9
+      edge: E
+      notes: hull window
+      verify: true
+    - cell:
+      - 6
+      - 11
+      edge: E
+      notes: hull window
+      verify: true
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊；所有房间在下甲板必须连通
+      notes_en: No hallway all lower-deck rooms must connect
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: board_up_window
+      kind: setup
+      text_zh: 开局时选 1 扇预设窗户，把它封死（在该窗上画 X），不再算作窗。
+      text_en: At setup choose 1 pre-marked window and board it up (draw X over it). It no longer counts as a window.
+    - id: berth_at_bow
+      kind: drawing_constraint
+      text_zh: 船舱卧室必须位于船头（户型图上半部）。
+      text_en: The berth must be at the bow (top of the floor plan).
+    - id: stairwell_S
+      kind: layout_constraint
+      text_zh: S 格是楼梯井，占 1 格、可走，是上下甲板唯一通道。
+      text_en: S marks the stairwell
+      a single walkable cell that is the only path between decks.: null
+    scoring: []
+  bonus_points:
+  - text_zh: 每个至少有 1 扇窗的房间
+    text_en: Per room with at least one window
+    points: 5
+    condition:
+      per_room_with_window: {}
+  - text_zh: 楼梯井 S 在船舱卧室里
+    text_en: Stairwell S is located in the berth
+    points: 5
+    condition:
+      feature_in_room:
+        feature: stairs_marker
+        room_slot: I
+  - text_zh: 大衣柜与大桌都在上甲板
+    text_en: Large wardrobe and large table on the upper deck
+    points: 5
+    condition:
+      all_in_zone:
+        furniture:
+        - 14
+        - 4
+        zone: upper_deck
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 179
+      indoor: 77
+    cells_by_zone: {}
+    building_bbox:
+    - 1
+    - 2
+    - 13
+    - 14
+    pre_drawn_counts:
+      doors: 0
+      windows: 5
+      walls_interior: 0
+    rooms: 4
+    bonus_points: 3
+- id: chaotic_kindergarten
+  title_zh: 喧闹的幼儿园
+  title_en: The Chaotic Kindergarten
+  chapter_zh: 沙坑情缘
+  difficulty: medium
+  pages_in_book:
+  - 56
+  - 57
+  page_image: images/scenarios/page_29.png
+  rooms:
+  - slot: I
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 4
+    - 6
+  - slot: II
+    name_zh: 活动室
+    name_en: Group room
+    furniture_numbers:
+    - 2
+    - 5
+    - 15
+    - 21
+    - 22
+    - 23
+    - 33
+  grid:
+    ascii: |
+      ................
+      ................
+      ........IIIII...
+      ........IIIII...
+      ........IIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIII........
+      ...IIIII........
+      ...IIIII........
+      ..........II....
+      ............II..
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: four_markers_on_23
+      kind: setup
+      text_zh: 在 23 号家具（儿童玩具）上放 4 枚标记盘。
+      text_en: Place 4 furniture markers on card 23 (children's toys).
+    - id: no_furniture_on_carpet
+      kind: drawing_constraint
+      text_zh: 不要把家具压在地毯上。
+      text_en: Do not place furniture on the carpet.
+    scoring: []
+  bonus_points:
+  - text_zh: 厨房有能看见树的窗
+    text_en: Kitchen has window with view of a tree
+    points: 5
+    condition:
+      window_with_view:
+        from_room: I
+        to: tree
+  - text_zh: 23 号家具两种变体都装齐
+    text_en: Both variants of children's toy (23) installed
+    points: 5
+    condition:
+      all_variants_installed:
+        furniture: 23
+  - text_zh: 铺了地毯
+    text_en: Carpet (33) placed
+    points: 5
+    condition:
+      count_installed:
+        furniture: 33
+        min: 1
+  - text_zh: 活动室里每件家具都至少装了一份
+    text_en: Every group-room furniture installed at least once
+    points: 5
+    condition:
+      all_installed_in_room:
+        room_slot: II
+        furniture:
+        - 2
+        - 5
+        - 15
+        - 21
+        - 22
+        - 23
+        - 33
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 172
+      indoor: 84
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 3
+    - 15
+    - 14
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 2
+    bonus_points: 4
+- id: photo_studio_freespace
+  title_zh: 自由空间摄影棚
+  title_en: Photo Studio "Freespace"
+  chapter_zh: 沙坑情缘
+  difficulty: medium
+  pages_in_book:
+  - 58
+  - 59
+  page_image: images/scenarios/page_30.png
+  rooms:
+  - slot: I
+    name_zh: 摄影棚
+    name_en: Photo studio
+    furniture_numbers:
+    - 1
+    - 3
+    - 7
+    - 17
+    - 20
+    - 23
+    - 24
+    - 26
+    - 27
+    - 32
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ................
+      .......IIII.....
+      .......IIII.....
+      ...IIIIIIII.....
+      ...IIIIIIII.....
+      ...IIIIIIII.....
+      ...IIIIIIII.....
+      ...IIIIIIII.....
+      ...IIIIIIII.....
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊
+      notes_en: No hallway
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: neighbor_free_spaces
+      kind: setup_inter_player
+      text_zh: 开局可在右手玩家户型任意位置画若干自由空间格
+      text_en: At setup may draw free-space cells at any locations on right neighbor floor plan
+    scoring: []
+  bonus_points:
+  - text_zh: 一条至少 3 格宽、连接两面外墙的连续开放通道
+    text_en: Open space ≥ 3 cells wide connecting two exterior walls
+    points: 3
+    condition:
+      open_corridor_connects_walls:
+        min_width: 3
+        walls: 2
+  - text_zh: 每一个紧邻内墙拐角的自由空间格
+    text_en: Per open-space cell adjacent to an interior wall corner
+    points: 3
+    condition:
+      per_open_space_at_interior_corner: {}
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 200
+      indoor: 56
+    cells_by_zone: {}
+    building_bbox:
+    - 4
+    - 3
+    - 12
+    - 11
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 1
+    bonus_points: 2
+- id: first_shared_apartment
+  title_zh: 第一间合租公寓
+  title_en: The First Shared Apartment
+  chapter_zh: 沙坑情缘
+  difficulty: medium
+  pages_in_book:
+  - 60
+  - 61
+  page_image: images/scenarios/page_31.png
+  rooms:
+  - slot: I
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 6
+    - 12
+  - slot: II
+    name_zh: 起居室
+    name_en: Living room
+    furniture_numbers:
+    - 1
+    - 3
+    - 19
+  - slot: III
+    name_zh: 餐厅
+    name_en: Dining room
+    furniture_numbers:
+    - 5
+    - 19
+  - slot: IV
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: V
+    name_zh: 卧室
+    name_en: Bedroom
+    furniture_numbers:
+    - 12
+    - 14
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      .......IIIIII...
+      .......IIIIII...
+      ................
+      ................
+      ....I......II...
+      ....I...........
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 餐厅有能看见树的窗
+    text_en: Dining room has window with view of a tree
+    points: 5
+    condition:
+      window_with_view:
+        from_room: III
+        to: tree
+  - text_zh: 卧室有能看见树的窗
+    text_en: Bedroom has window with view of a tree
+    points: 5
+    condition:
+      window_with_view:
+        from_room: V
+        to: tree
+  - text_zh: 厨房至少 15 格大
+    text_en: Kitchen ≥ 15 squares in size
+    points: 5
+    condition:
+      room_size_min:
+        room_slot: I
+        min: 15
+  - text_zh: 起居室里至少 4 格有植物
+    text_en: Living room has plants on at least 4 squares
+    points: 2
+    condition:
+      plants_in_room_min:
+        room_slot: II
+        min: 4
+  - text_zh: 浴室装满
+    text_en: Bathroom fully furnished (8
+    9: null
+    10): null
+    points: 5
+    condition:
+      all_installed_in_room:
+        room_slot: IV
+        furniture:
+        - 8
+        - 9
+        - 10
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 180
+      indoor: 76
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 3
+    - 15
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 5
+    bonus_points: 5
+- id: single_family_house_countryside
+  title_zh: 乡间独栋小屋
+  title_en: The Single-Family House in the Countryside
+  chapter_zh: 沙坑情缘
+  difficulty: medium
+  pages_in_book:
+  - 62
+  - 63
+  page_image: images/scenarios/page_32.png
+  rooms:
+  - slot: I
+    name_zh: 儿童房 1
+    name_en: Children's bedroom 1
+    furniture_numbers:
+    - 1
+    - 13
+    - 22
+  - slot: II
+    name_zh: 儿童房 2
+    name_en: Children's bedroom 2
+    furniture_numbers:
+    - 13
+    - 17
+    - 23
+  - slot: III
+    name_zh: 主卧
+    name_en: Bedroom
+    furniture_numbers:
+    - 12
+    - 15
+  - slot: IV
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: V
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 4
+    - 6
+    - 20
+    - 24
+  grid:
+    ascii: |
+      ................
+      ................
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...III....III...
+      ...III....III...
+      ...III....III...
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 儿童房 1 和 2 占用格数相同
+    text_en: Children's bedrooms 1 and 2 same size
+    points: 5
+    condition:
+      rooms_same_size:
+        room_slots:
+        - I
+        - II
+  - text_zh: 主卧有能看见树的窗
+    text_en: Bedroom has window with view of a tree
+    points: 5
+    condition:
+      window_with_view:
+        from_room: III
+        to: tree
+  - text_zh: 婴儿装备（22、23）装齐
+    text_en: Baby equipment (22
+    23) installed: null
+    points: 5
+    condition:
+      all_installed:
+        furniture:
+        - 22
+        - 23
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 168
+      indoor: 88
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 3
+    - 12
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 5
+    bonus_points: 3
+- id: enchanted_greenhouse
+  title_zh: 魔法温室
+  title_en: The Enchanted Greenhouse
+  chapter_zh: 沙坑情缘
+  difficulty: hard
+  pages_in_book:
+  - 64
+  - 65
+  page_image: images/scenarios/page_33.png
+  rooms:
+  - slot: I
+    name_zh: 温室
+    name_en: Greenhouse
+    furniture_numbers:
+    - 13
+    - 18
+    - 19
+    - 21
+    - 23
+    - 24
+    - 26
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ....IIIIIIIII...
+      ................
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊
+      notes_en: No hallway
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: plants_on_open_space
+      kind: drawing_constraint
+      text_zh: 植物（18、19）可以画在其他家具的自由空间格上，必须画成相连成片的「植物群」。其余开放空间规则照常。
+      text_en: Plants (18
+      ? 19) may also be drawn on other furniture open-space cells and must form connected colonies. Open-space rules apply
+        normally otherwise.
+      : null
+    - id: setup_special_install_order
+      kind: setup
+      text_zh: 儿童玩具（23）和宠物配件（24）必须先安装。开局玩家选其中之一，下家选另一。其余家具卡按常规继续。
+      text_en: Children's toys (23) and pet accessories (24) must be installed first. Starting player picks one
+      next player picks the other. Then remaining furniture cards continue as normal.: null
+    - id: setup_neighbor_water
+      kind: setup_inter_player
+      text_zh: 开局可在右手玩家户型上画若干水管接口，被植物连接才会得分。
+      text_en: At setup may draw water connections on right neighbor floor plan; only counted if connected by plants.
+    scoring: []
+  bonus_points:
+  - text_zh: 每片植物群（被植物连接的水管接口）
+    text_en: Per water connection built upon by a plant (plant colony)
+    points: 3
+    condition:
+      count_plant_colonies_on_water_connection:
+        plants:
+        - 18
+        - 19
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 184
+      indoor: 72
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 4
+    - 11
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 1
+    bonus_points: 1
+- id: angled_attic_apartment
+  title_zh: 错层阁楼公寓
+  title_en: The Angled Attic Apartment
+  chapter_zh: 沙坑情缘
+  difficulty: hard
+  pages_in_book:
+  - 66
+  - 67
+  page_image: images/scenarios/page_34.png
+  rooms:
+  - slot: I
+    name_zh: 阳台
+    name_en: Balcony
+    furniture_numbers:
+    - 5
+    - 19
+    - 21
+  - slot: II
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 7
+    - 15
+  - slot: III
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 2
+    - 4
+    - 15
+    - 20
+    - 29
+    - 31
+    - 32
+  - slot: IV
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+  - slot: V
+    name_zh: 卧室
+    name_en: Bedroom
+    furniture_numbers:
+    - 3
+    - 12
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ................
+      ..IIIIII........
+      ..IIIIIIIIIIII..
+      ..IIIIIIIIIIII..
+      ..IIIIIIIIIIII..
+      ..IIIIIIIIIIII..
+      ......IIII......
+      ......IIII......
+      ......IIII......
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 无走廊；其余所有房间都只连到起居/餐厅
+      notes_en: No hallway all other rooms connect only to the living-dining room
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing:
+    - id: low_ceiling_no_walkway
+      kind: layout_constraint
+      text_zh: 低天花板区域（Z 格）可放家具，但不能作为通行路径。
+      text_en: Low-ceiling cells (Z) may hold furniture but cannot be used as a walking path.
+    - id: balcony_railing
+      kind: layout_constraint
+      text_zh: 阳台被视作一个房间，含小阳台栏杆（R 格，位置见户型）。
+      text_en: The balcony is treated as a room with a small railing (R cells at marked positions).
+    scoring: []
+  bonus_points:
+  - text_zh: 摆好小阳台栏杆
+    text_en: Small balcony railing placed
+    points: 2
+    condition:
+      count_cells_with_feature:
+        feature: balcony_railing
+        min: 1
+  - text_zh: 装了壁炉
+    text_en: Fireplace (31) installed
+    points: 5
+    condition:
+      count_installed:
+        furniture: 31
+        min: 1
+  - text_zh: 展示了 2 件艺术品
+    text_en: 2 pieces of art (32) displayed
+    points: 3
+    condition:
+      count_installed:
+        furniture: 32
+        min: 2
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 190
+      indoor: 66
+    cells_by_zone: {}
+    building_bbox:
+    - 4
+    - 2
+    - 12
+    - 14
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 5
+    bonus_points: 3
+- id: lake_house
+  title_zh: 湖畔小屋
+  title_en: The Lake House
+  chapter_zh: 沙坑情缘
+  difficulty: hard
+  pages_in_book:
+  - 68
+  - 69
+  page_image: images/scenarios/page_35.png
+  rooms:
+  - slot: I
+    name_zh: 起居/餐厅
+    name_en: Living/dining room
+    furniture_numbers:
+    - 1
+    - 4
+    - 6
+    - 15
+    - 19
+    - 32
+  - slot: II
+    name_zh: 主卧
+    name_en: Bedroom
+    furniture_numbers:
+    - 12
+    - 15
+  - slot: III
+    name_zh: 客房 I
+    name_en: Guest room I
+    furniture_numbers:
+    - 20
+    - 21
+    - 23
+  - slot: IV
+    name_zh: 客房 II
+    name_en: Guest room II
+    furniture_numbers:
+    - 13
+    - 22
+  - slot: V
+    name_zh: 浴室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+    - 11
+  grid:
+    ascii: |
+      ................
+      ................
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ...IIIIIIIIII...
+      ......IIII......
+      ......IIII......
+      ................
+      ................
+      ................
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones: {}
+  pre_drawn:
+    doors: []
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: true
+    front_door:
+      on_exterior_wall_anywhere: true
+      forced_cells: []
+    drawing: []
+    scoring: []
+  bonus_points:
+  - text_zh: 起居/餐厅有能看见湖的窗
+    text_en: Living/dining room has window with view of the lake
+    points: 3
+    condition:
+      window_with_view:
+        from_room: I
+        to: lake
+  - text_zh: 起居/餐厅至少 35 格大
+    text_en: Living/dining room ≥ 35 squares
+    points: 3
+    condition:
+      room_size_min:
+        room_slot: I
+        min: 35
+  - text_zh: 每展示一件艺术品
+    text_en: Per piece of art (32) displayed
+    points: 2
+    condition:
+      count_installed:
+        furniture: 32
+        min: 1
+        per_unit: true
+  - text_zh: 每个有 1 格紧邻浴室的主卧/客房
+    text_en: Per bedroom/guest room with at least 1 square adjacent to bathroom
+    points: 3
+    condition:
+      per_room_adjacent_to_room:
+        room_slots:
+        - II
+        - III
+        - IV
+        adjacent_to: V
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 168
+      indoor: 88
+    cells_by_zone: {}
+    building_bbox:
+    - 2
+    - 3
+    - 12
+    - 13
+    pre_drawn_counts:
+      doors: 0
+      windows: 0
+      walls_interior: 0
+    rooms: 5
+    bonus_points: 4
+- id: essen_spiel_2023
+  title_zh: 拓广场景：2023 埃森桌游展
+  title_en: 'Bonus: 2023 Essen Spiel (workshop content)'
+  chapter_zh: 工坊附赠
+  difficulty: medium
+  pages_in_book: []
+  page_image: images/cards/bonus_scenario_floorplan.jpg
+  rooms:
+  - slot: I
+    name_zh: 游戏室
+    name_en: Game room
+    furniture_numbers:
+    - 1
+    - 4
+    - 19
+    - 20
+  - slot: II
+    name_zh: 起居室
+    name_en: Living room
+    furniture_numbers:
+    - 1
+    - 7
+    - 19
+    - 22
+    - 30
+  - slot: III
+    name_zh: 厨房
+    name_en: Kitchen
+    furniture_numbers:
+    - 5
+    - 6
+    - 19
+  - slot: IV
+    name_zh: 卧室
+    name_en: Bedroom
+    furniture_numbers:
+    - 12
+    - 17
+    - 19
+    - 31
+  - slot: V
+    name_zh: 盥洗室
+    name_en: Bathroom
+    furniture_numbers:
+    - 8
+    - 9
+    - 10
+    - 11
+  grid:
+    ascii: |
+      ................
+      ................
+      ................
+      ...........IIIII
+      .........IIIIIII
+      .........IIIIIII
+      .......IIIIIIIII
+      ......IIIIIIIIII
+      .......IIIIIIIII
+      .......IIIIIIIII
+      .......IIIIIIIII
+      .......IIIIIIIII
+      .......IIIIIIIII
+      ..........II..II
+      ...........I....
+      ................
+    legend:
+      .:
+        terrain: outdoor
+      I:
+        terrain: indoor
+    verify: true
+  zones:
+    storage:
+      room_slot: null
+      name_zh: 储藏室
+      name_en: Storage room
+      notes_zh: 可吸收不想放入主房间的家具；储藏室里的家具不计房间得分，但满足"已安装"条件。
+      notes_en: Absorbs furniture you don't want in the main rooms not counted for room scoring but satisfies the installed
+        condition.
+  pre_drawn:
+    doors:
+    - cell:
+      - 5
+      - 2
+      edge: W
+      target: front_door_candidate
+      notes_zh: 西入口
+      notes_en: West entrance
+      verify: true
+    - cell:
+      - 13
+      - 7
+      edge: S
+      target: front_door_candidate
+      notes_zh: 南入口
+      notes_en: South entrance
+      verify: true
+    windows: []
+    walls_interior: []
+  rules:
+    hallway:
+      required: false
+      notes_zh: 走廊规则放宽；房间可互相直连
+      notes_en: Hallway rule relaxed rooms may interconnect
+    front_door:
+      on_exterior_wall_anywhere: false
+      forced_cells:
+      - - 5
+        - 2
+      - - 13
+        - 7
+    drawing:
+    - id: predetermined_furniture
+      kind: drawing_constraint
+      text_zh: 此场景所有家具位置预先指定。对镜像对称家具，两种摆法里只算其中一种。
+      text_en: All furniture positions in this scenario are predetermined. For mirror-symmetric pieces only one of the two
+        valid placements counts.
+    - id: storage_room_overflow
+      kind: drawing_constraint
+      text_zh: 储藏室可吸收不放进 5 间主房间的家具，也可额外画家具。
+      text_en: Storage room absorbs furniture not placed in the 5 main rooms and may also hold extra furniture.
+    scoring: []
+  bonus_points:
+  - text_zh: 每一扇门（含大门）
+    text_en: Per door (including the front door)
+    points: 1
+    condition:
+      count_doors: {}
+  stats:
+    cells_total: 256
+    cells_by_terrain:
+      outdoor: 168
+      indoor: 88
+    cells_by_zone: {}
+    building_bbox:
+    - 3
+    - 6
+    - 15
+    - 16
+    pre_drawn_counts:
+      doors: 2
+      windows: 0
+      walls_interior: 0
+    rooms: 5
+    bonus_points: 1

@@ -1,0 +1,40 @@
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.undo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+}
+
+.undo-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--pen);
+}
+
+.undo-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.undo-count {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--pen-soft);
+}

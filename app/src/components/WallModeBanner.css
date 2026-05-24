@@ -1,0 +1,93 @@
+.wall-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  background: rgba(255, 225, 105, 0.08);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.wall-banner-text {
+  flex: 1;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.95rem;
+}
+
+.wall-banner-text strong {
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: var(--accent);
+}
+
+.wall-banner-stats {
+  display: flex;
+  gap: 10px;
+  color: var(--pen-soft);
+  font-size: 0.9rem;
+}
+
+.wall-banner-stats .door-stat {
+  color: var(--accent);
+}
+
+.wall-banner-stats .bad-stat {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.wall-banner-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.phase-next-btn,
+.confirm-room-btn {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.phase-next-btn:hover:not(:disabled),
+.confirm-room-btn:hover {
+  filter: brightness(1.1);
+}
+
+.phase-next-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.phase-back-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen-soft);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: 'Patrick Hand', sans-serif;
+  cursor: pointer;
+}
+
+.phase-back-btn:hover {
+  color: var(--pen);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.wall-banner-error {
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(255, 123, 123, 0.15);
+  color: var(--danger);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}

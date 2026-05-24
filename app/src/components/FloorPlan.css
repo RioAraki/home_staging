@@ -1,0 +1,66 @@
+.floor-plan-wrap {
+  display: inline-block;
+  padding: 12px;
+}
+
+.floor-plan {
+  display: block;
+}
+
+/* Translucent paper feeling on top of the navy bg */
+.paper-bg {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+/* Light cyan gridlines */
+.floor-plan .gridlines line {
+  stroke: var(--gridline);
+  stroke-width: 0.6;
+  opacity: 0.55;
+}
+
+/* Column/row labels in handwritten font, soft white */
+.floor-plan .col-labels text,
+.floor-plan .row-labels text {
+  fill: var(--pen-soft);
+  font-family: 'Caveat', cursive;
+  font-size: 14px;
+  font-weight: 700;
+  user-select: none;
+}
+
+/* Indoor cell fill (very faint, just enough to show the room) */
+.floor-plan .indoor {
+  fill: rgba(255, 255, 255, 0.10);
+}
+
+/* Exterior wall — thick, white, sketchy */
+.floor-plan .exterior-walls line {
+  stroke: var(--pen);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* Player-drawn walls (during wall-drawing mode) */
+.floor-plan .player-walls line.wall {
+  stroke: var(--pen);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+/* Dangling walls — drawn but not connected at both ends */
+.floor-plan .player-walls line.wall.dangling {
+  stroke: var(--danger);
+  stroke-dasharray: 5 3;
+}
+
+/* Doors are drawn as a "gap" — thicker yellow strokes with shortened ends */
+.floor-plan .player-walls line.door {
+  stroke: var(--accent);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 4 3;
+}

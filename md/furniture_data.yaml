@@ -1,0 +1,1658 @@
+# Verplant & Zugestellt — furniture card mechanical data
+# ======================================================
+#
+# This file digitises the shape on every furniture card in machine-readable
+# form. It is the structured companion to FURNITURE.md and the per-card images
+# under images/cards/furniture/.
+#
+# Coordinate system
+# -----------------
+# Each option's shape lives in its own minimal bounding box. Cells are written
+# as [row, col], 0-indexed, with (0, 0) at the top-left of the bounding box as
+# the card draws it. `bbox: [H, W]` is the bounding box size.
+#
+# Per option fields
+# -----------------
+#   option_index   : 1..3, the option's position on the card (top → bottom).
+#   name_zh        : the Chinese name printed on the card.
+#   name_en        : best-effort English handle (cross-referenced with scenarios).
+#   bbox           : [rows, cols] of the bounding box.
+#   shape          : cells the furniture itself occupies (count for scoring).
+#   open_spaces    : cells that must remain walkable at end of game.
+#   wall_edges     : list of bbox edges that must abut a wall (top/right/bottom/left).
+#                    Empty list = no wall requirement.
+#   printed_markers: number of furniture markers printed on the card face.
+#                    (Default 0; non-zero means more than one piece must be installed.)
+#   notes          : free-text caveats / verification flags.
+#
+# Verification status
+# -------------------
+# Shapes were transcribed by visual inspection of the workshop assets in
+# `images/cards/furniture/`. Where a shape is ambiguous in the photo, the
+# option carries `verify: true` and a note. Sanity-check before relying on the
+# data for engine logic.
+
+cards:
+
+  # ─────────────────────────────────────────── #01 长沙发 / Long sofa ─────
+  - number: 1
+    variant: A
+    image: images/cards/furniture/01_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "长沙发"
+        name_en: "Long sofa"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+      - option_index: 2
+        name_zh: "围坐在温暖的灯光下"
+        name_en: "Seating with warm lamp"
+        bbox: [3, 3]
+        shape: [[0,1],[0,2],[1,2],[2,2]]
+        open_spaces: [[1,1],[2,0],[2,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "Armchair at (0,1) + integrated lamp at (0,2) + 2-seat sofa down right column. Lamp icon counts as occupied."
+        verify: true
+
+  - number: 1
+    variant: B
+    image: images/cards/furniture/01_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有植物的沙发"
+        name_en: "Sofa with plant"
+        bbox: [3, 4]
+        shape: [[0,0],[0,1],[0,2],[1,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[2,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "3-seat sofa across the top + plant on the right; open-space tail extends down at col 1."
+        verify: true
+      - option_index: 2
+        name_zh: "转角沙发"
+        name_en: "Corner sofa"
+        bbox: [3, 3]
+        shape: [[0,2],[1,2],[2,0],[2,1],[2,2]]
+        open_spaces: [[0,0],[0,1],[1,0],[1,1]]
+        wall_edges: [right, bottom]
+        printed_markers: 0
+        notes: ""
+
+  # ─────────────────────────────────────────── #02 小沙发 / Small sofa ─────
+  - number: 2
+    variant: A
+    image: images/cards/furniture/02_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "折叠转角沙发"
+        name_en: "Folding corner sofa"
+        bbox: [3, 3]
+        shape: [[0,1],[0,2],[1,2],[2,2]]
+        open_spaces: [[1,0],[1,1],[2,0],[2,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: ""
+      - option_index: 2
+        name_zh: "折叠沙发"
+        name_en: "Folding sofa"
+        bbox: [2, 2]
+        shape: [[0,0],[0,1]]
+        open_spaces: [[1,0],[1,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+
+  - number: 2
+    variant: B
+    image: images/cards/furniture/02_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "围坐在一起"
+        name_en: "Gathered seating"
+        bbox: [3, 3]
+        shape: [[0,1],[1,2],[2,2]]
+        open_spaces: [[1,0],[1,1],[2,0],[2,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "Armchair at (0,1) + 2-seat sofa down the right column."
+        verify: true
+      - option_index: 2
+        name_zh: "带有植物的沙发"
+        name_en: "Small sofa with plant"
+        bbox: [3, 2]
+        shape: [[0,0],[0,1],[2,1]]
+        open_spaces: [[1,0],[1,1],[2,0]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Small 2-seat sofa across top + a plant cell at bottom-right."
+        verify: true
+
+  # ─────────────────────────────────────────── #03 置物架 / Shelf ─────
+  - number: 3
+    variant: A
+    image: images/cards/furniture/03_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "陈列架"
+        name_en: "Display shelf"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+      - option_index: 2
+        name_zh: "游戏架"
+        name_en: "Game cabinet"
+        bbox: [2, 2]
+        shape: [[1,0],[1,1]]
+        open_spaces: [[0,0],[0,1]]
+        wall_edges: [bottom]
+        printed_markers: 0
+        notes: "Storage cabinet (horizontal stripes) at the bottom; access from above."
+
+  - number: 3
+    variant: B
+    image: images/cards/furniture/03_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "书架"
+        name_en: "Bookshelf"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+      - option_index: 2
+        name_zh: "转角书架"
+        name_en: "Corner bookshelf"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3],[1,3]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "Horizontal shelf across the top + vertical shelf hanging down the right column."
+        verify: true
+
+  # ─────────────────────────────────────────── #04 大型桌子 / Large table ─────
+  - number: 4
+    variant: A
+    image: images/cards/furniture/04_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "游戏桌"
+        name_en: "Game table"
+        bbox: [3, 2]
+        shape: [[1,0],[1,1]]
+        open_spaces: [[0,0],[0,1],[2,0],[2,1]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "2-cell table in the middle; chairs (drawn as circles) sit in the 4 open spaces above and below."
+      - option_index: 2
+        name_zh: "带有酒吧圆凳的高桌子"
+        name_en: "High table with bar stools"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Long bar across the top with 4 stools projecting into the row below."
+
+  - number: 4
+    variant: B
+    image: images/cards/furniture/04_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "餐桌"
+        name_en: "Dining table"
+        bbox: [3, 3]
+        shape: [[1,1],[1,2]]
+        open_spaces: [[0,1],[0,2],[1,0],[2,1],[2,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "2-cell table with 5 chairs: 1 left + 2 above + 2 below. Corners (0,0)/(2,0) outside the option."
+        verify: true
+      - option_index: 2
+        name_zh: "厨房餐桌"
+        name_en: "Kitchen dining table"
+        bbox: [2, 4]
+        shape: [[0,1],[0,2]]
+        open_spaces: [[0,0],[0,3],[1,1],[1,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "2-cell table with 4 chairs: 1 left + 1 right + 2 below."
+
+  # ─────────────────────────────────────────── #05 小型桌子 / Small table ─────
+  - number: 5
+    variant: A
+    image: images/cards/furniture/05_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有植物的小桌子"
+        name_en: "Small table with plant"
+        bbox: [2, 3]
+        shape: [[0,1],[1,1]]
+        open_spaces: [[0,0],[0,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "1-cell table at top with plant directly below; 2 chairs flanking the table left/right."
+      - option_index: 2
+        name_zh: "转角小桌子"
+        name_en: "Corner small table"
+        bbox: [2, 2]
+        shape: [[0,1]]
+        open_spaces: [[0,0],[1,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "Single-cell corner table; 2 chairs diagonally (left of table and below-right)."
+
+  - number: 5
+    variant: B
+    image: images/cards/furniture/05_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "小桌子"
+        name_en: "Small table"
+        bbox: [2, 3]
+        shape: [[0,1]]
+        open_spaces: [[0,0],[0,2],[1,0],[1,1],[1,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "1-cell table with 2 chairs on the sides + 3 open cells below."
+      - option_index: 2
+        name_zh: "带灯的转角小桌子"
+        name_en: "Corner small table with lamp"
+        bbox: [2, 3]
+        shape: [[0,1],[0,2]]
+        open_spaces: [[0,0],[1,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "Table at (0,1) + lamp at (0,2) treated as occupied (consistent with #01_A option 2)."
+        verify: true
+
+  # ─────────────────────────────────────────── #06 大型厨房 / Big kitchen ─────
+  - number: 6
+    variant: A
+    image: images/cards/furniture/06_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "U型厨房设备"
+        name_en: "U-shaped kitchen"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,2]]
+        open_spaces: [[1,1],[2,1]]
+        wall_edges: [top, left, right]
+        printed_markers: 0
+        notes: "U with stove on top-right cell and sink-decorated cell in the right column; opening faces down."
+        verify: true
+      - option_index: 2
+        name_zh: "分隔灶台"
+        name_en: "Split-counter kitchen"
+        bbox: [3, 3]
+        shape: [[0,1],[0,2],[1,0],[2,0],[2,2]]
+        open_spaces: [[1,1],[1,2],[2,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Sink counter top-right; cabinet column down left; separate stove cell bottom-right. Hand-read; please verify."
+        verify: true
+
+  - number: 6
+    variant: B
+    image: images/cards/furniture/06_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "转角厨房设备"
+        name_en: "Corner kitchen"
+        bbox: [4, 3]
+        shape: [[0,0],[0,1],[0,2],[1,0],[2,0],[3,0]]
+        open_spaces: [[1,1],[1,2],[2,1],[2,2],[3,1],[3,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "L-shape: top row (sink on right) + left column down with stove and cabinet."
+        verify: true
+      - option_index: 2
+        name_zh: "一体式长厨房设备"
+        name_en: "Integrated long kitchen"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Inline counter with sink + stove + cabinet across one row; open space below."
+
+  # ─────────────────────────────────────────── #07 小型厨房 / Small kitchen ─────
+  - number: 7
+    variant: A
+    image: images/cards/furniture/07_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "一体式转角厨房设备"
+        name_en: "Integrated corner kitchen"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[1,0]]
+        open_spaces: [[0,2],[1,1],[1,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Small L: sink top-left + stove top-middle + cabinet column down."
+      - option_index: 2
+        name_zh: "一体式小厨房设备"
+        name_en: "Integrated small kitchen"
+        bbox: [2, 2]
+        shape: [[0,0],[1,0]]
+        open_spaces: [[0,1],[1,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Single 2-cell counter column on left with open space alongside."
+
+  - number: 7
+    variant: B
+    image: images/cards/furniture/07_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有独立灶台的一体式厨房设备"
+        name_en: "Kitchen with separate stove"
+        bbox: [2, 3]
+        shape: [[0,0],[1,2]]
+        open_spaces: [[0,1],[0,2],[1,0],[1,1]]
+        wall_edges: [top, bottom]
+        printed_markers: 0
+        notes: "Two disconnected counter cells: sink top-left + stove bottom-right (diagonal)."
+        verify: true
+      - option_index: 2
+        name_zh: "一体式直线厨房设备"
+        name_en: "Integrated straight kitchen"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Straight kitchen counter with sink + stove across one row."
+
+  # ─────────────────────────────────────────── #08 马桶 / Toilet ─────
+  - number: 8
+    variant: A
+    image: images/cards/furniture/08_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "马桶"
+        name_en: "Toilet"
+        bbox: [1, 2]
+        shape: [[0,1]]
+        open_spaces: [[0,0]]
+        wall_edges: [right]
+        printed_markers: 0
+        notes: ""
+      - option_index: 2
+        name_zh: "带有植物的马桶"
+        name_en: "Toilet with plant"
+        bbox: [2, 2]
+        shape: [[0,1],[1,1]]
+        open_spaces: [[0,0],[1,0]]
+        wall_edges: [right]
+        printed_markers: 0
+        notes: "Plant above the toilet, single column on the right."
+
+  - number: 8
+    variant: B
+    image: images/cards/furniture/08_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有洗手设备的马桶"
+        name_en: "Toilet with sink"
+        bbox: [2, 2]
+        shape: [[0,1],[1,0],[1,1]]
+        open_spaces: [[0,0]]
+        wall_edges: [top, right, bottom]
+        printed_markers: 0
+        notes: "L: sink at top-right + toilet at bottom-left + small connector cell at bottom-right."
+        verify: true
+      - option_index: 2
+        name_zh: "带有置物架的马桶"
+        name_en: "Toilet with shelf"
+        bbox: [3, 1]
+        shape: [[0,0],[2,0]]
+        open_spaces: [[1,0]]
+        wall_edges: [left, right]
+        printed_markers: 0
+        notes: "Vertical column: shelf at top + 1 cell open + toilet at bottom."
+
+  # ─────────────────────────────────────────── #09 洗手台 / Sink ─────
+  - number: 9
+    variant: A
+    image: images/cards/furniture/09_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有置物架的洗漱池"
+        name_en: "Sink with shelf"
+        bbox: [2, 2]
+        shape: [[0,0],[1,0]]
+        open_spaces: [[0,1]]
+        wall_edges: [left]
+        printed_markers: 0
+        notes: "Vertical column: sink on top + shelf below. Access from the right of the sink."
+      - option_index: 2
+        name_zh: "并排洗手池"
+        name_en: "Side-by-side sinks"
+        bbox: [2, 2]
+        shape: [[0,0],[0,1]]
+        open_spaces: [[1,0],[1,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+
+  - number: 9
+    variant: B
+    image: images/cards/furniture/09_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有烘干器的洗漱池"
+        name_en: "Sink with hand dryer"
+        bbox: [3, 3]
+        shape: [[0,0],[0,2]]
+        open_spaces: [[0,1],[1,1],[2,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Sink top-left, hand-dryer top-right; open-space T extending down the middle column."
+        verify: true
+      - option_index: 2
+        name_zh: "独立洗漱池"
+        name_en: "Standalone sink"
+        bbox: [2, 1]
+        shape: [[0,0]]
+        open_spaces: [[1,0]]
+        wall_edges: [top, left, right]
+        printed_markers: 0
+        notes: "Standalone single-cell sink, walls on 3 sides."
+
+  # ─────────────────────────────────────────── #10 淋浴 / 浴缸 / Shower / Bathtub ─────
+  - number: 10
+    variant: A
+    image: images/cards/furniture/10_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "浴缸"
+        name_en: "Bathtub"
+        bbox: [2, 2]
+        shape: [[0,0],[0,1]]
+        open_spaces: [[1,0],[1,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Horizontal 2-cell bathtub with open space below."
+      - option_index: 2
+        name_zh: "淋浴"
+        name_en: "Shower"
+        bbox: [2, 1]
+        shape: [[0,0]]
+        open_spaces: [[1,0]]
+        wall_edges: [top, left, right]
+        printed_markers: 0
+        notes: "Single-cell shower stall, walls on 3 sides."
+
+  - number: 10
+    variant: B
+    image: images/cards/furniture/10_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有浴帘的浴缸"
+        name_en: "Bathtub with shower curtain"
+        bbox: [2, 2]
+        shape: [[0,0],[1,1]]
+        open_spaces: [[0,1],[1,0]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Vertical bathtub at (0,0) + adjacent curtained shower extension at (1,1)."
+        verify: true
+      - option_index: 2
+        name_zh: "漩涡浴缸"
+        name_en: "Whirlpool / Jacuzzi"
+        bbox: [2, 2]
+        shape: [[0,0],[0,1]]
+        open_spaces: [[1,0],[1,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Large jacuzzi-style tub spanning 2 cells with open space below."
+        verify: true
+
+  # ─────────────────────────────────────────── #11 桑拿房 / Wellness ─────
+  - number: 11
+    variant: A
+    image: images/cards/furniture/11_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "桑拿设备"
+        name_en: "Sauna"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[1,0],[1,1]]
+        open_spaces: [[1,2],[2,1],[2,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "2×2 sauna chamber in the top-left; L-shape open access from the bottom-right."
+        verify: true
+      - option_index: 2
+        name_zh: "按摩浴缸"
+        name_en: "Massage tub / whirlpool"
+        bbox: [3, 2]
+        shape: [[0,0],[0,1],[1,0],[1,1]]
+        open_spaces: [[2,0],[2,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "2×2 jacuzzi tub with 2 cells of open access below."
+        verify: true
+
+  - number: 11
+    variant: B
+    image: images/cards/furniture/11_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "转角桑拿设备"
+        name_en: "Corner sauna"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[0,2],[1,0],[2,0]]
+        open_spaces: [[1,1],[1,2],[2,1],[2,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "L-shape sauna (top + left); open 2×2 in the bottom-right corner."
+      - option_index: 2
+        name_zh: "长浴缸"
+        name_en: "Long bathtub"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2],[2,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "3-cell long tub across top with an extra open-space cell hanging down at col 1."
+        verify: true
+
+  # ─────────────────────────────────────────── #12 大型床 / Large bed ─────
+  - number: 12
+    variant: A
+    image: images/cards/furniture/12_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有储物柜的两张床"
+        name_en: "Two beds with storage cabinets"
+        bbox: [3, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3]]
+        open_spaces: [[2,0],[2,1],[2,2],[2,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "2 vertical 2-cell beds with storage cabinets in cols 0 and 3, and beds in cols 1 and 2. Open row below."
+        verify: true
+      - option_index: 2
+        name_zh: "双人床"
+        name_en: "Double bed"
+        bbox: [3, 2]
+        shape: [[0,0],[0,1],[1,0],[1,1]]
+        open_spaces: [[2,0],[2,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "2×2 bed (pillows in row 0, mattress in row 1); open access from below."
+
+  - number: 12
+    variant: B
+    image: images/cards/furniture/12_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有床头柜的双人床"
+        name_en: "Double bed with nightstands"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[0,2],[1,1]]
+        open_spaces: [[1,0],[1,2],[2,0],[2,1],[2,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Top row: nightstand + pillow + nightstand; bed body at (1,1); open below."
+        verify: true
+      - option_index: 2
+        name_zh: "分开的两张床"
+        name_en: "Two separate beds"
+        bbox: [3, 3]
+        shape: [[0,0],[0,2],[1,0],[1,2]]
+        open_spaces: [[0,1],[1,1],[2,0],[2,1],[2,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Two vertical 2-cell beds in cols 0 and 2; aisle of open spaces between and below."
+
+  # ─────────────────────────────────────────── #13 小型床 / Small bed ─────
+  - number: 13
+    variant: A
+    image: images/cards/furniture/13_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "双层床"
+        name_en: "Bunk bed"
+        bbox: [2, 3]
+        shape: [[0,2],[1,1],[1,2]]
+        open_spaces: [[0,0],[0,1],[1,0]]
+        wall_edges: [right]
+        printed_markers: 0
+        notes: "Vertical 2-cell bunk bed on the right + ladder cell at (1,1)."
+      - option_index: 2
+        name_zh: "单人床"
+        name_en: "Single bed"
+        bbox: [2, 2]
+        shape: [[0,1],[1,1]]
+        open_spaces: [[0,0],[1,0]]
+        wall_edges: [right]
+        printed_markers: 0
+        notes: "Vertical 2-cell single bed; access from the left."
+
+  - number: 13
+    variant: B
+    image: images/cards/furniture/13_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有灯的单人床"
+        name_en: "Single bed with lamp"
+        bbox: [3, 2]
+        shape: [[0,0],[1,0],[2,0]]
+        open_spaces: [[1,1],[2,1]]
+        wall_edges: [left]
+        printed_markers: 0
+        notes: "Lamp at top + 2-cell bed below in left column; open access on the right (rows 1-2)."
+        verify: true
+      - option_index: 2
+        name_zh: "从床尾进入的单人床"
+        name_en: "Single bed entered from the foot"
+        bbox: [3, 1]
+        shape: [[0,0],[1,0]]
+        open_spaces: [[2,0]]
+        wall_edges: [top, left, right]
+        printed_markers: 0
+        notes: "Vertical 1-cell-wide bed flanked by walls on 3 sides; foot end open."
+
+  # ─────────────────────────────────────────── #14 大型橱柜 / Large wardrobe ─────
+  - number: 14
+    variant: A
+    image: images/cards/furniture/14_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "五斗橱"
+        name_en: "Chest of drawers"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+      - option_index: 2
+        name_zh: "一体式壁橱"
+        name_en: "Built-in wardrobe"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+
+  - number: 14
+    variant: B
+    image: images/cards/furniture/14_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有灯的五斗橱"
+        name_en: "Chest of drawers with lamp"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "3-cell dresser + 1-cell lamp on the right; only 3 cells of open space below the dresser."
+        verify: true
+      - option_index: 2
+        name_zh: "一体式转角壁橱"
+        name_en: "Built-in corner wardrobe"
+        bbox: [3, 4]
+        shape: [[0,1],[0,2],[0,3],[1,0],[2,0]]
+        open_spaces: [[1,1],[1,2],[1,3],[2,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "L-shape: top row right has horizontal wardrobe; left col has vertical wardrobe."
+        verify: true
+
+  # ─────────────────────────────────────────── #15 小型橱柜 / Small wardrobe ─────
+  - number: 15
+    variant: A
+    image: images/cards/furniture/15_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "小五斗橱"
+        name_en: "Small chest of drawers"
+        bbox: [2, 2]
+        shape: [[0,0],[0,1]]
+        open_spaces: [[1,0],[1,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: ""
+      - option_index: 2
+        name_zh: "转角橱柜"
+        name_en: "Corner cabinet"
+        bbox: [2, 2]
+        shape: [[0,0],[1,0],[1,1]]
+        open_spaces: [[0,1]]
+        wall_edges: [top, left, bottom]
+        printed_markers: 0
+        notes: "L-shape (3 cells) cabinet wrapping a corner; open access at top-right."
+        verify: true
+
+  - number: 15
+    variant: B
+    image: images/cards/furniture/15_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有灯的小五斗橱"
+        name_en: "Small chest of drawers with lamp"
+        bbox: [2, 3]
+        shape: [[0,0],[1,0],[1,2]]
+        open_spaces: [[0,1],[1,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "2-cell vertical dresser on left + separated lamp cell at bottom-right."
+        verify: true
+      - option_index: 2
+        name_zh: "带有植物的小橱柜"
+        name_en: "Small cabinet with plant"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "2-cell cabinet on top + plant cell on right; open row below."
+
+  # ─────────────────────────────────────────── #16 大型办公桌 / Large desk ─────
+  - number: 16
+    variant: A
+    image: images/cards/furniture/16_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有文件柜的办公桌"
+        name_en: "Desk with file cabinet"
+        bbox: [3, 3]
+        shape: [[1,1],[2,0],[2,1]]
+        open_spaces: [[0,0],[0,1],[0,2],[1,0],[1,2]]
+        wall_edges: [bottom]
+        printed_markers: 0
+        notes: "Desk at (1,1) + 2-cell file cabinet across bottom (2,0)(2,1). Chairs above on left/right."
+        verify: true
+      - option_index: 2
+        name_zh: "带有两个座位的长办公桌"
+        name_en: "Long desk with two seats"
+        bbox: [2, 5]
+        shape: [[1,1],[1,2],[1,3]]
+        open_spaces: [[0,0],[0,1],[0,2],[0,3],[0,4],[1,4]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "3-cell desk in row 1, cols 1-3. Chairs at (0,0) and (1,4)."
+        verify: true
+
+  - number: 16
+    variant: B
+    image: images/cards/furniture/16_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "转角办公桌"
+        name_en: "Corner desk"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[1,0],[2,0]]
+        open_spaces: [[1,1],[1,2],[2,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "L-shape desk: horizontal arm at top + vertical arm down left. Chair at (2,1)."
+        verify: true
+      - option_index: 2
+        name_zh: "带有书架的办公桌"
+        name_en: "Desk with bookshelf"
+        bbox: [2, 4]
+        shape: [[0,1],[1,1],[0,3],[1,3]]
+        open_spaces: [[0,0],[1,0],[0,2],[1,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Vertical 2-cell desk at col 1 + vertical 2-cell bookshelf at col 3. Chair between at (1,2)."
+        verify: true
+
+  # ─────────────────────────────────────────── #17 小办公桌 / Small desk ─────
+  - number: 17
+    variant: A
+    image: images/cards/furniture/17_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "小办公桌"
+        name_en: "Small desk"
+        bbox: [2, 2]
+        shape: [[0,1],[1,1]]
+        open_spaces: [[0,0],[1,0]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "Vertical 2-cell desk on the right; chair on the left."
+      - option_index: 2
+        name_zh: "转角小办公桌"
+        name_en: "Corner small desk"
+        bbox: [2, 3]
+        shape: [[0,1],[1,2]]
+        open_spaces: [[0,2],[1,0],[1,1]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Offset L-shape: desk pieces at top-middle and bottom-right with chair between."
+        verify: true
+
+  - number: 17
+    variant: B
+    image: images/cards/furniture/17_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "长办公桌"
+        name_en: "Long desk"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "3-cell long desk across the top, chair in middle below."
+      - option_index: 2
+        name_zh: "办公桌"
+        name_en: "Office desk"
+        bbox: [3, 3]
+        shape: [[0,1],[0,2],[1,2]]
+        open_spaces: [[1,0],[1,1],[2,0],[2,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "L-shape desk in top-right corner; chair at (1,1)."
+        verify: true
+
+  # ─────────────────────────────────────────── #18 大型植物 / Large plant ─────
+  - number: 18
+    variant: A
+    image: images/cards/furniture/18_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "棕榈树"
+        name_en: "Palm tree"
+        bbox: [2, 2]
+        shape: [[0,0]]
+        open_spaces: [[0,1],[1,0],[1,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Single-cell plant in corner; leaves overflow decoratively beyond the cell."
+      - option_index: 2
+        name_zh: "龟背竹"
+        name_en: "Monstera"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Row of 3 plant cells (central one with pot, others showing leaves)."
+        verify: true
+
+  - number: 18
+    variant: B
+    image: images/cards/furniture/18_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "橡胶树"
+        name_en: "Rubber tree"
+        bbox: [2, 3]
+        shape: [[0,1],[1,1]]
+        open_spaces: [[0,0],[0,2],[1,0],[1,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Tall plant occupying 2 vertical cells in the middle column."
+        verify: true
+      - option_index: 2
+        name_zh: "仙人掌"
+        name_en: "Cactus"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[0,3],[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Row of 3 cacti across the top-left; (0,3) is unused space within the bbox."
+        verify: true
+
+  # ─────────────────────────────────────────── #19 小型植物 / Small plant ─────
+  - number: 19
+    variant: A
+    image: images/cards/furniture/19_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "玫瑰"
+        name_en: "Rose"
+        bbox: [2, 2]
+        shape: [[0,0],[1,0],[1,1]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "L-shape colony of 3 rose plants; no open-space requirement on plant cells."
+        verify: true
+      - option_index: 2
+        name_zh: "郁金香"
+        name_en: "Tulip"
+        bbox: [2, 2]
+        shape: [[0,0],[1,1]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "Two tulips at diagonal cells; corners (0,1)/(1,0) are unused."
+        verify: true
+
+  - number: 19
+    variant: B
+    image: images/cards/furniture/19_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "吊兰"
+        name_en: "Spider plant"
+        bbox: [1, 1]
+        shape: [[0,0]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "Single-cell plant."
+      - option_index: 2
+        name_zh: "金钱树"
+        name_en: "Money tree"
+        bbox: [1, 2]
+        shape: [[0,0],[0,1]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "2-cell horizontal plant colony."
+
+  # ─────────────────────────────────────────── #20 沙发组 / Seating group ─────
+  - number: 20
+    variant: A
+    image: images/cards/furniture/20_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "落地钟"
+        name_en: "Floor / grandfather clock"
+        bbox: [2, 2]
+        shape: [[0,0]]
+        open_spaces: [[1,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Single-cell clock at top-left with a separated open-access cell diagonally at (1,1)."
+        verify: true
+      - option_index: 2
+        name_zh: "两个陈列柜"
+        name_en: "Two display cabinets"
+        bbox: [1, 4]
+        shape: [[0,0],[0,3]]
+        open_spaces: [[0,1],[0,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Two cabinets at the ends with 2 cells of open space between."
+
+  - number: 20
+    variant: B
+    image: images/cards/furniture/20_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "扶手椅"
+        name_en: "Armchair"
+        bbox: [2, 1]
+        shape: [[1,0]]
+        open_spaces: [[0,0]]
+        wall_edges: [bottom, left, right]
+        printed_markers: 0
+        notes: "Single-cell armchair with open space above (facing direction)."
+      - option_index: 2
+        name_zh: "衣帽架"
+        name_en: "Coat rack / wardrobe rack"
+        bbox: [2, 2]
+        shape: [[0,0],[1,0]]
+        open_spaces: [[0,1],[1,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Vertical 2-cell coat rack on the left; open access on the right."
+
+  # ─────────────────────────────────────────── #21 转角家具 / Corner / lounge ─────
+  - number: 21
+    variant: A
+    image: images/cards/furniture/21_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有植物的长椅"
+        name_en: "Long bench with plants"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Plant + 2-cell bench + plant across top; 2 cells of open below the bench."
+      - option_index: 2
+        name_zh: "带有灯的贵妃椅"
+        name_en: "Chaise lounge with lamp"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[2,0]]
+        open_spaces: [[1,0],[1,1],[1,2],[2,1],[2,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Horizontal 2-cell chaise lounge at top + separate lamp cell at bottom-left."
+        verify: true
+
+  - number: 21
+    variant: B
+    image: images/cards/furniture/21_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "吊床"
+        name_en: "Hammock"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "3-cell hammock suspended between endpoints."
+      - option_index: 2
+        name_zh: "沙滩躺椅"
+        name_en: "Beach chair / sun lounger"
+        bbox: [3, 3]
+        shape: [[0,0],[1,1],[1,2]]
+        open_spaces: [[0,1],[0,2],[1,0],[2,0],[2,1],[2,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Backrest at (0,0) + 2-cell horizontal seat at (1,1)(1,2)."
+        verify: true
+
+  # ─────────────────────────────────────────── #22 婴儿装备 / Baby equipment ─────
+  - number: 22
+    variant: A
+    image: images/cards/furniture/22_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有垃圾桶的婴儿尿布台"
+        name_en: "Diaper changing table with trash can"
+        bbox: [3, 3]
+        shape: [[0,2],[1,2],[2,2]]
+        open_spaces: [[1,0],[1,1],[2,0],[2,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "Vertical 3-cell column on the right (trash can on top + changing table below); 2×2 access on the left."
+        verify: true
+      - option_index: 2
+        name_zh: "爬行垫"
+        name_en: "Crawling mat"
+        bbox: [2, 2]
+        shape: [[1,0]]
+        open_spaces: [[0,0],[0,1],[1,1]]
+        wall_edges: [bottom, left]
+        printed_markers: 0
+        notes: "Single-cell decorated crawling mat in the bottom-left corner."
+        verify: true
+
+  - number: 22
+    variant: B
+    image: images/cards/furniture/22_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "婴儿床"
+        name_en: "Crib / baby bed"
+        bbox: [3, 3]
+        shape: [[1,0],[1,1]]
+        open_spaces: [[0,1],[2,1]]
+        wall_edges: [left]
+        printed_markers: 0
+        notes: "2-cell crib in middle row + open cells above and below for crib access."
+        verify: true
+      - option_index: 2
+        name_zh: "带有枕头的抱毯"
+        name_en: "Blanket with pillows"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[1,0],[1,1]]
+        open_spaces: [[0,2],[1,2],[2,1],[2,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "2×2 blanket-with-pillows area top-left + L-shape access on bottom-right."
+        verify: true
+
+  # ─────────────────────────────────────────── #23 儿童玩具 / Children's toy ─────
+  - number: 23
+    variant: A
+    image: images/cards/furniture/23_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "玩具火车"
+        name_en: "Toy train"
+        bbox: [2, 2]
+        shape: [[0,0]]
+        open_spaces: [[0,1],[1,0]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Single cell train-track piece with L-shape open access on right and below."
+        verify: true
+      - option_index: 2
+        name_zh: "攀爬架"
+        name_en: "Climbing frame"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[0,2],[1,0],[1,2]]
+        open_spaces: [[1,1],[2,0],[2,1],[2,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "U-shape climbing frame with ladder on the left and slide on the right; bottom row open."
+        verify: true
+
+  - number: 23
+    variant: B
+    image: images/cards/furniture/23_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "蹦床"
+        name_en: "Trampoline"
+        bbox: [2, 3]
+        shape: [[0,1],[1,1]]
+        open_spaces: [[1,0],[1,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Round trampoline spanning the middle column; landing spaces flank it left/right at row 1."
+        verify: true
+      - option_index: 2
+        name_zh: "滑梯"
+        name_en: "Slide"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[1,0],[2,0]]
+        open_spaces: [[0,2],[1,1],[1,2],[2,1]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Platform top-left + slide extending right at (0,1); ladder going down the left column."
+        verify: true
+
+  # ─────────────────────────────────────────── #24 小动物饲养设备 / Pet supplies ─────
+  - number: 24
+    variant: A
+    image: images/cards/furniture/24_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有地毯的狗屋"
+        name_en: "Dog house with carpet"
+        bbox: [2, 3]
+        shape: [[0,0],[0,2],[1,0],[1,1]]
+        open_spaces: [[0,1],[1,2]]
+        wall_edges: [bottom]
+        printed_markers: 0
+        notes: "Two small wall posts at top + 2-cell carpeted dog bed below (with bone icon)."
+        verify: true
+      - option_index: 2
+        name_zh: "猫爬架"
+        name_en: "Cat tree"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[0,3],[1,0],[1,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Cat tunnels at (0,0)(0,1) + paw-printed cat platform at (0,2); open spaces below and to the right."
+        verify: true
+
+  - number: 24
+    variant: B
+    image: images/cards/furniture/24_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "两个育养箱"
+        name_en: "Two terrariums"
+        bbox: [2, 5]
+        shape: [[0,0],[1,0],[0,4],[1,4]]
+        open_spaces: [[1,1],[1,2],[1,3]]
+        wall_edges: [left, right]
+        printed_markers: 0
+        notes: "Two vertical 2-cell terrariums (snake + turtle) at the ends with 3 cells of open between."
+        verify: true
+      - option_index: 2
+        name_zh: "鱼缸"
+        name_en: "Fish tank"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Long 4-cell fish tank with open access below."
+
+  # ─────────────────────────────────────────── #25 爱好装备 / Hobby equipment ─────
+  - number: 25
+    variant: A
+    image: images/cards/furniture/25_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "象棋桌"
+        name_en: "Chess table"
+        bbox: [1, 5]
+        shape: [[0,2]]
+        open_spaces: [[0,1],[0,3]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Single-cell chessboard with chairs (open spaces) on either side; (0,0)/(0,4) outside option."
+      - option_index: 2
+        name_zh: "高尔夫垫"
+        name_en: "Golf mat"
+        bbox: [3, 3]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2],[2,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "3-cell horizontal mat with golf cup on the left; staircase open-space pattern below."
+        verify: true
+
+  - number: 25
+    variant: B
+    image: images/cards/furniture/25_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "工作台"
+        name_en: "Workbench"
+        bbox: [2, 3]
+        shape: [[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "2-cell workbench with hammer icon; open row below. (0,0) outside option."
+      - option_index: 2
+        name_zh: "带有织物储存区的缝纫机"
+        name_en: "Sewing machine with fabric storage"
+        bbox: [3, 3]
+        shape: [[0,1],[1,0],[2,0],[2,1]]
+        open_spaces: [[1,1],[1,2],[2,2]]
+        wall_edges: [left, bottom]
+        printed_markers: 0
+        notes: "L-shape: fabric storage at (0,1) + sewing machine column down left + fabric roll bottom."
+        verify: true
+
+  # ─────────────────────────────────────────── #26 运动器材 / Sports device ─────
+  - number: 26
+    variant: A
+    image: images/cards/furniture/26_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "跑步机和单车"
+        name_en: "Treadmill and bike"
+        bbox: [2, 4]
+        shape: [[0,0],[0,2],[0,3]]
+        open_spaces: [[0,1],[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Treadmill at (0,0) + 2-cell stationary bike at (0,2)(0,3); open access below + 1 gap cell between."
+        verify: true
+      - option_index: 2
+        name_zh: "划船机"
+        name_en: "Rowing machine"
+        bbox: [3, 3]
+        shape: [[1,1],[1,2]]
+        open_spaces: [[0,1],[0,2],[2,1],[2,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Centered 2-cell rowing machine with open spaces above and below; (?,0) col outside option."
+        verify: true
+
+  - number: 26
+    variant: B
+    image: images/cards/furniture/26_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "乒乓球台"
+        name_en: "Ping pong table"
+        bbox: [2, 4]
+        shape: [[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "2-cell ping pong table in middle of top row; (0,0)/(0,3) outside option."
+      - option_index: 2
+        name_zh: "镖靶"
+        name_en: "Dart board"
+        bbox: [1, 4]
+        shape: [[0,3]]
+        open_spaces: [[0,0],[0,1],[0,2]]
+        wall_edges: [right]
+        printed_markers: 0
+        notes: "Dart board against right wall with 3-cell throwing alley to its left."
+
+  # ─────────────────────────────────────────── #27 乐器 / Musical instrument ─────
+  - number: 27
+    variant: A
+    image: images/cards/furniture/27_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "带有灯的钢琴"
+        name_en: "Piano with lamp"
+        bbox: [2, 4]
+        shape: [[0,2],[0,3],[1,2],[1,3]]
+        open_spaces: [[0,0],[0,1],[1,0],[1,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "2×2 grand piano on the right (rounded body) + lamp integrated; 2×2 open access on the left."
+        verify: true
+      - option_index: 2
+        name_zh: "架子鼓"
+        name_en: "Drum set"
+        bbox: [3, 3]
+        shape: [[1,1],[2,0],[2,1],[2,2]]
+        open_spaces: [[0,0],[0,1],[0,2],[1,0],[1,2]]
+        wall_edges: [bottom]
+        printed_markers: 0
+        notes: "Snare/cymbal at (1,1) + 3 drums across the bottom row."
+        verify: true
+
+  - number: 27
+    variant: B
+    image: images/cards/furniture/27_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "吉他和麦克风"
+        name_en: "Guitar and microphone"
+        bbox: [2, 3]
+        shape: [[0,1],[0,2],[1,0],[1,1]]
+        open_spaces: [[0,0],[1,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Top: small amp at (0,1) + guitar at (0,2). Bottom: guitar at (1,0) + mic at (1,1)."
+        verify: true
+      - option_index: 2
+        name_zh: "竖琴"
+        name_en: "Harp"
+        bbox: [2, 3]
+        shape: [[0,1],[0,2],[1,2]]
+        open_spaces: [[0,0],[1,0],[1,1]]
+        wall_edges: [top, right]
+        printed_markers: 0
+        notes: "L-shape harp: top bar (0,1)(0,2) + body at (1,2)."
+        verify: true
+
+  # ─────────────────────────────────────────── #28 音箱 / Amp / sound system ─────
+  - number: 28
+    variant: A
+    image: images/cards/furniture/28_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "大型音响设备"
+        name_en: "Large sound system"
+        bbox: [3, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3],[2,1],[2,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "4-cell sound system across top (speakers + center sound bar); listening area below extends T-shape."
+        verify: true
+      - option_index: 2
+        name_zh: "音箱"
+        name_en: "Speakers pair"
+        bbox: [2, 4]
+        shape: [[0,0],[0,3]]
+        open_spaces: [[0,1],[0,2],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Two speakers at the ends with 2×2 listening area between/below them."
+        verify: true
+
+  - number: 28
+    variant: B
+    image: images/cards/furniture/28_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "音响设备"
+        name_en: "Sound system"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3]]
+        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "4-cell sound system (speaker + 2 center cells + speaker) with open row below."
+      - option_index: 2
+        name_zh: "小音箱"
+        name_en: "Small speakers"
+        bbox: [2, 3]
+        shape: [[0,0],[0,2]]
+        open_spaces: [[0,1],[1,1]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Two small speakers flanking a single open cell, with 1 more open below."
+        verify: true
+
+  # ─────────────────────────────────────────── #29 电视 / TV / game table ─────
+  - number: 29
+    variant: A
+    image: images/cards/furniture/29_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "小电视"
+        name_en: "Small TV"
+        bbox: [2, 1]
+        shape: [[1,0]]
+        open_spaces: [[0,0]]
+        wall_edges: [bottom]
+        printed_markers: 0
+        notes: "Single-cell TV with one cell of viewing area in front."
+      - option_index: 2
+        name_zh: "大电视"
+        name_en: "Large TV"
+        bbox: [2, 2]
+        shape: [[1,0],[1,1]]
+        open_spaces: [[0,0],[0,1]]
+        wall_edges: [bottom]
+        printed_markers: 0
+        notes: "2-cell wide TV with 2-cell viewing area in front."
+
+  - number: 29
+    variant: B
+    image: images/cards/furniture/29_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "带扩音器的小电视"
+        name_en: "Small TV with amplifier"
+        bbox: [2, 2]
+        shape: [[1,0],[1,1]]
+        open_spaces: [[0,0]]
+        wall_edges: [bottom]
+        printed_markers: 0
+        notes: "Small TV at (1,0) + amp/speaker at (1,1); single open viewing cell in front of the TV."
+        verify: true
+      - option_index: 2
+        name_zh: "转角大电视"
+        name_en: "Corner large TV"
+        bbox: [2, 2]
+        shape: [[1,1]]
+        open_spaces: [[0,1],[1,0]]
+        wall_edges: [bottom, right]
+        printed_markers: 0
+        notes: "Corner-mounted TV in the bottom-right (diagonal marker on card); L-shape viewing area."
+        verify: true
+
+  # ─────────────────────────────────────────── #30 吧台 / Counter ─────
+  - number: 30
+    variant: A
+    image: images/cards/furniture/30_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "啤酒吧台"
+        name_en: "Beer bar"
+        bbox: [3, 4]
+        shape: [[1,0],[1,1],[1,2],[1,3],[2,0]]
+        open_spaces: [[0,1],[0,2],[0,3],[2,1],[2,2],[2,3]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Horizontal 4-cell bar at row 1 + 1-cell extension at (2,0). Seats above (3) and below (3)."
+        verify: true
+      - option_index: 2
+        name_zh: "鸡尾酒吧台"
+        name_en: "Cocktail bar"
+        bbox: [3, 4]
+        shape: [[1,0],[1,1],[1,2],[1,3]]
+        open_spaces: [[0,1],[0,2],[0,3],[2,0],[2,1],[2,2],[2,3]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Horizontal 4-cell bar; seats above (3) and below (4)."
+        verify: true
+
+  - number: 30
+    variant: B
+    image: images/cards/furniture/30_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "葡萄酒吧台"
+        name_en: "Wine bar"
+        bbox: [3, 3]
+        shape: [[0,1],[1,1],[2,1],[2,2]]
+        open_spaces: [[0,2],[1,0],[1,2],[2,0]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "L-shape bar: vertical 3-cell column at col 1 + 1-cell horizontal extension at the bottom-right."
+        verify: true
+      - option_index: 2
+        name_zh: "果汁吧台"
+        name_en: "Juice bar"
+        bbox: [3, 5]
+        shape: [[0,0],[0,1],[1,0],[0,3],[0,4],[1,4]]
+        open_spaces: [[0,2],[1,1],[1,2],[1,3],[2,1],[2,2],[2,3]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Two L-shape bar segments at top-left and top-right with a central seating area between."
+        verify: true
+
+  # ─────────────────────────────────────────── #31 火炉 / Stove / fireplace ─────
+  - number: 31
+    variant: A
+    image: images/cards/furniture/31_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "火炉"
+        name_en: "Stove / fireplace"
+        bbox: [2, 3]
+        shape: [[0,1]]
+        open_spaces: [[0,0],[0,2],[1,0],[1,1],[1,2]]
+        wall_edges: [top]
+        printed_markers: 0
+        notes: "Single-cell stove centered on top edge."
+      - option_index: 2
+        name_zh: "皂石壁炉"
+        name_en: "Soapstone fireplace"
+        bbox: [2, 3]
+        shape: [[0,0],[1,0],[1,1],[1,2]]
+        open_spaces: [[0,1],[0,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Corner stove at (0,0) + 3-cell horizontal hearth extending right at row 1."
+        verify: true
+
+  - number: 31
+    variant: B
+    image: images/cards/furniture/31_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "瓷砖壁炉"
+        name_en: "Tile fireplace"
+        bbox: [2, 3]
+        shape: [[1,0]]
+        open_spaces: [[0,0],[0,1],[0,2],[1,1],[1,2]]
+        wall_edges: [bottom, left]
+        printed_markers: 0
+        notes: "Single-cell fireplace in the bottom-left corner."
+      - option_index: 2
+        name_zh: "欧式壁炉"
+        name_en: "European fireplace"
+        bbox: [3, 3]
+        shape: [[0,0],[1,0],[1,1],[1,2],[2,1]]
+        open_spaces: [[0,1],[0,2],[2,0],[2,2]]
+        wall_edges: [top, left]
+        printed_markers: 0
+        notes: "Corner fireplace at (0,0) + horizontal hearth at row 1 + 1-cell hearth extension at (2,1)."
+        verify: true
+
+  # ─────────────────────────────────────────── #32 艺术品 / Piece of art ─────
+  - number: 32
+    variant: A
+    image: images/cards/furniture/32_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "古代花瓶"
+        name_en: "Antique vase"
+        bbox: [2, 3]
+        shape: [[0,1]]
+        open_spaces: [[0,0],[0,2],[1,0],[1,1],[1,2]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Single-cell vase centered on the top of a 2×3 bbox."
+      - option_index: 2
+        name_zh: "画架上的画"
+        name_en: "Painting on an easel"
+        bbox: [3, 3]
+        shape: [[0,1]]
+        open_spaces: [[0,0],[1,1],[2,1]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Easel at (0,1) with vertical viewing column extending below; corners outside option."
+        verify: true
+
+  - number: 32
+    variant: B
+    image: images/cards/furniture/32_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "雕塑"
+        name_en: "Sculpture"
+        bbox: [3, 3]
+        shape: [[1,1]]
+        open_spaces: [[0,1],[1,0],[1,2],[2,1]]
+        wall_edges: []
+        printed_markers: 0
+        notes: "Centered sculpture with cross-shape viewing access; corners outside option."
+      - option_index: 2
+        name_zh: "骑士甲胄"
+        name_en: "Knight's armor"
+        bbox: [1, 3]
+        shape: [[0,1]]
+        open_spaces: [[0,0],[0,2]]
+        wall_edges: [top, bottom]
+        printed_markers: 0
+        notes: "Single-cell standing armor between walls; 1-cell access on either side."
+        verify: true
+
+  # ─────────────────────────────────────────── #33 地毯 / Carpet (walkable, special) ─────
+  - number: 33
+    variant: A
+    image: images/cards/furniture/33_A.jpg
+    options:
+      - option_index: 1
+        name_zh: "波斯地毯"
+        name_en: "Persian carpet"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3],[1,1],[1,2]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "T-shape rug: 4-cell horizontal strip + 2-cell stem below. Walkable, scores 0 points itself, bonus-only."
+      - option_index: 2
+        name_zh: "两列式地毯"
+        name_en: "Two-strip carpet"
+        bbox: [2, 4]
+        shape: [[0,0],[0,1],[0,2],[1,1],[1,2],[1,3]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "Two 3-cell horizontal strips, offset by 1 column. Walkable, scores 0 points itself, bonus-only."
+
+  - number: 33
+    variant: B
+    image: images/cards/furniture/33_B.jpg
+    options:
+      - option_index: 1
+        name_zh: "弗洛卡蒂地毯"
+        name_en: "Flokati rug"
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "Large 2×3 rectangular rug. Walkable, scores 0 points itself, bonus-only."
+      - option_index: 2
+        name_zh: "碎花地毯"
+        name_en: "Floral carpet"
+        bbox: [3, 3]
+        shape: [[0,1],[1,0],[1,1],[1,2],[2,1]]
+        open_spaces: []
+        wall_edges: []
+        printed_markers: 0
+        notes: "Plus-shape rug (5 cells). Walkable, scores 0 points itself, bonus-only."
+

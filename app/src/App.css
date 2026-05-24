@@ -1,0 +1,65 @@
+* {
+  box-sizing: border-box;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--pen);
+}
+
+.app-header {
+  padding: 1rem 2rem;
+  border-bottom: 1px dashed var(--pen-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 2.4rem;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--pen-soft);
+  font-size: 1.2rem;
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.floor-plan-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.placeholder {
+  border: 1px dashed var(--pen-soft);
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  color: var(--pen-soft);
+  font-size: 1.2rem;
+  font-family: 'Patrick Hand', sans-serif;
+}
