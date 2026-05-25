@@ -15,8 +15,12 @@ import {
   type TransformedShape,
 } from '../lib/geometry';
 import { validatePlacement } from '../lib/validation';
-import { validateWallTopology } from '../lib/walls';
-import { computeRegions } from '../lib/regions';
+import { validateWallTopology, checkWallEdgeCompliance } from '../lib/walls';
+import {
+  computeRegions,
+  analyseAccessibility,
+  analyseOpenSpaceAccessibility,
+} from '../lib/regions';
 import { optionImageUrl } from '../lib/optionImage';
 import { FurnitureVector, hasVectorVisual } from '../vector/FurnitureVector';
 import type { ThemeId } from '../vector/themes';
@@ -289,6 +293,32 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
     () => new Set(wallTopology?.danglingWalls ?? []),
     [wallTopology],
   );
+
+  const completedRoomSlots = useGameStore((s) => s.completedRoomSlots);
+
+  // Pieces that won't score — same logic as scoring.ts, run live, but only
+  // flagged once the piece's room has been sealed (so the player isn't
+  // misled while still mid-walling).
+  const ignoredPieceFlags = useMemo(() => {
+    const out = new Set<number>();
+    if (completedRoomSlots.size === 0) return out;
+    const access = analyseAccessibility(
+      scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge,
+    );
+    const pieceAccess = analyseOpenSpaceAccessibility(
+      scenario, placedPieces, playerWalls, playerDoors, access,
+    );
+    const wallEdgeViolators = new Set(
+      checkWallEdgeCompliance(scenario, placedPieces, playerWalls, playerDoors)
+        .violations.map((v) => v.pieceIndex),
+    );
+    placedPieces.forEach((p, idx) => {
+      if (!completedRoomSlots.has(p.roomSlot)) return;
+      const valid = pieceAccess.validPieceIndices.has(idx) && !wallEdgeViolators.has(idx);
+      if (!valid) out.add(idx);
+    });
+    return out;
+  }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge, completedRoomSlots]);
 
   const [hover, setHover] = useState<Cell | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
@@ -586,8 +616,9 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
               ([r, c]) => [r, c],
             );
             const clipId = `piece-clip-${pi}-${p.number}-${p.variant}-${p.optionIndex}`;
+            const isIgnored = ignoredPieceFlags.has(pi);
             return (
-              <g key={pi} className="placed-piece">
+              <g key={pi} className={`placed-piece ${isIgnored ? 'ignored' : ''}`}>
                 {!useVector && (
                   <defs>
                     <clipPath id={clipId}>
@@ -655,6 +686,18 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
                   <rect key={`s${i}`} x={c * cellSize + 0.5} y={r * cellSize + 0.5}
                         width={cellSize - 1} height={cellSize - 1}
                         fill="none" stroke="#fff" strokeOpacity="0.5" strokeWidth="0.6"
+                        pointerEvents="none" />
+                ))}
+                {/* Ignored overlay — red tint + red dashed border on every
+                    shape cell. Triggered when the piece's room is sealed
+                    but the piece won't score (open-space blocked / wall-edge
+                    unmet / room unreachable). Player can undo to fix. */}
+                {isIgnored && abs.map(([r, c], i) => (
+                  <rect key={`ign${i}`} x={c * cellSize + 1.5} y={r * cellSize + 1.5}
+                        width={cellSize - 3} height={cellSize - 3}
+                        fill="rgba(255, 80, 80, 0.18)"
+                        stroke="var(--danger)" strokeWidth="2"
+                        strokeDasharray="4 2"
                         pointerEvents="none" />
                 ))}
               </g>
