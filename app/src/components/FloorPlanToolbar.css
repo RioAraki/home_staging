@@ -1,0 +1,70 @@
+.floorplan-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.fp-front-door-btn,
+.fp-undo-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+}
+
+.fp-front-door-btn:hover,
+.fp-undo-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--pen);
+}
+
+.fp-front-door-btn.unset {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.fp-front-door-btn.set {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.fp-front-door-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.fp-front-door-btn.locked,
+.fp-front-door-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: rgba(255, 225, 105, 0.05);
+  border-style: solid;
+  border-color: var(--pen-soft);
+  color: var(--pen-soft);
+}
+
+.fp-undo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.fp-undo-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.fp-undo-count {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--pen-soft);
+}

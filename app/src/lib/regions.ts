@@ -153,6 +153,7 @@ export interface AccessibilityResult {
   hallwayRegions: Set<RegionId>;        // regions containing no placed pieces
   outsideAccessible: Set<RegionId>;     // regions reachable from OUTSIDE
   doorIssues: Array<{ edgeKey: EdgeKey; reason: string; roomSlot: RoomSlot }>;
+  frontDoorIssue: string | null;
 }
 
 export function analyseAccessibility(
@@ -160,6 +161,7 @@ export function analyseAccessibility(
   placedPieces: PlacedPiece[],
   walls: Record<string, true>,
   doors: Record<EdgeKey, RoomSlot>,
+  frontDoorEdge: string | null,
 ): AccessibilityResult {
   const regionMap = computeRegions(scenario, walls);
   const roomToRegion = assignRoomsToRegions(placedPieces, regionMap);
@@ -213,10 +215,28 @@ export function analyseAccessibility(
     }
   }
 
-  // The hallway implicitly connects to OUTSIDE (we treat hallway exterior
-  // walls as having an implicit front door for MVP). If there's NO hallway
-  // region, no implicit OUTSIDE link — rooms are unreachable.
-  for (const h of hallwayRegions) addEdge(OUTSIDE, h);
+  // Front door: the player must designate ONE exterior-wall edge as the front
+  // door. OUTSIDE connects only via that edge to the indoor region on its
+  // interior side.
+  let frontDoorIssue: string | null = null;
+  if (!frontDoorEdge) {
+    frontDoorIssue = 'No front door designated — the building has no entrance from outside.';
+  } else {
+    const sides = edgeSides(frontDoorEdge);
+    const sideRegions = sides.map(([r, c]) => {
+      const key = `${r},${c}`;
+      const reg = regionMap.cellToRegion.get(key);
+      return reg === undefined ? OUTSIDE : reg;
+    });
+    const indoorSide = sideRegions.find((id) => id !== OUTSIDE);
+    const outdoorSide = sideRegions.find((id) => id === OUTSIDE);
+    if (indoorSide === undefined || outdoorSide === undefined) {
+      frontDoorIssue =
+        'Front door is not on an exterior wall (both sides must be indoor↔outdoor).';
+    } else {
+      addEdge(OUTSIDE, indoorSide);
+    }
+  }
 
   // BFS from OUTSIDE
   const outsideAccessible = new Set<RegionId>();
@@ -240,6 +260,7 @@ export function analyseAccessibility(
     hallwayRegions,
     outsideAccessible,
     doorIssues,
+    frontDoorIssue,
   };
 }
 
@@ -250,6 +271,41 @@ export function isRoomAccessible(
   const reg = result.roomToRegion.get(slot);
   if (reg === undefined) return false;
   return result.outsideAccessible.has(reg);
+}
+
+/** Shortest 4-neighbour grid path between two cells, blocked by walls (and
+ *  doors, which are walls structurally). Returns null if unreachable. Only
+ *  walks through indoor cells. */
+export function pathDistance(
+  scenario: Scenario,
+  walls: Record<string, true>,
+  from: [number, number],
+  to: [number, number],
+): number | null {
+  const indoor = new Set(indoorCells(scenario));
+  const fromKey = `${from[0]},${from[1]}`;
+  const toKey = `${to[0]},${to[1]}`;
+  if (!indoor.has(fromKey) || !indoor.has(toKey)) return null;
+  if (fromKey === toKey) return 0;
+  const dist = new Map<string, number>([[fromKey, 0]]);
+  const queue: string[] = [fromKey];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    if (cur === toKey) return dist.get(cur)!;
+    const [rs, cs] = cur.split(',');
+    const r = parseInt(rs, 10);
+    const c = parseInt(cs, 10);
+    const d = dist.get(cur)!;
+    for (const [nr, nc] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]] as Array<[number, number]>) {
+      const nk = `${nr},${nc}`;
+      if (!indoor.has(nk) || dist.has(nk)) continue;
+      if (isBlocked(r, c, nr, nc, walls)) continue;
+      dist.set(nk, d + 1);
+      if (nk === toKey) return d + 1;
+      queue.push(nk);
+    }
+  }
+  return null;
 }
 
 // ─────────────────── Per-piece open-space accessibility ───────────────────

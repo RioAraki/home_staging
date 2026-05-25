@@ -45,7 +45,7 @@ cards:
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
       - option_index: 2
@@ -53,11 +53,10 @@ cards:
         name_en: "Seating with warm lamp"
         bbox: [3, 3]
         shape: [[0,1],[0,2],[1,2],[2,2]]
-        open_spaces: [[1,1],[2,0],[2,1]]
-        wall_edges: [top, right]
+        open_spaces: [[0,0],[1,0],[1,1],[2,1]]
+        wall_edges: []
         printed_markers: 0
-        notes: "Armchair at (0,1) + integrated lamp at (0,2) + 2-seat sofa down right column. Lamp icon counts as occupied."
-        verify: true
+        notes: "Armchair at (0,1) + integrated lamp at (0,2) + 2-seat sofa down right column. Lamp icon counts as occupied. Cell (2,0) is outside the card's drawn area — left as a void in the bbox."
 
   - number: 1
     variant: B
@@ -69,7 +68,7 @@ cards:
         bbox: [3, 4]
         shape: [[0,0],[0,1],[0,2],[1,3]]
         open_spaces: [[1,0],[1,1],[1,2],[2,1]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "3-seat sofa across the top + plant on the right; open-space tail extends down at col 1."
         verify: true
@@ -79,7 +78,7 @@ cards:
         bbox: [3, 3]
         shape: [[0,2],[1,2],[2,0],[2,1],[2,2]]
         open_spaces: [[0,0],[0,1],[1,0],[1,1]]
-        wall_edges: [right, bottom]
+        wall_edges: []
         printed_markers: 0
         notes: ""
 
@@ -94,7 +93,7 @@ cards:
         bbox: [3, 3]
         shape: [[0,1],[0,2],[1,2],[2,2]]
         open_spaces: [[1,0],[1,1],[2,0],[2,1]]
-        wall_edges: [top, right]
+        wall_edges: []
         printed_markers: 0
         notes: ""
       - option_index: 2
@@ -103,7 +102,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0],[0,1]]
         open_spaces: [[1,0],[1,1]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
 
@@ -117,7 +116,7 @@ cards:
         bbox: [3, 3]
         shape: [[0,1],[1,2],[2,2]]
         open_spaces: [[1,0],[1,1],[2,0],[2,1]]
-        wall_edges: [top, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Armchair at (0,1) + 2-seat sofa down the right column."
         verify: true
@@ -127,7 +126,7 @@ cards:
         bbox: [3, 2]
         shape: [[0,0],[0,1],[2,1]]
         open_spaces: [[1,0],[1,1],[2,0]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Small 2-seat sofa across top + a plant cell at bottom-right."
         verify: true
@@ -143,7 +142,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
       - option_index: 2
@@ -152,7 +151,7 @@ cards:
         bbox: [2, 2]
         shape: [[1,0],[1,1]]
         open_spaces: [[0,0],[0,1]]
-        wall_edges: [bottom]
+        wall_edges: []
         printed_markers: 0
         notes: "Storage cabinet (horizontal stripes) at the bottom; access from above."
 
@@ -166,19 +165,18 @@ cards:
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
       - option_index: 2
         name_zh: "转角书架"
         name_en: "Corner bookshelf"
-        bbox: [2, 4]
-        shape: [[0,0],[0,1],[0,2],[0,3],[1,3]]
-        open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top, right]
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[0,2],[1,2]]
+        open_spaces: [[1,0],[1,1]]
+        wall_edges: []
         printed_markers: 0
-        notes: "Horizontal shelf across the top + vertical shelf hanging down the right column."
-        verify: true
+        notes: "Horizontal shelf across the top + one cell hanging down the right column."
 
   # ─────────────────────────────────────────── #04 大型桌子 / Large table ─────
   - number: 4
@@ -188,19 +186,19 @@ cards:
       - option_index: 1
         name_zh: "游戏桌"
         name_en: "Game table"
-        bbox: [3, 2]
-        shape: [[1,0],[1,1]]
-        open_spaces: [[0,0],[0,1],[2,0],[2,1]]
+        bbox: [3, 3]
+        shape: [[0,1],[0,2],[1,1],[1,2],[2,1],[2,2]]
+        open_spaces: [[0,0],[1,0],[2,0]]
         wall_edges: []
         printed_markers: 0
-        notes: "2-cell table in the middle; chairs (drawn as circles) sit in the 4 open spaces above and below."
+        notes: "2-cell table at (1,1)-(1,2) with chairs at top and bottom rows; entire left column is open access."
       - option_index: 2
         name_zh: "带有酒吧圆凳的高桌子"
         name_en: "High table with bar stools"
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Long bar across the top with 4 stools projecting into the row below."
 
@@ -211,22 +209,21 @@ cards:
       - option_index: 1
         name_zh: "餐桌"
         name_en: "Dining table"
-        bbox: [3, 3]
-        shape: [[1,1],[1,2]]
-        open_spaces: [[0,1],[0,2],[1,0],[2,1],[2,2]]
+        bbox: [3, 4]
+        shape: [[0,2],[0,3],[1,1],[1,2],[1,3],[2,2],[2,3]]
+        open_spaces: [[0,0],[0,1],[1,0],[2,0],[2,1]]
         wall_edges: []
         printed_markers: 0
-        notes: "2-cell table with 5 chairs: 1 left + 2 above + 2 below. Corners (0,0)/(2,0) outside the option."
-        verify: true
+        notes: "2-cell table at (1,2)-(1,3) with 5 chairs surrounding it: 2 above (0,2)(0,3), 1 left (1,1), 2 below (2,2)(2,3)."
       - option_index: 2
         name_zh: "厨房餐桌"
         name_en: "Kitchen dining table"
-        bbox: [2, 4]
-        shape: [[0,1],[0,2]]
-        open_spaces: [[0,0],[0,3],[1,1],[1,2]]
+        bbox: [3, 4]
+        shape: [[1,0],[1,1],[1,2],[1,3],[2,1],[2,2]]
+        open_spaces: [[0,0],[0,1],[0,2],[0,3]]
         wall_edges: []
         printed_markers: 0
-        notes: "2-cell table with 4 chairs: 1 left + 1 right + 2 below."
+        notes: "Middle row = chair (1,0) + 3-cell table (1,1)(1,2)(1,3); bottom row = 2 chairs (2,1)(2,2). Cells (2,0) and (2,3) are outside the card."
 
   # ─────────────────────────────────────────── #05 小型桌子 / Small table ─────
   - number: 5
@@ -237,20 +234,20 @@ cards:
         name_zh: "带有植物的小桌子"
         name_en: "Small table with plant"
         bbox: [2, 3]
-        shape: [[0,1],[1,1]]
-        open_spaces: [[0,0],[0,2]]
+        shape: [[0,0],[0,1],[0,2],[1,1]]
+        open_spaces: [[1,0],[1,2]]
         wall_edges: []
         printed_markers: 0
-        notes: "1-cell table at top with plant directly below; 2 chairs flanking the table left/right."
+        notes: "Top row has 2 chairs + 1 table with plant below; bottom row open at flanks."
       - option_index: 2
         name_zh: "转角小桌子"
         name_en: "Corner small table"
         bbox: [2, 2]
-        shape: [[0,1]]
-        open_spaces: [[0,0],[1,1]]
-        wall_edges: [top, right]
+        shape: [[0,0],[0,1],[1,1]]
+        open_spaces: [[1,0]]
+        wall_edges: []
         printed_markers: 0
-        notes: "Single-cell corner table; 2 chairs diagonally (left of table and below-right)."
+        notes: "Corner table with 2 chairs."
 
   - number: 5
     variant: B
@@ -260,21 +257,20 @@ cards:
         name_zh: "小桌子"
         name_en: "Small table"
         bbox: [2, 3]
-        shape: [[0,1]]
-        open_spaces: [[0,0],[0,2],[1,0],[1,1],[1,2]]
+        shape: [[0,0],[0,1],[0,2]]
+        open_spaces: [[1,0],[1,1],[1,2]]
         wall_edges: []
         printed_markers: 0
-        notes: "1-cell table with 2 chairs on the sides + 3 open cells below."
+        notes: "Top row = 2 chairs + 1 table; bottom row open."
       - option_index: 2
         name_zh: "带灯的转角小桌子"
         name_en: "Corner small table with lamp"
         bbox: [2, 3]
-        shape: [[0,1],[0,2]]
-        open_spaces: [[0,0],[1,1]]
-        wall_edges: [top, right]
+        shape: [[0,0],[0,1],[0,2],[1,1]]
+        open_spaces: [[1,0]]
+        wall_edges: []
         printed_markers: 0
-        notes: "Table at (0,1) + lamp at (0,2) treated as occupied (consistent with #01_A option 2)."
-        verify: true
+        notes: "Top row = chair (0,0) + table (0,1) + lamp (0,2); chair at (1,1). Cell (1,2) is void. Scan note: (0,2) sun icon has visible stains in the source image — vector primitive can replace later."
 
   # ─────────────────────────────────────────── #06 大型厨房 / Big kitchen ─────
   - number: 6
@@ -284,23 +280,21 @@ cards:
       - option_index: 1
         name_zh: "U型厨房设备"
         name_en: "U-shaped kitchen"
-        bbox: [3, 3]
-        shape: [[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,2]]
-        open_spaces: [[1,1],[2,1]]
-        wall_edges: [top, left, right]
+        bbox: [3, 4]
+        shape: [[0,0],[0,1],[0,2],[1,0],[2,0],[2,1],[2,2]]
+        open_spaces: [[0,3],[1,1],[1,2],[1,3],[2,3]]
+        wall_edges: []
         printed_markers: 0
-        notes: "U with stove on top-right cell and sink-decorated cell in the right column; opening faces down."
-        verify: true
+        notes: "U-shape kitchen opening to the right: top row counter+stove, left column cabinet, bottom row counter+sink. Col 3 is the open access side."
       - option_index: 2
         name_zh: "分隔灶台"
         name_en: "Split-counter kitchen"
-        bbox: [3, 3]
-        shape: [[0,1],[0,2],[1,0],[2,0],[2,2]]
-        open_spaces: [[1,1],[1,2],[2,1]]
-        wall_edges: [top, left]
+        bbox: [3, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3],[1,0],[2,0],[2,2],[2,3]]
+        open_spaces: [[1,1],[1,2],[1,3],[2,1]]
+        wall_edges: []
         printed_markers: 0
-        notes: "Sink counter top-right; cabinet column down left; separate stove cell bottom-right. Hand-read; please verify."
-        verify: true
+        notes: "Top row full counter (sink on right side), left cabinet column, bottom stove at (2,2)-(2,3) separated from left cabinet."
 
   - number: 6
     variant: B
@@ -309,20 +303,20 @@ cards:
       - option_index: 1
         name_zh: "转角厨房设备"
         name_en: "Corner kitchen"
-        bbox: [4, 3]
-        shape: [[0,0],[0,1],[0,2],[1,0],[2,0],[3,0]]
-        open_spaces: [[1,1],[1,2],[2,1],[2,2],[3,1],[3,2]]
-        wall_edges: [top, left]
+        bbox: [4, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3],[1,0],[2,0],[3,0]]
+        open_spaces: [[1,1],[1,2],[1,3],[2,1],[3,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape: top row (sink on right) + left column down with stove and cabinet."
         verify: true
       - option_index: 2
         name_zh: "一体式长厨房设备"
         name_en: "Integrated long kitchen"
-        bbox: [2, 4]
-        shape: [[0,0],[0,1],[0,2],[0,3]]
-        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        bbox: [3, 5]
+        shape: [[0,0],[0,1],[0,2],[0,3],[0,4],[1,0],[1,4]]
+        open_spaces: [[1,1],[1,2],[1,3],[2,1],[2,2],[2,3]]
+        wall_edges: []
         printed_markers: 0
         notes: "Inline counter with sink + stove + cabinet across one row; open space below."
 
@@ -337,7 +331,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,1],[1,0]]
         open_spaces: [[0,2],[1,1],[1,2]]
-        wall_edges: [top, left]
+        wall_edges: []
         printed_markers: 0
         notes: "Small L: sink top-left + stove top-middle + cabinet column down."
       - option_index: 2
@@ -346,7 +340,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0],[1,0]]
         open_spaces: [[0,1],[1,1]]
-        wall_edges: [top, left]
+        wall_edges: []
         printed_markers: 0
         notes: "Single 2-cell counter column on left with open space alongside."
 
@@ -358,9 +352,9 @@ cards:
         name_zh: "带有独立灶台的一体式厨房设备"
         name_en: "Kitchen with separate stove"
         bbox: [2, 3]
-        shape: [[0,0],[1,2]]
-        open_spaces: [[0,1],[0,2],[1,0],[1,1]]
-        wall_edges: [top, bottom]
+        shape: [[0,0],[1,0],[1,2]]
+        open_spaces: [[0,1],[0,2],[1,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "Two disconnected counter cells: sink top-left + stove bottom-right (diagonal)."
         verify: true
@@ -370,7 +364,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Straight kitchen counter with sink + stove across one row."
 
@@ -385,7 +379,7 @@ cards:
         bbox: [1, 2]
         shape: [[0,1]]
         open_spaces: [[0,0]]
-        wall_edges: [right]
+        wall_edges: []
         printed_markers: 0
         notes: ""
       - option_index: 2
@@ -394,7 +388,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,1],[1,1]]
         open_spaces: [[0,0],[1,0]]
-        wall_edges: [right]
+        wall_edges: []
         printed_markers: 0
         notes: "Plant above the toilet, single column on the right."
 
@@ -406,9 +400,9 @@ cards:
         name_zh: "带有洗手设备的马桶"
         name_en: "Toilet with sink"
         bbox: [2, 2]
-        shape: [[0,1],[1,0],[1,1]]
-        open_spaces: [[0,0]]
-        wall_edges: [top, right, bottom]
+        shape: [[0,1],[1,0]]
+        open_spaces: [[1,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "L: sink at top-right + toilet at bottom-left + small connector cell at bottom-right."
         verify: true
@@ -418,7 +412,7 @@ cards:
         bbox: [3, 1]
         shape: [[0,0],[2,0]]
         open_spaces: [[1,0]]
-        wall_edges: [left, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical column: shelf at top + 1 cell open + toilet at bottom."
 
@@ -431,9 +425,9 @@ cards:
         name_zh: "带有置物架的洗漱池"
         name_en: "Sink with shelf"
         bbox: [2, 2]
-        shape: [[0,0],[1,0]]
+        shape: [[0,0],[1,1]]
         open_spaces: [[0,1]]
-        wall_edges: [left]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical column: sink on top + shelf below. Access from the right of the sink."
       - option_index: 2
@@ -442,7 +436,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0],[0,1]]
         open_spaces: [[1,0],[1,1]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
 
@@ -453,10 +447,10 @@ cards:
       - option_index: 1
         name_zh: "带有烘干器的洗漱池"
         name_en: "Sink with hand dryer"
-        bbox: [3, 3]
+        bbox: [2, 3]
         shape: [[0,0],[0,2]]
-        open_spaces: [[0,1],[1,1],[2,1]]
-        wall_edges: [top]
+        open_spaces: [[0,1],[1,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "Sink top-left, hand-dryer top-right; open-space T extending down the middle column."
         verify: true
@@ -466,7 +460,7 @@ cards:
         bbox: [2, 1]
         shape: [[0,0]]
         open_spaces: [[1,0]]
-        wall_edges: [top, left, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Standalone single-cell sink, walls on 3 sides."
 
@@ -481,7 +475,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0],[0,1]]
         open_spaces: [[1,0],[1,1]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Horizontal 2-cell bathtub with open space below."
       - option_index: 2
@@ -490,7 +484,7 @@ cards:
         bbox: [2, 1]
         shape: [[0,0]]
         open_spaces: [[1,0]]
-        wall_edges: [top, left, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Single-cell shower stall, walls on 3 sides."
 
@@ -502,19 +496,19 @@ cards:
         name_zh: "带有浴帘的浴缸"
         name_en: "Bathtub with shower curtain"
         bbox: [2, 2]
-        shape: [[0,0],[1,1]]
-        open_spaces: [[0,1],[1,0]]
-        wall_edges: [top, left]
+        shape: [[0,0],[1,0]]
+        open_spaces: [[1,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical bathtub at (0,0) + adjacent curtained shower extension at (1,1)."
         verify: true
       - option_index: 2
         name_zh: "漩涡浴缸"
         name_en: "Whirlpool / Jacuzzi"
-        bbox: [2, 2]
-        shape: [[0,0],[0,1]]
-        open_spaces: [[1,0],[1,1]]
-        wall_edges: [top]
+        bbox: [3, 2]
+        shape: [[0,0],[0,1],[1,0],[1,1]]
+        open_spaces: [[2,0],[2,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "Large jacuzzi-style tub spanning 2 cells with open space below."
         verify: true
@@ -527,20 +521,20 @@ cards:
       - option_index: 1
         name_zh: "桑拿设备"
         name_en: "Sauna"
-        bbox: [3, 3]
+        bbox: [2, 4]
         shape: [[0,0],[0,1],[1,0],[1,1]]
-        open_spaces: [[1,2],[2,1],[2,2]]
-        wall_edges: [top, left]
+        open_spaces: [[0,2],[1,2],[1,3]]
+        wall_edges: []
         printed_markers: 0
         notes: "2×2 sauna chamber in the top-left; L-shape open access from the bottom-right."
         verify: true
       - option_index: 2
         name_zh: "按摩浴缸"
         name_en: "Massage tub / whirlpool"
-        bbox: [3, 2]
+        bbox: [3, 3]
         shape: [[0,0],[0,1],[1,0],[1,1]]
-        open_spaces: [[2,0],[2,1]]
-        wall_edges: [top, left]
+        open_spaces: [[1,2],[2,1],[2,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "2×2 jacuzzi tub with 2 cells of open access below."
         verify: true
@@ -553,9 +547,9 @@ cards:
         name_zh: "转角桑拿设备"
         name_en: "Corner sauna"
         bbox: [3, 3]
-        shape: [[0,0],[0,1],[0,2],[1,0],[2,0]]
-        open_spaces: [[1,1],[1,2],[2,1],[2,2]]
-        wall_edges: [top, left]
+        shape: [[0,0],[0,1],[0,2],[1,0]]
+        open_spaces: [[1,1],[1,2],[2,0],[2,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape sauna (top + left); open 2×2 in the bottom-right corner."
       - option_index: 2
@@ -564,7 +558,7 @@ cards:
         bbox: [3, 3]
         shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2],[2,1]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "3-cell long tub across top with an extra open-space cell hanging down at col 1."
         verify: true
@@ -578,19 +572,19 @@ cards:
         name_zh: "带有储物柜的两张床"
         name_en: "Two beds with storage cabinets"
         bbox: [3, 4]
-        shape: [[0,0],[0,1],[0,2],[0,3],[1,0],[1,1],[1,2],[1,3]]
-        open_spaces: [[2,0],[2,1],[2,2],[2,3]]
-        wall_edges: [top]
+        shape: [[0,0],[0,1],[0,2],[0,3],[1,0],[1,3]]
+        open_spaces: [[1,1],[1,2],[2,0],[2,1],[2,2],[2,3]]
+        wall_edges: []
         printed_markers: 0
         notes: "2 vertical 2-cell beds with storage cabinets in cols 0 and 3, and beds in cols 1 and 2. Open row below."
         verify: true
       - option_index: 2
         name_zh: "双人床"
         name_en: "Double bed"
-        bbox: [3, 2]
-        shape: [[0,0],[0,1],[1,0],[1,1]]
-        open_spaces: [[2,0],[2,1]]
-        wall_edges: [top, right]
+        bbox: [3, 3]
+        shape: [[0,1],[0,2],[1,1],[1,2]]
+        open_spaces: [[0,0],[1,0],[2,0],[2,1],[2,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "2×2 bed (pillows in row 0, mattress in row 1); open access from below."
 
@@ -601,10 +595,10 @@ cards:
       - option_index: 1
         name_zh: "带有床头柜的双人床"
         name_en: "Double bed with nightstands"
-        bbox: [3, 3]
-        shape: [[0,0],[0,1],[0,2],[1,1]]
-        open_spaces: [[1,0],[1,2],[2,0],[2,1],[2,2]]
-        wall_edges: [top]
+        bbox: [3, 4]
+        shape: [[0,0],[0,1],[0,2],[0,3],[1,1],[1,2]]
+        open_spaces: [[1,0],[1,3],[2,0],[2,1],[2,2],[2,3]]
+        wall_edges: []
         printed_markers: 0
         notes: "Top row: nightstand + pillow + nightstand; bed body at (1,1); open below."
         verify: true
@@ -614,7 +608,7 @@ cards:
         bbox: [3, 3]
         shape: [[0,0],[0,2],[1,0],[1,2]]
         open_spaces: [[0,1],[1,1],[2,0],[2,1],[2,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Two vertical 2-cell beds in cols 0 and 2; aisle of open spaces between and below."
 
@@ -629,7 +623,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,2],[1,1],[1,2]]
         open_spaces: [[0,0],[0,1],[1,0]]
-        wall_edges: [right]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical 2-cell bunk bed on the right + ladder cell at (1,1)."
       - option_index: 2
@@ -638,7 +632,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,1],[1,1]]
         open_spaces: [[0,0],[1,0]]
-        wall_edges: [right]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical 2-cell single bed; access from the left."
 
@@ -652,7 +646,7 @@ cards:
         bbox: [3, 2]
         shape: [[0,0],[1,0],[2,0]]
         open_spaces: [[1,1],[2,1]]
-        wall_edges: [left]
+        wall_edges: []
         printed_markers: 0
         notes: "Lamp at top + 2-cell bed below in left column; open access on the right (rows 1-2)."
         verify: true
@@ -662,7 +656,7 @@ cards:
         bbox: [3, 1]
         shape: [[0,0],[1,0]]
         open_spaces: [[2,0]]
-        wall_edges: [top, left, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical 1-cell-wide bed flanked by walls on 3 sides; foot end open."
 
@@ -677,7 +671,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
       - option_index: 2
@@ -686,7 +680,7 @@ cards:
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
 
@@ -700,17 +694,17 @@ cards:
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "3-cell dresser + 1-cell lamp on the right; only 3 cells of open space below the dresser."
         verify: true
       - option_index: 2
         name_zh: "一体式转角壁橱"
         name_en: "Built-in corner wardrobe"
-        bbox: [3, 4]
-        shape: [[0,1],[0,2],[0,3],[1,0],[2,0]]
-        open_spaces: [[1,1],[1,2],[1,3],[2,1]]
-        wall_edges: [top, left]
+        bbox: [3, 3]
+        shape: [[0,1],[0,2],[1,0],[2,0]]
+        open_spaces: [[1,1],[1,2],[2,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape: top row right has horizontal wardrobe; left col has vertical wardrobe."
         verify: true
@@ -726,7 +720,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0],[0,1]]
         open_spaces: [[1,0],[1,1]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: ""
       - option_index: 2
@@ -735,7 +729,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0],[1,0],[1,1]]
         open_spaces: [[0,1]]
-        wall_edges: [top, left, bottom]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape (3 cells) cabinet wrapping a corner; open access at top-right."
         verify: true
@@ -750,7 +744,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[1,0],[1,2]]
         open_spaces: [[0,1],[1,1]]
-        wall_edges: [top, left]
+        wall_edges: []
         printed_markers: 0
         notes: "2-cell vertical dresser on left + separated lamp cell at bottom-right."
         verify: true
@@ -760,7 +754,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "2-cell cabinet on top + plant cell on right; open row below."
 
@@ -773,9 +767,9 @@ cards:
         name_zh: "带有文件柜的办公桌"
         name_en: "Desk with file cabinet"
         bbox: [3, 3]
-        shape: [[1,1],[2,0],[2,1]]
-        open_spaces: [[0,0],[0,1],[0,2],[1,0],[1,2]]
-        wall_edges: [bottom]
+        shape: [[1,0],[1,1],[1,2],[2,0],[2,1]]
+        open_spaces: [[0,0],[0,1],[0,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "Desk at (1,1) + 2-cell file cabinet across bottom (2,0)(2,1). Chairs above on left/right."
         verify: true
@@ -783,8 +777,8 @@ cards:
         name_zh: "带有两个座位的长办公桌"
         name_en: "Long desk with two seats"
         bbox: [2, 5]
-        shape: [[1,1],[1,2],[1,3]]
-        open_spaces: [[0,0],[0,1],[0,2],[0,3],[0,4],[1,4]]
+        shape: [[0,0],[1,0],[1,1],[1,2],[1,3]]
+        open_spaces: [[0,1],[0,2],[0,3],[0,4]]
         wall_edges: []
         printed_markers: 0
         notes: "3-cell desk in row 1, cols 1-3. Chairs at (0,0) and (1,4)."
@@ -798,9 +792,9 @@ cards:
         name_zh: "转角办公桌"
         name_en: "Corner desk"
         bbox: [3, 3]
-        shape: [[0,0],[0,1],[1,0],[2,0]]
-        open_spaces: [[1,1],[1,2],[2,1]]
-        wall_edges: [top, left]
+        shape: [[0,0],[0,1],[1,0],[2,0],[2,1]]
+        open_spaces: [[0,2],[1,1],[1,2],[2,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape desk: horizontal arm at top + vertical arm down left. Chair at (2,1)."
         verify: true
@@ -808,8 +802,8 @@ cards:
         name_zh: "带有书架的办公桌"
         name_en: "Desk with bookshelf"
         bbox: [2, 4]
-        shape: [[0,1],[1,1],[0,3],[1,3]]
-        open_spaces: [[0,0],[1,0],[0,2],[1,2]]
+        shape: [[0,1],[0,3],[1,1],[1,2],[1,3]]
+        open_spaces: [[0,0],[0,2],[1,0]]
         wall_edges: []
         printed_markers: 0
         notes: "Vertical 2-cell desk at col 1 + vertical 2-cell bookshelf at col 3. Chair between at (1,2)."
@@ -824,17 +818,17 @@ cards:
         name_zh: "小办公桌"
         name_en: "Small desk"
         bbox: [2, 2]
-        shape: [[0,1],[1,1]]
-        open_spaces: [[0,0],[1,0]]
-        wall_edges: [top, right]
+        shape: [[0,0],[0,1],[1,1]]
+        open_spaces: [[1,0]]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical 2-cell desk on the right; chair on the left."
       - option_index: 2
         name_zh: "转角小办公桌"
         name_en: "Corner small desk"
         bbox: [2, 3]
-        shape: [[0,1],[1,2]]
-        open_spaces: [[0,2],[1,0],[1,1]]
+        shape: [[0,1],[0,2],[1,1],[1,2]]
+        open_spaces: [[0,0],[1,0]]
         wall_edges: []
         printed_markers: 0
         notes: "Offset L-shape: desk pieces at top-middle and bottom-right with chair between."
@@ -848,18 +842,18 @@ cards:
         name_zh: "长办公桌"
         name_en: "Long desk"
         bbox: [2, 3]
-        shape: [[0,0],[0,1],[0,2]]
-        open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        shape: [[0,0],[0,1],[0,2],[1,1]]
+        open_spaces: [[1,0],[1,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "3-cell long desk across the top, chair in middle below."
       - option_index: 2
         name_zh: "办公桌"
         name_en: "Office desk"
         bbox: [3, 3]
-        shape: [[0,1],[0,2],[1,2]]
-        open_spaces: [[1,0],[1,1],[2,0],[2,1]]
-        wall_edges: [top, right]
+        shape: [[0,1],[0,2],[1,1],[1,2]]
+        open_spaces: [[1,0],[2,0],[2,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape desk in top-right corner; chair at (1,1)."
         verify: true
@@ -873,9 +867,9 @@ cards:
         name_zh: "棕榈树"
         name_en: "Palm tree"
         bbox: [2, 2]
-        shape: [[0,0]]
-        open_spaces: [[0,1],[1,0],[1,1]]
-        wall_edges: [top, left]
+        shape: [[0,0],[0,1],[1,0]]
+        open_spaces: [[1,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "Single-cell plant in corner; leaves overflow decoratively beyond the cell."
       - option_index: 2
@@ -884,7 +878,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Row of 3 plant cells (central one with pot, others showing leaves)."
         verify: true
@@ -897,8 +891,8 @@ cards:
         name_zh: "橡胶树"
         name_en: "Rubber tree"
         bbox: [2, 3]
-        shape: [[0,1],[1,1]]
-        open_spaces: [[0,0],[0,2],[1,0],[1,2]]
+        shape: [[0,1],[0,2],[1,1]]
+        open_spaces: [[1,0]]
         wall_edges: []
         printed_markers: 0
         notes: "Tall plant occupying 2 vertical cells in the middle column."
@@ -906,10 +900,10 @@ cards:
       - option_index: 2
         name_zh: "仙人掌"
         name_en: "Cactus"
-        bbox: [2, 4]
+        bbox: [1, 4]
         shape: [[0,0],[0,1],[0,2]]
-        open_spaces: [[0,3],[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        open_spaces: [[0,3]]
+        wall_edges: []
         printed_markers: 0
         notes: "Row of 3 cacti across the top-left; (0,3) is unused space within the bbox."
         verify: true
@@ -974,7 +968,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0]]
         open_spaces: [[1,1]]
-        wall_edges: [top, left]
+        wall_edges: []
         printed_markers: 0
         notes: "Single-cell clock at top-left with a separated open-access cell diagonally at (1,1)."
         verify: true
@@ -998,7 +992,7 @@ cards:
         bbox: [2, 1]
         shape: [[1,0]]
         open_spaces: [[0,0]]
-        wall_edges: [bottom, left, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Single-cell armchair with open space above (facing direction)."
       - option_index: 2
@@ -1007,7 +1001,7 @@ cards:
         bbox: [2, 2]
         shape: [[0,0],[1,0]]
         open_spaces: [[0,1],[1,1]]
-        wall_edges: [top, left]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical 2-cell coat rack on the left; open access on the right."
 
@@ -1022,16 +1016,16 @@ cards:
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Plant + 2-cell bench + plant across top; 2 cells of open below the bench."
       - option_index: 2
         name_zh: "带有灯的贵妃椅"
         name_en: "Chaise lounge with lamp"
-        bbox: [3, 3]
-        shape: [[0,0],[0,1],[2,0]]
-        open_spaces: [[1,0],[1,1],[1,2],[2,1],[2,2]]
-        wall_edges: [top, left]
+        bbox: [2, 3]
+        shape: [[0,0],[0,1],[1,0]]
+        open_spaces: [[0,2],[1,1],[1,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "Horizontal 2-cell chaise lounge at top + separate lamp cell at bottom-left."
         verify: true
@@ -1046,15 +1040,15 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "3-cell hammock suspended between endpoints."
       - option_index: 2
         name_zh: "沙滩躺椅"
         name_en: "Beach chair / sun lounger"
         bbox: [3, 3]
-        shape: [[0,0],[1,1],[1,2]]
-        open_spaces: [[0,1],[0,2],[1,0],[2,0],[2,1],[2,2]]
+        shape: [[1,1],[1,2]]
+        open_spaces: [[0,0],[1,0],[2,0]]
         wall_edges: []
         printed_markers: 0
         notes: "Backrest at (0,0) + 2-cell horizontal seat at (1,1)(1,2)."
@@ -1071,17 +1065,17 @@ cards:
         bbox: [3, 3]
         shape: [[0,2],[1,2],[2,2]]
         open_spaces: [[1,0],[1,1],[2,0],[2,1]]
-        wall_edges: [top, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Vertical 3-cell column on the right (trash can on top + changing table below); 2×2 access on the left."
         verify: true
       - option_index: 2
         name_zh: "爬行垫"
         name_en: "Crawling mat"
-        bbox: [2, 2]
-        shape: [[1,0]]
-        open_spaces: [[0,0],[0,1],[1,1]]
-        wall_edges: [bottom, left]
+        bbox: [3, 3]
+        shape: [[1,0],[1,1],[2,0],[2,1]]
+        open_spaces: [[0,1],[0,2],[1,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "Single-cell decorated crawling mat in the bottom-left corner."
         verify: true
@@ -1093,10 +1087,10 @@ cards:
       - option_index: 1
         name_zh: "婴儿床"
         name_en: "Crib / baby bed"
-        bbox: [3, 3]
+        bbox: [3, 2]
         shape: [[1,0],[1,1]]
-        open_spaces: [[0,1],[2,1]]
-        wall_edges: [left]
+        open_spaces: [[0,1],[2,0]]
+        wall_edges: []
         printed_markers: 0
         notes: "2-cell crib in middle row + open cells above and below for crib access."
         verify: true
@@ -1104,9 +1098,9 @@ cards:
         name_zh: "带有枕头的抱毯"
         name_en: "Blanket with pillows"
         bbox: [3, 3]
-        shape: [[0,0],[0,1],[1,0],[1,1]]
-        open_spaces: [[0,2],[1,2],[2,1],[2,2]]
-        wall_edges: [top, left]
+        shape: [[0,0],[0,1],[1,0]]
+        open_spaces: [[1,1],[1,2],[2,1]]
+        wall_edges: []
         printed_markers: 0
         notes: "2×2 blanket-with-pillows area top-left + L-shape access on bottom-right."
         verify: true
@@ -1119,10 +1113,10 @@ cards:
       - option_index: 1
         name_zh: "玩具火车"
         name_en: "Toy train"
-        bbox: [2, 2]
-        shape: [[0,0]]
-        open_spaces: [[0,1],[1,0]]
-        wall_edges: [top, left]
+        bbox: [2, 3]
+        shape: [[0,0],[0,1]]
+        open_spaces: [[0,2],[1,0]]
+        wall_edges: []
         printed_markers: 0
         notes: "Single cell train-track piece with L-shape open access on right and below."
         verify: true
@@ -1132,7 +1126,7 @@ cards:
         bbox: [3, 3]
         shape: [[0,0],[0,1],[0,2],[1,0],[1,2]]
         open_spaces: [[1,1],[2,0],[2,1],[2,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "U-shape climbing frame with ladder on the left and slide on the right; bottom row open."
         verify: true
@@ -1144,9 +1138,9 @@ cards:
       - option_index: 1
         name_zh: "蹦床"
         name_en: "Trampoline"
-        bbox: [2, 3]
-        shape: [[0,1],[1,1]]
-        open_spaces: [[1,0],[1,2]]
+        bbox: [2, 4]
+        shape: [[0,1],[0,2],[1,1],[1,2]]
+        open_spaces: [[0,3],[1,0]]
         wall_edges: []
         printed_markers: 0
         notes: "Round trampoline spanning the middle column; landing spaces flank it left/right at row 1."
@@ -1155,9 +1149,9 @@ cards:
         name_zh: "滑梯"
         name_en: "Slide"
         bbox: [3, 3]
-        shape: [[0,0],[0,1],[1,0],[2,0]]
-        open_spaces: [[0,2],[1,1],[1,2],[2,1]]
-        wall_edges: [top, left]
+        shape: [[0,0],[0,1],[1,0]]
+        open_spaces: [[0,2],[2,0]]
+        wall_edges: []
         printed_markers: 0
         notes: "Platform top-left + slide extending right at (0,1); ladder going down the left column."
         verify: true
@@ -1171,9 +1165,9 @@ cards:
         name_zh: "带有地毯的狗屋"
         name_en: "Dog house with carpet"
         bbox: [2, 3]
-        shape: [[0,0],[0,2],[1,0],[1,1]]
-        open_spaces: [[0,1],[1,2]]
-        wall_edges: [bottom]
+        shape: [[1,0],[1,1],[1,2]]
+        open_spaces: [[0,0],[0,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "Two small wall posts at top + 2-cell carpeted dog bed below (with bone icon)."
         verify: true
@@ -1182,8 +1176,8 @@ cards:
         name_en: "Cat tree"
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2]]
-        open_spaces: [[0,3],[1,0],[1,1]]
-        wall_edges: [top]
+        open_spaces: [[0,3],[1,0]]
+        wall_edges: []
         printed_markers: 0
         notes: "Cat tunnels at (0,0)(0,1) + paw-printed cat platform at (0,2); open spaces below and to the right."
         verify: true
@@ -1198,7 +1192,7 @@ cards:
         bbox: [2, 5]
         shape: [[0,0],[1,0],[0,4],[1,4]]
         open_spaces: [[1,1],[1,2],[1,3]]
-        wall_edges: [left, right]
+        wall_edges: []
         printed_markers: 0
         notes: "Two vertical 2-cell terrariums (snake + turtle) at the ends with 3 cells of open between."
         verify: true
@@ -1206,9 +1200,9 @@ cards:
         name_zh: "鱼缸"
         name_en: "Fish tank"
         bbox: [2, 4]
-        shape: [[0,0],[0,1],[0,2],[0,3]]
+        shape: [[0,0],[0,1],[0,2]]
         open_spaces: [[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Long 4-cell fish tank with open access below."
 
@@ -1221,18 +1215,18 @@ cards:
         name_zh: "象棋桌"
         name_en: "Chess table"
         bbox: [1, 5]
-        shape: [[0,2]]
-        open_spaces: [[0,1],[0,3]]
+        shape: [[0,1],[0,2],[0,3]]
+        open_spaces: [[0,0],[0,4]]
         wall_edges: []
         printed_markers: 0
         notes: "Single-cell chessboard with chairs (open spaces) on either side; (0,0)/(0,4) outside option."
       - option_index: 2
         name_zh: "高尔夫垫"
         name_en: "Golf mat"
-        bbox: [3, 3]
+        bbox: [2, 3]
         shape: [[0,0],[0,1],[0,2]]
-        open_spaces: [[1,0],[1,1],[1,2],[2,1]]
-        wall_edges: [top]
+        open_spaces: [[1,0],[1,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "3-cell horizontal mat with golf cup on the left; staircase open-space pattern below."
         verify: true
@@ -1246,17 +1240,17 @@ cards:
         name_en: "Workbench"
         bbox: [2, 3]
         shape: [[0,1],[0,2]]
-        open_spaces: [[1,0],[1,1],[1,2]]
-        wall_edges: [top]
+        open_spaces: [[0,0],[1,0],[1,1],[1,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "2-cell workbench with hammer icon; open row below. (0,0) outside option."
       - option_index: 2
         name_zh: "带有织物储存区的缝纫机"
         name_en: "Sewing machine with fabric storage"
         bbox: [3, 3]
-        shape: [[0,1],[1,0],[2,0],[2,1]]
-        open_spaces: [[1,1],[1,2],[2,2]]
-        wall_edges: [left, bottom]
+        shape: [[1,0],[2,0],[2,1]]
+        open_spaces: [[0,1],[1,1],[1,2],[2,2]]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape: fabric storage at (0,1) + sewing machine column down left + fabric roll bottom."
         verify: true
@@ -1270,9 +1264,9 @@ cards:
         name_zh: "跑步机和单车"
         name_en: "Treadmill and bike"
         bbox: [2, 4]
-        shape: [[0,0],[0,2],[0,3]]
-        open_spaces: [[0,1],[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        shape: [[0,0],[0,2],[0,3],[1,0]]
+        open_spaces: [[0,1],[1,1],[1,2],[1,3]]
+        wall_edges: []
         printed_markers: 0
         notes: "Treadmill at (0,0) + 2-cell stationary bike at (0,2)(0,3); open access below + 1 gap cell between."
         verify: true
@@ -1281,7 +1275,7 @@ cards:
         name_en: "Rowing machine"
         bbox: [3, 3]
         shape: [[1,1],[1,2]]
-        open_spaces: [[0,1],[0,2],[2,1],[2,2]]
+        open_spaces: [[0,0],[0,1],[0,2],[1,0],[2,0],[2,1],[2,2]]
         wall_edges: []
         printed_markers: 0
         notes: "Centered 2-cell rowing machine with open spaces above and below; (?,0) col outside option."
@@ -1296,7 +1290,7 @@ cards:
         name_en: "Ping pong table"
         bbox: [2, 4]
         shape: [[0,1],[0,2]]
-        open_spaces: [[1,0],[1,1],[1,2],[1,3]]
+        open_spaces: [[0,0],[0,3],[1,0],[1,1],[1,2],[1,3]]
         wall_edges: []
         printed_markers: 0
         notes: "2-cell ping pong table in middle of top row; (0,0)/(0,3) outside option."
@@ -1306,7 +1300,7 @@ cards:
         bbox: [1, 4]
         shape: [[0,3]]
         open_spaces: [[0,0],[0,1],[0,2]]
-        wall_edges: [right]
+        wall_edges: []
         printed_markers: 0
         notes: "Dart board against right wall with 3-cell throwing alley to its left."
 
@@ -1321,7 +1315,7 @@ cards:
         bbox: [2, 4]
         shape: [[0,2],[0,3],[1,2],[1,3]]
         open_spaces: [[0,0],[0,1],[1,0],[1,1]]
-        wall_edges: [top, right]
+        wall_edges: []
         printed_markers: 0
         notes: "2×2 grand piano on the right (rounded body) + lamp integrated; 2×2 open access on the left."
         verify: true
@@ -1331,7 +1325,7 @@ cards:
         bbox: [3, 3]
         shape: [[1,1],[2,0],[2,1],[2,2]]
         open_spaces: [[0,0],[0,1],[0,2],[1,0],[1,2]]
-        wall_edges: [bottom]
+        wall_edges: []
         printed_markers: 0
         notes: "Snare/cymbal at (1,1) + 3 drums across the bottom row."
         verify: true
@@ -1356,7 +1350,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,1],[0,2],[1,2]]
         open_spaces: [[0,0],[1,0],[1,1]]
-        wall_edges: [top, right]
+        wall_edges: []
         printed_markers: 0
         notes: "L-shape harp: top bar (0,1)(0,2) + body at (1,2)."
         verify: true
@@ -1372,7 +1366,7 @@ cards:
         bbox: [3, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,0],[1,1],[1,2],[1,3],[2,1],[2,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "4-cell sound system across top (speakers + center sound bar); listening area below extends T-shape."
         verify: true
@@ -1382,7 +1376,7 @@ cards:
         bbox: [2, 4]
         shape: [[0,0],[0,3]]
         open_spaces: [[0,1],[0,2],[1,1],[1,2]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Two speakers at the ends with 2×2 listening area between/below them."
         verify: true
@@ -1397,7 +1391,7 @@ cards:
         bbox: [2, 4]
         shape: [[0,0],[0,1],[0,2],[0,3]]
         open_spaces: [[1,0],[1,1],[1,2],[1,3]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "4-cell sound system (speaker + 2 center cells + speaker) with open row below."
       - option_index: 2
@@ -1406,7 +1400,7 @@ cards:
         bbox: [2, 3]
         shape: [[0,0],[0,2]]
         open_spaces: [[0,1],[1,1]]
-        wall_edges: [top]
+        wall_edges: []
         printed_markers: 0
         notes: "Two small speakers flanking a single open cell, with 1 more open below."
         verify: true
@@ -1422,7 +1416,7 @@ cards:
         bbox: [2, 1]
         shape: [[1,0]]
         open_spaces: [[0,0]]
-        wall_edges: [bottom]
+        wall_edges: []
         printed_markers: 0
         notes: "Single-cell TV with one cell of viewing area in front."
       - option_index: 2
@@ -1431,7 +1425,7 @@ cards:
         bbox: [2, 2]
         shape: [[1,0],[1,1]]
         open_spaces: [[0,0],[0,1]]
-        wall_edges: [bottom]
+        wall_edges: []
         printed_markers: 0
         notes: "2-cell wide TV with 2-cell viewing area in front."
 
@@ -1445,7 +1439,7 @@ cards:
         bbox: [2, 2]
         shape: [[1,0],[1,1]]
         open_spaces: [[0,0]]
-        wall_edges: [bottom]
+        wall_edges: []
         printed_markers: 0
         notes: "Small TV at (1,0) + amp/speaker at (1,1); single open viewing cell in front of the TV."
         verify: true
@@ -1453,9 +1447,9 @@ cards:
         name_zh: "转角大电视"
         name_en: "Corner large TV"
         bbox: [2, 2]
-        shape: [[1,1]]
-        open_spaces: [[0,1],[1,0]]
-        wall_edges: [bottom, right]
+        shape: [[0,1],[1,0],[1,1]]
+        open_spaces: [[0,0]]
+        wall_edges: []
         printed_markers: 0
         notes: "Corner-mounted TV in the bottom-right (diagonal marker on card); L-shape viewing area."
         verify: true
@@ -1471,17 +1465,17 @@ cards:
         bbox: [3, 4]
         shape: [[1,0],[1,1],[1,2],[1,3],[2,0]]
         open_spaces: [[0,1],[0,2],[0,3],[2,1],[2,2],[2,3]]
-        wall_edges: []
+        wall_edges: [bottom]
         printed_markers: 0
         notes: "Horizontal 4-cell bar at row 1 + 1-cell extension at (2,0). Seats above (3) and below (3)."
         verify: true
       - option_index: 2
         name_zh: "鸡尾酒吧台"
         name_en: "Cocktail bar"
-        bbox: [3, 4]
+        bbox: [3, 5]
         shape: [[1,0],[1,1],[1,2],[1,3]]
-        open_spaces: [[0,1],[0,2],[0,3],[2,0],[2,1],[2,2],[2,3]]
-        wall_edges: []
+        open_spaces: [[0,1],[0,2],[0,3],[2,0],[2,1],[2,2],[2,3],[2,4]]
+        wall_edges: [bottom]
         printed_markers: 0
         notes: "Horizontal 4-cell bar; seats above (3) and below (4)."
         verify: true
@@ -1493,10 +1487,10 @@ cards:
       - option_index: 1
         name_zh: "葡萄酒吧台"
         name_en: "Wine bar"
-        bbox: [3, 3]
+        bbox: [3, 4]
         shape: [[0,1],[1,1],[2,1],[2,2]]
-        open_spaces: [[0,2],[1,0],[1,2],[2,0]]
-        wall_edges: [top]
+        open_spaces: [[0,0],[0,2],[0,3],[1,0],[1,2],[1,3],[2,3]]
+        wall_edges: [right]
         printed_markers: 0
         notes: "L-shape bar: vertical 3-cell column at col 1 + 1-cell horizontal extension at the bottom-right."
         verify: true
@@ -1504,8 +1498,8 @@ cards:
         name_zh: "果汁吧台"
         name_en: "Juice bar"
         bbox: [3, 5]
-        shape: [[0,0],[0,1],[1,0],[0,3],[0,4],[1,4]]
-        open_spaces: [[0,2],[1,1],[1,2],[1,3],[2,1],[2,2],[2,3]]
+        shape: [[0,0],[0,4],[1,0],[1,1],[1,3],[1,4]]
+        open_spaces: [[0,1],[0,2],[0,3],[1,2],[2,1],[2,2],[2,3]]
         wall_edges: [top]
         printed_markers: 0
         notes: "Two L-shape bar segments at top-left and top-right with a central seating area between."
@@ -1528,9 +1522,9 @@ cards:
       - option_index: 2
         name_zh: "皂石壁炉"
         name_en: "Soapstone fireplace"
-        bbox: [2, 3]
-        shape: [[0,0],[1,0],[1,1],[1,2]]
-        open_spaces: [[0,1],[0,2]]
+        bbox: [3, 3]
+        shape: [[0,0]]
+        open_spaces: [[0,1],[0,2],[1,0],[1,1],[2,0]]
         wall_edges: [top, left]
         printed_markers: 0
         notes: "Corner stove at (0,0) + 3-cell horizontal hearth extending right at row 1."
@@ -1553,8 +1547,8 @@ cards:
         name_zh: "欧式壁炉"
         name_en: "European fireplace"
         bbox: [3, 3]
-        shape: [[0,0],[1,0],[1,1],[1,2],[2,1]]
-        open_spaces: [[0,1],[0,2],[2,0],[2,2]]
+        shape: [[0,0]]
+        open_spaces: [[0,1],[1,0],[1,1],[1,2],[2,1]]
         wall_edges: [top, left]
         printed_markers: 0
         notes: "Corner fireplace at (0,0) + horizontal hearth at row 1 + 1-cell hearth extension at (2,1)."
@@ -1579,7 +1573,7 @@ cards:
         name_en: "Painting on an easel"
         bbox: [3, 3]
         shape: [[0,1]]
-        open_spaces: [[0,0],[1,1],[2,1]]
+        open_spaces: [[0,0],[0,2],[1,1],[2,1]]
         wall_edges: []
         printed_markers: 0
         notes: "Easel at (0,1) with vertical viewing column extending below; corners outside option."
@@ -1604,7 +1598,7 @@ cards:
         bbox: [1, 3]
         shape: [[0,1]]
         open_spaces: [[0,0],[0,2]]
-        wall_edges: [top, bottom]
+        wall_edges: [top]
         printed_markers: 0
         notes: "Single-cell standing armor between walls; 1-cell access on either side."
         verify: true
@@ -1627,7 +1621,7 @@ cards:
         name_zh: "两列式地毯"
         name_en: "Two-strip carpet"
         bbox: [2, 4]
-        shape: [[0,0],[0,1],[0,2],[1,1],[1,2],[1,3]]
+        shape: [[0,1],[0,2],[0,3],[1,0],[1,1],[1,2]]
         open_spaces: []
         wall_edges: []
         printed_markers: 0

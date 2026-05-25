@@ -16,6 +16,10 @@ import {
 } from '../lib/geometry';
 import { validatePlacement } from '../lib/validation';
 import { validateWallTopology } from '../lib/walls';
+import { computeRegions } from '../lib/regions';
+import { optionImageUrl } from '../lib/optionImage';
+import { FurnitureVector, hasVectorVisual } from '../vector/FurnitureVector';
+import type { ThemeId } from '../vector/themes';
 import './FloorPlan.css';
 
 interface FloorPlanProps {
@@ -33,24 +37,128 @@ function parseAsciiGrid(ascii: string) {
   return { cells, indoorCells: indoor };
 }
 
-function deriveExteriorWalls(cells: string[][], legend: Scenario['grid']['legend']) {
+interface ExteriorEdge {
+  x1: number; y1: number; x2: number; y2: number;
+  key: string;                                // canonical edge key h:R:C / v:R:C
+}
+
+/**
+ * Render an architectural-style door symbol: a 45°-open door panel from the
+ * hinge plus a quarter-circle arc showing the swing trajectory.
+ *
+ *   ownerSideCell — the cell on the edge that the door belongs to (player
+ *     room owner, or "indoor" for the front door). The door swings AWAY from
+ *     this side (per "向外打开" convention).
+ *   swingDirOverride — used when ownerSideCell can't be determined.
+ */
+function renderDoorSymbol(
+  edgeKey: string,
+  ownerSideCell: [number, number] | null,
+  cellSize: number,
+  groupClassName: string,
+): React.ReactElement {
+  const [type, rStr, cStr] = edgeKey.split(':');
+  const r = parseInt(rStr, 10);
+  const c = parseInt(cStr, 10);
+  const L = cellSize;
+
+  // Two cells adjacent to the edge.
+  const sideA: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
+  const sideB: [number, number] = type === 'h' ? [r, c] : [r, c];
+
+  // swingDir = direction the door opens INTO (= away from owner side).
+  // h: -1 = up (toward sideA), +1 = down (toward sideB)
+  // v: -1 = left (toward sideA), +1 = right (toward sideB)
+  let swingDir: -1 | 1 = 1;
+  if (ownerSideCell) {
+    if (ownerSideCell[0] === sideA[0] && ownerSideCell[1] === sideA[1]) swingDir = 1;
+    else if (ownerSideCell[0] === sideB[0] && ownerSideCell[1] === sideB[1]) swingDir = -1;
+  }
+
+  if (type === 'h') {
+    // Hinge = left endpoint of edge.
+    const hingeX = c * L;
+    const hingeY = r * L;
+    const closedX = (c + 1) * L;
+    const closedY = r * L;
+    // Open angle: -45° = up-right, +45° = down-right (from horizontal).
+    const angleDeg = swingDir === -1 ? -45 : 45;
+    const rad = (angleDeg * Math.PI) / 180;
+    const openX = hingeX + L * Math.cos(rad);
+    const openY = hingeY + L * Math.sin(rad);
+    // SVG arc sweep: 1 = CW in screen coords (y-down).
+    const sweep = swingDir === 1 ? 1 : 0;
+    const arcPath = `M ${closedX} ${closedY} A ${L} ${L} 0 0 ${sweep} ${openX} ${openY}`;
+    return (
+      <g key={`door-${edgeKey}`} className={`door-symbol ${groupClassName}`}>
+        <line x1={hingeX} y1={hingeY} x2={openX} y2={openY} className="door-panel" />
+        <path d={arcPath} className="door-arc" fill="none" />
+      </g>
+    );
+  }
+
+  // Vertical edge: hinge = top endpoint.
+  const hingeX = c * L;
+  const hingeY = r * L;
+  const closedX = c * L;
+  const closedY = (r + 1) * L;
+  // Closed direction is +90° (straight down). Open +45 (down-right) or 135 (down-left).
+  const angleDeg = swingDir === -1 ? 135 : 45;
+  const rad = (angleDeg * Math.PI) / 180;
+  const openX = hingeX + L * Math.cos(rad);
+  const openY = hingeY + L * Math.sin(rad);
+  const sweep = swingDir === -1 ? 1 : 0;
+  const arcPath = `M ${closedX} ${closedY} A ${L} ${L} 0 0 ${sweep} ${openX} ${openY}`;
+  return (
+    <g key={`door-${edgeKey}`} className={`door-symbol ${groupClassName}`}>
+      <line x1={hingeX} y1={hingeY} x2={openX} y2={openY} className="door-panel" />
+      <path d={arcPath} className="door-arc" fill="none" />
+    </g>
+  );
+}
+
+function ownerCellOfDoor(
+  edgeKey: string,
+  isOwnerCell: (cellKey: string) => boolean,
+): [number, number] | null {
+  const [type, rStr, cStr] = edgeKey.split(':');
+  const r = parseInt(rStr, 10);
+  const c = parseInt(cStr, 10);
+  const sideA: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
+  const sideB: [number, number] = type === 'h' ? [r, c] : [r, c];
+  if (isOwnerCell(`${sideA[0]},${sideA[1]}`)) return sideA;
+  if (isOwnerCell(`${sideB[0]},${sideB[1]}`)) return sideB;
+  return null;
+}
+
+function deriveExteriorWalls(cells: string[][], legend: Scenario['grid']['legend']): ExteriorEdge[] {
   const isIndoor = (r: number, c: number) =>
     r >= 0 && c >= 0 && r < cells.length && c < (cells[r]?.length ?? 0) &&
     legend[cells[r][c]]?.terrain === 'indoor';
-  const edges: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
+  const out: ExteriorEdge[] = [];
+  const seen = new Set<string>();
+  const push = (x1: number, y1: number, x2: number, y2: number, key: string) => {
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ x1, y1, x2, y2, key });
+  };
   for (let r = 0; r < cells.length; r++) {
     for (let c = 0; c < cells[r].length; c++) {
       if (!isIndoor(r, c)) continue;
-      if (!isIndoor(r - 1, c)) edges.push({ x1: c, y1: r, x2: c + 1, y2: r });
-      if (!isIndoor(r + 1, c)) edges.push({ x1: c, y1: r + 1, x2: c + 1, y2: r + 1 });
-      if (!isIndoor(r, c - 1)) edges.push({ x1: c, y1: r, x2: c, y2: r + 1 });
-      if (!isIndoor(r, c + 1)) edges.push({ x1: c + 1, y1: r, x2: c + 1, y2: r + 1 });
+      // Top edge of (r,c) = horizontal edge h:r:c
+      if (!isIndoor(r - 1, c)) push(c, r, c + 1, r, `h:${r}:${c}`);
+      // Bottom edge of (r,c) = h:r+1:c
+      if (!isIndoor(r + 1, c)) push(c, r + 1, c + 1, r + 1, `h:${r + 1}:${c}`);
+      // Left edge of (r,c) = v:r:c
+      if (!isIndoor(r, c - 1)) push(c, r, c, r + 1, `v:${r}:${c}`);
+      // Right edge of (r,c) = v:r:c+1
+      if (!isIndoor(r, c + 1)) push(c + 1, r, c + 1, r + 1, `v:${r}:${c + 1}`);
     }
   }
-  return edges;
+  return out;
 }
 
-export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
+export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
   const { cells, indoorCells, walls: exteriorWalls } = useMemo(() => {
     const parsed = parseAsciiGrid(scenario.grid.ascii);
     const w = deriveExteriorWalls(parsed.cells, scenario.grid.legend);
@@ -75,7 +183,6 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
   const setError = useGameStore((s) => s.setError);
 
   const activeRoomSlot = useGameStore((s) => s.activeRoomSlot);
-  const chosenVariants = useGameStore((s) => s.chosenVariants);
   const placedCardKeys = useGameStore((s) => s.placedCardKeys);
   const skippedCardKeys = useGameStore((s) => s.skippedCardKeys);
   const playerWalls = useGameStore((s) => s.walls);
@@ -83,12 +190,16 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
   const wallPhase = useGameStore((s) => s.wallPhase);
   const toggleWall = useGameStore((s) => s.toggleWall);
   const setDoor = useGameStore((s) => s.setDoor);
+  const frontDoorEdge = useGameStore((s) => s.frontDoorEdge);
+  const frontDoorMode = useGameStore((s) => s.frontDoorMode);
+  const setFrontDoor = useGameStore((s) => s.setFrontDoor);
+  const themeId = useGameStore((s) => s.themeId) as ThemeId;
 
   const inWallMode =
     !!activeRoomSlot &&
     isRoomReadyToSeal(
       scenario,
-      { chosenVariants, placedCardKeys, skippedCardKeys },
+      { placedCardKeys, skippedCardKeys },
       activeRoomSlot,
     );
 
@@ -116,6 +227,30 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selected, rotateSelection]);
+
+  // Compute room regions (walls — including doors — block flood fill). Used
+  // to determine which side of a door belongs to its owner room, so the door
+  // symbol always swings outward (away from the owner).
+  const regionMap = useMemo(
+    () => computeRegions(scenario, playerWalls),
+    [scenario, playerWalls],
+  );
+
+  const ownerRegionByRoom = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of placedPieces) {
+      if (m.has(p.roomSlot)) continue;
+      const card = cardByNumberVariant(p.number, p.variant);
+      const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+      if (!opt) continue;
+      const t = transformOption(opt, p.rotation, p.mirrored);
+      for (const [r, c] of absoluteCells(t.shape, p.origin)) {
+        const reg = regionMap.cellToRegion.get(`${r},${c}`);
+        if (reg !== undefined) { m.set(p.roomSlot, reg); break; }
+      }
+    }
+    return m;
+  }, [placedPieces, regionMap]);
 
   const transformedSel: TransformedShape | null = useMemo(() => {
     if (!selected) return null;
@@ -220,10 +355,84 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
         </g>
 
         <g className="exterior-walls" transform={`translate(${labelGap}, ${labelGap})`} filter="url(#sketch)">
-          {exteriorWalls.map((e, i) => (
-            <line key={i} x1={e.x1 * cellSize} y1={e.y1 * cellSize} x2={e.x2 * cellSize} y2={e.y2 * cellSize} />
-          ))}
+          {exteriorWalls.map((e, i) => {
+            // Skip drawing the wall segment that's been turned into the front door
+            // — the door symbol layer below renders it instead.
+            if (e.key === frontDoorEdge) return null;
+            return (
+              <line
+                key={i}
+                x1={e.x1 * cellSize}
+                y1={e.y1 * cellSize}
+                x2={e.x2 * cellSize}
+                y2={e.y2 * cellSize}
+              />
+            );
+          })}
         </g>
+
+        {/* Front door symbol — drawn separately so it doesn't carry the sketch
+            wobble filter (which would distort the clean arc). Owner side =
+            any indoor cell (front door always swings out into the outdoors). */}
+        {frontDoorEdge && (
+          <g className="front-door-symbol-layer" transform={`translate(${labelGap}, ${labelGap})`}>
+            {renderDoorSymbol(
+              frontDoorEdge,
+              ownerCellOfDoor(
+                frontDoorEdge,
+                (k) => regionMap.cellToRegion.has(k),
+              ),
+              cellSize,
+              'front-door-symbol',
+            )}
+          </g>
+        )}
+
+        {/* Hit-zones along the exterior wall — only active in front-door mode */}
+        {frontDoorMode && (
+          <g className="front-door-hit" transform={`translate(${labelGap}, ${labelGap})`}>
+            {exteriorWalls.map((e, i) => {
+              const isHorizontal = e.y1 === e.y2;
+              const isHovered = hoverEdge === e.key;
+              const stroke = isHovered ? 'var(--accent)' : 'rgba(255,225,105,0.35)';
+              const sw = isHovered ? 6 : 4;
+              if (isHorizontal) {
+                return (
+                  <line
+                    key={`fdh-${i}`}
+                    x1={e.x1 * cellSize}
+                    y1={e.y1 * cellSize}
+                    x2={e.x2 * cellSize}
+                    y2={e.y2 * cellSize}
+                    stroke={stroke}
+                    strokeWidth={sw}
+                    strokeDasharray="3 2"
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={() => setHoverEdge(e.key)}
+                    onMouseLeave={() => setHoverEdge(null)}
+                    onClick={() => setFrontDoor(e.key)}
+                  />
+                );
+              }
+              return (
+                <line
+                  key={`fdv-${i}`}
+                  x1={e.x1 * cellSize}
+                  y1={e.y1 * cellSize}
+                  x2={e.x2 * cellSize}
+                  y2={e.y2 * cellSize}
+                  stroke={stroke}
+                  strokeWidth={sw}
+                  strokeDasharray="3 2"
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={() => setHoverEdge(e.key)}
+                  onMouseLeave={() => setHoverEdge(null)}
+                  onClick={() => setFrontDoor(e.key)}
+                />
+              );
+            })}
+          </g>
+        )}
 
         {/* Placed pieces */}
         <g className="placed-pieces" transform={`translate(${labelGap}, ${labelGap})`}>
@@ -234,51 +443,134 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
             const t = transformOption(opt, p.rotation, p.mirrored);
             const abs = absoluteCells(t.shape, p.origin);
             const absOpen = absoluteCells(t.open_spaces, p.origin);
+
+            // Render the actual option artwork rotated/mirrored over the bbox.
+            const [origH, origW] = opt.bbox;
+            const tH = p.rotation % 2 === 0 ? origH : origW;
+            const tW = p.rotation % 2 === 0 ? origW : origH;
+            const cellOriginX = p.origin[1] * cellSize;
+            const cellOriginY = p.origin[0] * cellSize;
+            const centerX = cellOriginX + (tW * cellSize) / 2;
+            const centerY = cellOriginY + (tH * cellSize) / 2;
+            const origPxW = origW * cellSize;
+            const origPxH = origH * cellSize;
+            const url = optionImageUrl(p.number, p.variant, p.optionIndex);
+
+            const useVector = hasVectorVisual(p.number, p.variant, p.optionIndex);
+            // Clip the scanned card crop to SHAPE cells only. Open-space and
+            // void cells render transparent — the open-space marker is just
+            // the centre dot below, so the scan's imprecise cell borders
+            // don't bleed in.
+            const visibleCells: Array<[number, number]> = opt.shape.map(
+              ([r, c]) => [r, c],
+            );
+            const clipId = `piece-clip-${pi}-${p.number}-${p.variant}-${p.optionIndex}`;
             return (
               <g key={pi} className="placed-piece">
+                {!useVector && (
+                  <defs>
+                    <clipPath id={clipId}>
+                      {visibleCells.map(([r, c], i) => (
+                        <rect
+                          key={i}
+                          x={-origPxW / 2 + c * cellSize}
+                          y={-origPxH / 2 + r * cellSize}
+                          width={cellSize}
+                          height={cellSize}
+                        />
+                      ))}
+                    </clipPath>
+                  </defs>
+                )}
+                {/* Open-space marker — a single dot at each open-space cell centre. */}
                 {absOpen.map(([r, c], i) => (
-                  <rect key={`o${i}`} x={c * cellSize} y={r * cellSize} width={cellSize} height={cellSize}
-                        fill="url(#ghost-hatch)" />
+                  <circle
+                    key={`o${i}`}
+                    cx={c * cellSize + cellSize / 2}
+                    cy={r * cellSize + cellSize / 2}
+                    r={Math.max(2, cellSize * 0.07)}
+                    className="open-space-dot"
+                  />
                 ))}
+                {/* Subtle indoor-tint behind the artwork — only at SHAPE cells
+                    so void bbox cells stay clear. */}
                 {abs.map(([r, c], i) => (
-                  <rect key={`s${i}`} x={c * cellSize + 2} y={r * cellSize + 2}
-                        width={cellSize - 4} height={cellSize - 4}
-                        fill="rgba(255,255,255,0.80)" stroke="#fff" strokeWidth="1.2" />
+                  <rect key={`bg${i}`} x={c * cellSize} y={r * cellSize}
+                        width={cellSize} height={cellSize}
+                        fill="rgba(255,255,255,0.10)" />
+                ))}
+                {/* Furniture body — vector primitives when a visual schema
+                    exists, otherwise fall back to the (clipped) raster crop. */}
+                <g
+                  transform={`translate(${centerX}, ${centerY}) rotate(${p.rotation * 90}) scale(${p.mirrored ? -1 : 1}, 1)`}
+                  className={useVector ? 'piece-vector' : 'piece-art'}
+                >
+                  {useVector ? (
+                    <g transform={`translate(${-origPxW / 2}, ${-origPxH / 2})`}>
+                      <FurnitureVector
+                        number={p.number}
+                        variant={p.variant}
+                        optionIndex={p.optionIndex}
+                        rows={origH}
+                        cols={origW}
+                        cellSize={cellSize}
+                        themeId={themeId}
+                      />
+                    </g>
+                  ) : (
+                    <image
+                      href={url}
+                      x={-origPxW / 2}
+                      y={-origPxH / 2}
+                      width={origPxW}
+                      height={origPxH}
+                      preserveAspectRatio="none"
+                      clipPath={`url(#${clipId})`}
+                    />
+                  )}
+                </g>
+                {/* Thin border on each shape cell for clarity */}
+                {abs.map(([r, c], i) => (
+                  <rect key={`s${i}`} x={c * cellSize + 0.5} y={r * cellSize + 0.5}
+                        width={cellSize - 1} height={cellSize - 1}
+                        fill="none" stroke="#fff" strokeOpacity="0.5" strokeWidth="0.6"
+                        pointerEvents="none" />
                 ))}
               </g>
             );
           })}
         </g>
 
-        {/* Player walls + doors — no sketch filter (a single straight line has
-            a degenerate bbox which makes SVG filters render nothing). */}
+        {/* Player walls — solid lines. Doors are rendered separately below. */}
         <g className="player-walls" transform={`translate(${labelGap}, ${labelGap})`}>
           {Object.keys(playerWalls).map((key) => {
+            if (playerDoors[key]) return null;  // doors handled below
             const [type, rStr, cStr] = key.split(':');
             const r = parseInt(rStr, 10);
             const c = parseInt(cStr, 10);
-            const isDoor = !!playerDoors[key];
             const isDangling = danglingSet.has(key);
-            const cls = isDoor ? 'door' : isDangling ? 'wall dangling' : 'wall';
+            const cls = isDangling ? 'wall dangling' : 'wall';
             if (type === 'h') {
-              const x1 = c * cellSize;
-              const x2 = (c + 1) * cellSize;
-              const y = r * cellSize;
-              return isDoor ? (
-                <line key={key} x1={x1 + 6} y1={y} x2={x2 - 6} y2={y} className={cls} />
-              ) : (
-                <line key={key} x1={x1} y1={y} x2={x2} y2={y} className={cls} />
-              );
-            } else {
-              const y1 = r * cellSize;
-              const y2 = (r + 1) * cellSize;
-              const x = c * cellSize;
-              return isDoor ? (
-                <line key={key} x1={x} y1={y1 + 6} x2={x} y2={y2 - 6} className={cls} />
-              ) : (
-                <line key={key} x1={x} y1={y1} x2={x} y2={y2} className={cls} />
-              );
+              return <line key={key} x1={c * cellSize} y1={r * cellSize} x2={(c + 1) * cellSize} y2={r * cellSize} className={cls} />;
             }
+            return <line key={key} x1={c * cellSize} y1={r * cellSize} x2={c * cellSize} y2={(r + 1) * cellSize} className={cls} />;
+          })}
+        </g>
+
+        {/* Player room doors — architectural 45° swing symbol. Owner side =
+            cell whose region matches the owner room's region (so the door
+            swings away from the room → "外开"). */}
+        <g className="player-doors" transform={`translate(${labelGap}, ${labelGap})`}>
+          {Object.entries(playerDoors).map(([edgeKey, ownerSlot]) => {
+            const ownerReg = ownerRegionByRoom.get(ownerSlot);
+            const ownerCell =
+              ownerReg !== undefined
+                ? ownerCellOfDoor(
+                    edgeKey,
+                    (k) => regionMap.cellToRegion.get(k) === ownerReg,
+                  )
+                : null;
+            return renderDoorSymbol(edgeKey, ownerCell, cellSize, 'room-door');
           })}
         </g>
 
@@ -287,8 +579,13 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
           <g className="ghost" transform={`translate(${labelGap}, ${labelGap})`}>
             {ghostOpenCells.map(([r, c], i) => (
               inBounds([r, c]) ? (
-                <rect key={`go${i}`} x={c * cellSize} y={r * cellSize} width={cellSize} height={cellSize}
-                      fill="url(#ghost-hatch)" opacity={0.7} />
+                <circle
+                  key={`go${i}`}
+                  cx={c * cellSize + cellSize / 2}
+                  cy={r * cellSize + cellSize / 2}
+                  r={Math.max(2, cellSize * 0.07)}
+                  className="open-space-dot ghost"
+                />
               ) : null
             ))}
             {ghostCells.map(([r, c], i) => {
@@ -330,7 +627,8 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
           </g>
         )}
 
-        {/* Cell hit-zones (placement only when NOT in wall mode) */}
+        {/* Cell hit-zones (placement only when NOT in wall/front-door mode) */}
+        {!frontDoorMode && (
         <g className="cell-hit" transform={`translate(${labelGap}, ${labelGap})`}>
           {Array.from({ length: rows }, (_, r) =>
             Array.from({ length: cols }, (__, c) => (
@@ -348,9 +646,10 @@ export function FloorPlan({ scenario, cellSize = 36 }: FloorPlanProps) {
             )),
           )}
         </g>
+        )}
 
         {/* Edge hit-zones (wall + door drawing) */}
-        {inWallMode && (
+        {inWallMode && !frontDoorMode && (
           <g className="edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
             {Array.from({ length: rows + 1 }, (_, r) =>
               Array.from({ length: cols }, (__, c) => (

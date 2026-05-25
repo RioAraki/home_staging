@@ -6,6 +6,16 @@ export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
 export type WallPhase = 'walls' | 'door';
 
+/** A card "instance" is one slot in a room's furniture_numbers array. Same
+ *  number can appear multiple times in a room (e.g. 2 beds); each occurrence
+ *  is its own instance with independent reveal/place/skip state. */
+export function instanceKey(slot: RoomSlot, slotIdx: number): string {
+  return `${slot}:${slotIdx}`;
+}
+
+/** Legacy per-(number,variant) key — kept for places that key by furniture
+ *  number rather than placement instance (none after this refactor; left in
+ *  case of external use). */
 export function cardKey(number: number, variant: Variant): string {
   return `${number}-${variant}`;
 }
@@ -14,8 +24,10 @@ export function hEdge(r: number, c: number): string { return `h:${r}:${c}`; }
 export function vEdge(r: number, c: number): string { return `v:${r}:${c}`; }
 
 export interface SelectedOption {
-  number: number;
-  variant: Variant;
+  slot: RoomSlot;
+  slotIdx: number;
+  number: number;            // denormalized from scenario for convenience
+  variant: Variant;          // denormalized from chosenVariants
   optionIndex: number;
   rotation: Rotation;
   mirrored: boolean;
@@ -23,7 +35,7 @@ export interface SelectedOption {
 
 export interface PlacedPiece extends SelectedOption {
   origin: [number, number];
-  roomSlot: RoomSlot;
+  roomSlot: RoomSlot;        // === slot, kept for backwards compat in code
 }
 
 /** Undoable state — everything except chosenVariants (set at game start)
@@ -31,6 +43,7 @@ export interface PlacedPiece extends SelectedOption {
 interface Undoable {
   activeRoomSlot: RoomSlot | null;
   completedRoomSlots: Set<RoomSlot>;
+  /** Sets keyed by `instanceKey(slot, slotIdx)`. */
   revealedCardKeys: Set<string>;
   placedCardKeys: Set<string>;
   skippedCardKeys: Set<string>;
@@ -40,28 +53,47 @@ interface Undoable {
   doors: Record<string, RoomSlot>;
   wallPhase: WallPhase;
   jokerUsed: boolean;
+  /** Edge key on the exterior wall designated as the building's front door.
+   *  null until the player picks one. */
+  frontDoorEdge: string | null;
+  /** Player has explicitly clicked "Finish & score" — until then we never
+   *  auto-end the game even if all rooms are sealed. */
+  gameFinished: boolean;
   lastError: string | null;
 }
 
 export interface GameState extends Undoable {
   chosenVariants: Record<number, Variant>;
   past: Undoable[];
+  /** Set by initRun — used by actions that need to look up
+   *  furniture_numbers[slotIdx] from a (slot, slotIdx) instance. */
+  scenario: Scenario | null;
+  /** UI-only: true while the player is in "click an exterior edge to set front
+   *  door" mode. Not undoable. */
+  frontDoorMode: boolean;
+  /** Visual theme for vector furniture rendering. UI-only, not undoable. */
+  themeId: string;
 
   initRun: (scenario: Scenario) => void;
   selectRoom: (slot: RoomSlot) => void;
-  autoRevealRoomCards: (numbers: number[]) => void;
-  revealCard: (number: number, variant: Variant) => void;
-  selectOption: (opt: { number: number; variant: Variant; optionIndex: number }) => void;
+  autoRevealRoom: (slot: RoomSlot) => void;
+  revealCard: (slot: RoomSlot, slotIdx: number) => void;
+  selectOption: (opt: { slot: RoomSlot; slotIdx: number; optionIndex: number }) => void;
   rotateSelection: () => void;
   mirrorSelection: () => void;
   clearSelection: () => void;
   placeSelected: (origin: [number, number]) => boolean;
   skipSelected: () => void;
-  skipCard: (number: number, variant: Variant) => void;
+  skipCard: (slot: RoomSlot, slotIdx: number) => void;
   toggleWall: (edgeKey: string) => void;
   setDoor: (edgeKey: string) => void;
   setWallPhase: (phase: WallPhase) => void;
   completeRoom: () => boolean;
+  toggleFrontDoorMode: () => void;
+  setFrontDoor: (edgeKey: string) => void;
+  setThemeId: (id: string) => void;
+  finishGame: () => void;
+  unfinishGame: () => void;
   undo: () => void;
   setError: (msg: string | null) => void;
   reset: () => void;
@@ -83,6 +115,8 @@ const blank: Undoable = {
   doors: {},
   wallPhase: 'walls',
   jokerUsed: false,
+  frontDoorEdge: null,
+  gameFinished: false,
   lastError: null,
 };
 
@@ -99,11 +133,44 @@ function snapshot(s: Undoable): Undoable {
     doors: { ...s.doors },
     wallPhase: s.wallPhase,
     jokerUsed: s.jokerUsed,
+    frontDoorEdge: s.frontDoorEdge,
+    gameFinished: s.gameFinished,
     lastError: s.lastError,
   };
 }
 
 const MAX_HISTORY = 100;
+
+/** Resolve (slot, slotIdx) → the furniture number declared by the scenario. */
+function lookupNumber(scenario: Scenario | null, slot: RoomSlot, slotIdx: number): number | null {
+  if (!scenario) return null;
+  const room = scenario.rooms.find((r) => r.slot === slot);
+  if (!room) return null;
+  return room.furniture_numbers[slotIdx] ?? null;
+}
+
+function doorEdgeKey(cell: [number, number], edge: 'N' | 'S' | 'E' | 'W'): string {
+  const [r, c] = cell;
+  switch (edge) {
+    case 'N': return `h:${r}:${c}`;
+    case 'S': return `h:${r + 1}:${c}`;
+    case 'W': return `v:${r}:${c}`;
+    case 'E': return `v:${r}:${c + 1}`;
+  }
+}
+
+/** If a scenario has exactly one pre_drawn front door, return its edge so
+ *  initRun can lock the front door automatically. Multi-position scenarios
+ *  (e.g. barn with 2 choices) still require player interaction. */
+function autoFrontDoor(scenario: Scenario): string | null {
+  const frontDoors = (scenario.pre_drawn?.doors ?? []).filter(
+    (d) => d.target === 'front_door',
+  );
+  if (frontDoors.length !== 1) return null;
+  const d = frontDoors[0];
+  if (!d.edge) return null;
+  return doorEdgeKey(d.cell, d.edge);
+}
 
 export const useGameStore = create<GameState>((set, get) => {
   /** Wrap a mutation: snapshot current state into history, then apply patch. */
@@ -118,51 +185,68 @@ export const useGameStore = create<GameState>((set, get) => {
     ...blank,
     chosenVariants: {},
     past: [],
+    scenario: null,
+    frontDoorMode: false,
+    themeId: 'blueprint',
 
     initRun: (scenario) => {
       const nums = new Set<number>();
       for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
       const chosen: Record<number, Variant> = {};
       for (const n of nums) chosen[n] = pickRandomVariant();
+      const lockedFrontDoor = autoFrontDoor(scenario);
       // initRun is a hard reset (not undoable beyond it)
-      set({ ...blank, chosenVariants: chosen, past: [] });
+      set({
+        ...blank,
+        chosenVariants: chosen,
+        past: [],
+        scenario,
+        frontDoorMode: false,
+        frontDoorEdge: lockedFrontDoor,
+      });
     },
 
     selectRoom: (slot) => {
       const { activeRoomSlot, completedRoomSlots } = get();
       if (activeRoomSlot && activeRoomSlot !== slot && !completedRoomSlots.has(activeRoomSlot)) return;
       if (completedRoomSlots.has(slot)) return;
-      mutate(() => set({ activeRoomSlot: slot, wallPhase: 'walls', lastError: null }));
+      set({ activeRoomSlot: slot, wallPhase: 'walls', lastError: null });
     },
 
-    autoRevealRoomCards: (nums) => {
-      const { chosenVariants, revealedCardKeys } = get();
+    autoRevealRoom: (slot) => {
+      const { scenario, revealedCardKeys } = get();
+      if (!scenario) return;
+      const room = scenario.rooms.find((r) => r.slot === slot);
+      if (!room) return;
       const next = new Set(revealedCardKeys);
       let changed = false;
-      for (const n of nums) {
-        const v = chosenVariants[n] ?? 'A';
-        const k = cardKey(n, v);
+      for (let i = 0; i < room.furniture_numbers.length; i++) {
+        const k = instanceKey(slot, i);
         if (!next.has(k)) { next.add(k); changed = true; }
       }
       if (changed) set({ revealedCardKeys: next });
     },
 
-    revealCard: (number, variant) => {
-      const key = cardKey(number, variant);
+    revealCard: (slot, slotIdx) => {
+      const key = instanceKey(slot, slotIdx);
       if (get().revealedCardKeys.has(key)) return;
-      mutate(() => {
-        const next = new Set(get().revealedCardKeys);
-        next.add(key);
-        set({ revealedCardKeys: next });
-      });
+      const next = new Set(get().revealedCardKeys);
+      next.add(key);
+      set({ revealedCardKeys: next });
     },
 
-    selectOption: (opt) => {
+    selectOption: ({ slot, slotIdx, optionIndex }) => {
+      const { scenario, chosenVariants } = get();
+      const number = lookupNumber(scenario, slot, slotIdx);
+      if (number === null) return;
+      const variant = chosenVariants[number] ?? 'A';
       mutate(() => set({
         selectedOption: {
-          number: opt.number,
-          variant: opt.variant,
-          optionIndex: opt.optionIndex,
+          slot,
+          slotIdx,
+          number,
+          variant,
+          optionIndex,
           rotation: 0,
           mirrored: false,
         },
@@ -173,7 +257,7 @@ export const useGameStore = create<GameState>((set, get) => {
     rotateSelection: () => {
       const s = get().selectedOption;
       if (!s) return;
-      mutate(() => set({ selectedOption: { ...s, rotation: (((s.rotation + 1) % 4) as Rotation) } }));
+      set({ selectedOption: { ...s, rotation: (((s.rotation + 1) % 4) as Rotation) } });
     },
 
     mirrorSelection: () => {
@@ -184,18 +268,18 @@ export const useGameStore = create<GameState>((set, get) => {
         set({ lastError: 'Joker already used — mirroring is no longer available.' });
         return;
       }
-      mutate(() => set({ selectedOption: { ...s, mirrored: !s.mirrored }, lastError: null }));
+      set({ selectedOption: { ...s, mirrored: !s.mirrored }, lastError: null });
     },
 
-    clearSelection: () => mutate(() => set({ selectedOption: null, lastError: null })),
+    clearSelection: () => set({ selectedOption: null, lastError: null }),
 
     placeSelected: (origin) => {
       const s = get().selectedOption;
       const room = get().activeRoomSlot;
       if (!s || !room) return false;
-      const key = cardKey(s.number, s.variant);
+      const key = instanceKey(s.slot, s.slotIdx);
       mutate(() => {
-        const placedPiece: PlacedPiece = { ...s, origin, roomSlot: room };
+        const placedPiece: PlacedPiece = { ...s, origin, roomSlot: s.slot };
         const nextPlaced = [...get().placedPieces, placedPiece];
         const nextPlacedKeys = new Set(get().placedCardKeys);
         nextPlacedKeys.add(key);
@@ -215,7 +299,7 @@ export const useGameStore = create<GameState>((set, get) => {
       const s = get().selectedOption;
       if (!s) return;
       mutate(() => {
-        const key = cardKey(s.number, s.variant);
+        const key = instanceKey(s.slot, s.slotIdx);
         const nextRevealed = new Set(get().revealedCardKeys);
         nextRevealed.add(key);
         const nextSkipped = new Set(get().skippedCardKeys);
@@ -229,8 +313,8 @@ export const useGameStore = create<GameState>((set, get) => {
       });
     },
 
-    skipCard: (number, variant) => {
-      const key = cardKey(number, variant);
+    skipCard: (slot, slotIdx) => {
+      const key = instanceKey(slot, slotIdx);
       if (get().placedCardKeys.has(key) || get().skippedCardKeys.has(key)) return;
       mutate(() => {
         const nextRevealed = new Set(get().revealedCardKeys);
@@ -271,7 +355,43 @@ export const useGameStore = create<GameState>((set, get) => {
       });
     },
 
-    setWallPhase: (phase) => mutate(() => set({ wallPhase: phase, lastError: null })),
+    setWallPhase: (phase) => set({ wallPhase: phase, lastError: null }),
+
+    toggleFrontDoorMode: () =>
+      set({ frontDoorMode: !get().frontDoorMode, lastError: null }),
+
+    setFrontDoor: (edgeKey) => {
+      const { scenario } = get();
+      const forced = scenario?.rules?.front_door?.forced_cells ?? [];
+      if (forced.length > 0) {
+        // Player can only pick an edge whose indoor-side cell is in forced_cells.
+        const [type, rStr, cStr] = edgeKey.split(':');
+        const r = parseInt(rStr, 10);
+        const c = parseInt(cStr, 10);
+        const sideA: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
+        const sideB: [number, number] = type === 'h' ? [r, c] : [r, c];
+        const allowed = forced.some(
+          (fc) =>
+            (fc[0] === sideA[0] && fc[1] === sideA[1]) ||
+            (fc[0] === sideB[0] && fc[1] === sideB[1]),
+        );
+        if (!allowed) {
+          set({
+            lastError:
+              'This scenario forces the front door to specific cells — pick one of the highlighted edges.',
+            frontDoorMode: false,
+          });
+          return;
+        }
+      }
+      mutate(() => set({ frontDoorEdge: edgeKey, lastError: null }));
+      set({ frontDoorMode: false });
+    },
+
+    setThemeId: (id) => set({ themeId: id }),
+
+    finishGame: () => mutate(() => set({ gameFinished: true, lastError: null })),
+    unfinishGame: () => mutate(() => set({ gameFinished: false })),
 
     completeRoom: () => {
       const { activeRoomSlot, doors } = get();
@@ -303,7 +423,13 @@ export const useGameStore = create<GameState>((set, get) => {
 
     setError: (msg) => set({ lastError: msg }),
 
-    reset: () => set({ ...blank, chosenVariants: get().chosenVariants, past: [] }),
+    reset: () =>
+      set({
+        ...blank,
+        chosenVariants: get().chosenVariants,
+        past: [],
+        frontDoorMode: false,
+      }),
   };
 });
 
@@ -312,7 +438,6 @@ export const useGameStore = create<GameState>((set, get) => {
 export function isRoomReadyToSeal(
   scenario: Scenario,
   state: {
-    chosenVariants: Record<number, Variant>;
     placedCardKeys: Set<string>;
     skippedCardKeys: Set<string>;
   },
@@ -320,9 +445,8 @@ export function isRoomReadyToSeal(
 ): boolean {
   const room = scenario.rooms.find((r) => r.slot === slot);
   if (!room) return false;
-  return room.furniture_numbers.every((n) => {
-    const v = state.chosenVariants[n] ?? 'A';
-    const key = cardKey(n, v);
+  return room.furniture_numbers.every((_, slotIdx) => {
+    const key = instanceKey(slot, slotIdx);
     return state.placedCardKeys.has(key) || state.skippedCardKeys.has(key);
   });
 }

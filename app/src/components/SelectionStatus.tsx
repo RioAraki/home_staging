@@ -1,7 +1,6 @@
 import { cardByNumberVariant } from '../data';
 import { useGameStore } from '../store/game';
 import { FurnitureShape } from './FurnitureShape';
-import { transformOption } from '../lib/geometry';
 import { useMemo } from 'react';
 import './SelectionStatus.css';
 
@@ -14,27 +13,13 @@ export function SelectionStatus() {
   const jokerUsed = useGameStore((s) => s.jokerUsed);
   const lastError = useGameStore((s) => s.lastError);
 
-  // Build a virtual "rotated/mirrored" option for preview
-  const rotatedOption = useMemo(() => {
+  const rawOption = useMemo(() => {
     if (!selected) return null;
     const card = cardByNumberVariant(selected.number, selected.variant);
-    const opt = card?.options.find((o) => o.option_index === selected.optionIndex);
-    if (!opt) return null;
-    const t = transformOption(opt, selected.rotation, selected.mirrored);
-    // Return a pseudo-FurnitureOption with transformed cells so FurnitureShape can render it
-    return {
-      option_index: opt.option_index,
-      name_zh: opt.name_zh,
-      name_en: opt.name_en,
-      bbox: t.bbox,
-      shape: t.shape,
-      open_spaces: t.open_spaces,
-      wall_edges: t.wall_edges,
-      printed_markers: opt.printed_markers,
-    };
+    return card?.options.find((o) => o.option_index === selected.optionIndex) ?? null;
   }, [selected]);
 
-  if (!selected || !rotatedOption) {
+  if (!selected || !rawOption) {
     return (
       <div className="selection-status empty">
         <span className="hint">
@@ -57,10 +42,17 @@ export function SelectionStatus() {
     <div className={`selection-status ${isMirrored ? 'mirroring' : ''}`}>
       <div className="sel-label">Selected:</div>
       <div className="sel-piece">
-        <FurnitureShape option={rotatedOption} cellSize={22} />
+        <FurnitureShape
+          option={rawOption}
+          number={selected.number}
+          variant={selected.variant}
+          rotation={selected.rotation}
+          mirrored={selected.mirrored}
+          cellSize={22}
+        />
         <div className="sel-meta">
           <strong>#{selected.number}{selected.variant}</strong>
-          <span>· {rotatedOption.name_zh}</span>
+          <span>· {rawOption.name_zh}</span>
           {isMirrored && <span className="mirror-tag">💡 mirrored (joker tentatively used)</span>}
           <span className="sel-hint">
             Click a grid cell to place · Press <kbd>R</kbd> to rotate

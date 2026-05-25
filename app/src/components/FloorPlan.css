@@ -44,6 +44,30 @@
   stroke-linecap: round;
 }
 
+/* Front door — replaces a segment of the exterior wall with a yellow dashed gap. */
+.floor-plan .exterior-walls line.front-door {
+  stroke: var(--accent);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 5 3;
+}
+
+/* Placed-piece artwork — invert the white-paper sketch and lighten-blend it
+   onto the blueprint background, giving white-on-navy line art. */
+.floor-plan .piece-art image {
+  filter: invert(1);
+  mix-blend-mode: lighten;
+}
+
+/* Open-space marker — single dot at cell centre, replaces old diagonal hatch. */
+.floor-plan .open-space-dot {
+  fill: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+.floor-plan .open-space-dot.ghost {
+  fill: rgba(255, 225, 105, 0.85);
+}
+
 /* Player-drawn walls (during wall-drawing mode) */
 .floor-plan .player-walls line.wall {
   stroke: var(--pen);
@@ -57,10 +81,21 @@
   stroke-dasharray: 5 3;
 }
 
-/* Doors are drawn as a "gap" — thicker yellow strokes with shortened ends */
-.floor-plan .player-walls line.door {
+/* Architectural door symbol — 45° panel + quarter-circle swing arc. */
+.floor-plan .door-symbol .door-panel {
   stroke: var(--accent);
-  stroke-width: 5;
+  stroke-width: 3;
   stroke-linecap: round;
-  stroke-dasharray: 4 3;
+  fill: none;
+}
+.floor-plan .door-symbol .door-arc {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 3;
+  opacity: 0.85;
+}
+
+/* Front door uses a slightly thicker panel so it reads as "the main entrance". */
+.floor-plan .door-symbol.front-door-symbol .door-panel {
+  stroke-width: 4;
 }

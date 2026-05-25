@@ -38,3 +38,58 @@
   text-align: center;
   color: var(--pen-soft);
 }
+
+.front-door-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+}
+.front-door-btn:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--pen); }
+.front-door-btn.unset { border-color: var(--danger); color: var(--danger); }
+.front-door-btn.set { border-color: var(--accent); color: var(--accent); }
+.front-door-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.review-link {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 5px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+}
+.review-link:hover { background: rgba(255,255,255,0.06); border-color: var(--pen); }
+
+.theme-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px dashed var(--pen-soft);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.95rem;
+}
+.theme-switcher select {
+  background: transparent;
+  border: none;
+  color: var(--pen);
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+}
+.theme-switcher select option {
+  background: var(--bg);
+  color: var(--pen);
+}

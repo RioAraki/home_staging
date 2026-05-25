@@ -1,92 +1,106 @@
 import type { FurnitureOption } from '../types';
+import type { Rotation, Variant } from '../store/game';
+import { transformOption } from '../lib/geometry';
+import { optionImageUrl } from '../lib/optionImage';
 import './FurnitureShape.css';
 
 interface FurnitureShapeProps {
-  option: FurnitureOption;
+  option: FurnitureOption;          // RAW (un-transformed) option from data
+  number: number;
+  variant: Variant;
   cellSize?: number;
+  rotation?: Rotation;              // default 0
+  mirrored?: boolean;               // default false
   showName?: boolean;
 }
 
 /**
- * Renders one furniture option as a mini SVG sketch:
- *   - shape cells   : white-filled (the actual piece)
- *   - open spaces   : light hatched (must stay walkable)
- *   - wall_edges    : thick edge stroke on the relevant side(s)
+ * Renders one furniture option using the card artwork as the visual base,
+ * with semantic overlays drawn on top:
+ *   - open spaces : light diagonal hatch (must stay walkable)
+ *   - wall_edges  : thick white stroke on the relevant side(s)
+ * Rotation/mirror are applied to both the artwork image and the overlays so
+ * Card thumbnails and SelectionStatus previews stay in sync with what
+ * FloorPlan renders.
  */
-export function FurnitureShape({ option, cellSize = 18, showName = false }: FurnitureShapeProps) {
-  const [rows, cols] = option.bbox;
+export function FurnitureShape({
+  option,
+  number,
+  variant,
+  cellSize = 18,
+  rotation = 0,
+  mirrored = false,
+  showName = false,
+}: FurnitureShapeProps) {
+  const t = transformOption(option, rotation, mirrored);
+  const [rows, cols] = t.bbox;
   const w = cols * cellSize;
   const h = rows * cellSize;
 
+  // Image is sized to the ORIGINAL bbox and rotated/mirrored into the
+  // transformed bbox via SVG transform around the center.
+  const [origRows, origCols] = option.bbox;
+  const origPxW = origCols * cellSize;
+  const origPxH = origRows * cellSize;
+  const imageUrl = optionImageUrl(number, variant, option.option_index);
+
   const isWall = (edge: 'top' | 'right' | 'bottom' | 'left') =>
-    option.wall_edges?.includes(edge);
+    t.wall_edges.includes(edge);
+
+  // Clip mask = SHAPE cells only. Open-space cells render just the centre
+  // dot (the scanned crop's borders are imprecise around them).
+  const visibleCells: Array<[number, number]> = option.shape.map(
+    ([r, c]) => [r, c],
+  );
+  const clipId = `vis-clip-${number}-${variant}-${option.option_index}`;
 
   return (
     <div className="furniture-shape">
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shape-svg">
         <defs>
-          <pattern
-            id={`hatch-${option.option_index}`}
-            patternUnits="userSpaceOnUse"
-            width="6"
-            height="6"
-            patternTransform="rotate(45)"
-          >
-            <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
-          </pattern>
+          <clipPath id={clipId}>
+            {visibleCells.map(([r, c], i) => (
+              <rect
+                key={i}
+                x={-origPxW / 2 + c * cellSize}
+                y={-origPxH / 2 + r * cellSize}
+                width={cellSize}
+                height={cellSize}
+              />
+            ))}
+          </clipPath>
         </defs>
 
-        {/* Bounding-box grid (faint) */}
-        {Array.from({ length: rows + 1 }, (_, i) => (
-          <line
-            key={`h${i}`}
-            x1={0}
-            y1={i * cellSize}
-            x2={w}
-            y2={i * cellSize}
-            stroke="rgba(255,255,255,0.15)"
-            strokeWidth="0.5"
+        {/* Artwork base (invert + lighten in CSS, so dark sketch lines show
+            as bright on the blueprint backdrop). Clipped to shape ∪ open so
+            void bbox cells stay transparent. */}
+        <g
+          transform={`translate(${w / 2}, ${h / 2}) rotate(${rotation * 90}) scale(${mirrored ? -1 : 1}, 1)`}
+          className="piece-art"
+        >
+          <image
+            href={imageUrl}
+            x={-origPxW / 2}
+            y={-origPxH / 2}
+            width={origPxW}
+            height={origPxH}
+            preserveAspectRatio="none"
+            clipPath={`url(#${clipId})`}
           />
-        ))}
-        {Array.from({ length: cols + 1 }, (_, i) => (
-          <line
-            key={`v${i}`}
-            x1={i * cellSize}
-            y1={0}
-            x2={i * cellSize}
-            y2={h}
-            stroke="rgba(255,255,255,0.15)"
-            strokeWidth="0.5"
-          />
-        ))}
+        </g>
 
-        {/* Open spaces (light hatch) */}
-        {option.open_spaces.map(([r, c], i) => (
-          <rect
+        {/* Open-space marker — a single dot at the cell centre. */}
+        {t.open_spaces.map(([r, c], i) => (
+          <circle
             key={`o${i}`}
-            x={c * cellSize}
-            y={r * cellSize}
-            width={cellSize}
-            height={cellSize}
-            fill={`url(#hatch-${option.option_index})`}
+            cx={c * cellSize + cellSize / 2}
+            cy={r * cellSize + cellSize / 2}
+            r={Math.max(1.5, cellSize * 0.09)}
+            className="open-space-dot"
           />
         ))}
 
-        {/* Furniture cells (white fill) */}
-        {option.shape.map(([r, c], i) => (
-          <rect
-            key={`s${i}`}
-            x={c * cellSize + 1}
-            y={r * cellSize + 1}
-            width={cellSize - 2}
-            height={cellSize - 2}
-            fill="rgba(255,255,255,0.85)"
-            stroke="#fff"
-            strokeWidth="1"
-          />
-        ))}
-
-        {/* Wall edges (thicker outer stroke on the relevant side(s)) */}
+        {/* Wall edges (thicker outer stroke on relevant side). */}
         {isWall('top') && (
           <line x1="0" y1="0" x2={w} y2="0" stroke="#fff" strokeWidth="3" />
         )}

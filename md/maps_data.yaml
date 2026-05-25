@@ -16,6 +16,7 @@ scenarios:
     - 2
     - 15
     - 19
+    - 19
   - slot: II
     name_zh: 厨房
     name_en: Kitchen
@@ -110,21 +111,28 @@ scenarios:
     - 4
     - 7
     - 20
+    - 20
   - slot: II
     name_zh: 通铺
     name_en: Dormitory
     furniture_numbers:
     - 12
     - 13
+    - 13
+    - 13
   - slot: III
-    name_zh: 养生区
+    name_zh: 疗养区
     name_en: Wellness oasis
     furniture_numbers:
     - 8
     - 9
     - 10
     - 11
+    - 11
     - 18
+    - 18
+    - 18
+    - 21
     - 21
     - 31
   grid:
@@ -214,23 +222,30 @@ scenarios:
     name_zh: 家用办公室
     name_en: Home office
     furniture_numbers:
+    - 3
+    - 3
     - 16
     - 18
+    - 21
     - 21
     - 24
     - 31
     - 32
-    - 33
+    - 32
+    - 32
   - slot: II
     name_zh: 候诊室
     name_en: Waiting room
     furniture_numbers:
     - 1
+    - 1
+    - 19
     - 19
   - slot: III
     name_zh: 前台
     name_en: Reception
     furniture_numbers:
+    - 3
     - 3
     - 17
   grid:
@@ -335,11 +350,14 @@ scenarios:
     name_en: Kitchen
     furniture_numbers:
     - 3
+    - 3
+    - 7
     - 7
   - slot: II
     name_zh: 客用洗手间
     name_en: Guest restroom
     furniture_numbers:
+    - 8
     - 8
     - 9
   - slot: III
@@ -347,7 +365,14 @@ scenarios:
     name_en: Dining area
     furniture_numbers:
     - 4
+    - 4
     - 5
+    - 5
+    - 5
+    - 5
+    - 5
+    - 5
+    - 19
     - 19
     - 30
   grid:
@@ -376,7 +401,12 @@ scenarios:
     verify: true
   zones: {}
   pre_drawn:
-    doors: []
+    doors:
+    - cell: [9, 3]
+      edge: E
+      target: front_door
+      notes_zh: 前门固定在 10D 西墙
+      notes_en: Front door fixed at the west wall of cell row-10/col-D
     windows: []
     walls_interior: []
   rules:
@@ -385,8 +415,9 @@ scenarios:
       notes_zh: 无走廊，所有房间直接与用餐区相连。
       notes_en: No hallway; all rooms connect directly to the dining area.
     front_door:
-      on_exterior_wall_anywhere: true
-      forced_cells: []
+      on_exterior_wall_anywhere: false
+      forced_cells:
+      - [9, 3]
     drawing: []
     scoring: []
   bonus_points:
@@ -460,6 +491,7 @@ scenarios:
     - 17
     - 20
     - 21
+    - 27
     - 27
     - 28
     - 29
@@ -579,13 +611,22 @@ scenarios:
   page_image: images/scenarios/page_10.png
   rooms:
   - slot: I
-    name_zh: 卖场
+    name_zh: 桌游店
     name_en: Salesroom
     furniture_numbers:
     - 3
+    - 3
+    - 3
+    - 3
+    - 3
     - 4
     - 5
+    - 5
     - 15
+    - 15
+    - 15
+    - 15
+    - 20
     - 20
     - 23
     - 30

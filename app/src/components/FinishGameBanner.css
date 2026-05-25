@@ -1,0 +1,77 @@
+.finish-banner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px dashed var(--pen-soft);
+  background: rgba(255, 255, 255, 0.03);
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.95rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.finish-banner.ready {
+  border-color: var(--accent);
+  border-style: solid;
+  background: rgba(255, 225, 105, 0.08);
+}
+
+.finish-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  flex: 1;
+}
+
+.check-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--pen-soft);
+}
+
+.check-item.ok {
+  color: var(--accent);
+}
+
+.check-item.pending {
+  color: var(--pen-soft);
+}
+
+.check-item em {
+  font-style: normal;
+  color: inherit;
+  opacity: 0.7;
+  font-size: 0.85em;
+}
+
+.finish-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.finish-banner.ready .finish-btn {
+  background: var(--accent);
+  color: var(--bg);
+  border-style: solid;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.finish-banner.ready .finish-btn:hover {
+  filter: brightness(1.05);
+}
+
+.finish-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

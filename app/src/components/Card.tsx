@@ -1,16 +1,19 @@
 import { cardByNumberVariant } from '../data';
-import { useGameStore, cardKey, type Variant } from '../store/game';
+import { useGameStore, instanceKey, type Variant } from '../store/game';
+import type { RoomSlot } from '../types';
 import { FurnitureShape } from './FurnitureShape';
 import './Card.css';
 
 interface CardProps {
   number: number;
   variant: Variant;
+  slot: RoomSlot;
+  slotIdx: number;
   disabled?: boolean;
 }
 
-export function Card({ number, variant, disabled }: CardProps) {
-  const key = cardKey(number, variant);
+export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
+  const key = instanceKey(slot, slotIdx);
   const revealed = useGameStore((s) => s.revealedCardKeys.has(key));
   const selectedOption = useGameStore((s) => s.selectedOption);
   const placed = useGameStore((s) => s.placedCardKeys.has(key));
@@ -20,18 +23,20 @@ export function Card({ number, variant, disabled }: CardProps) {
   const skipCard = useGameStore((s) => s.skipCard);
 
   const card = cardByNumberVariant(number, variant);
-  if (!card) return <div className="card error">no card {key}</div>;
+  if (!card) return <div className="card error">no card {number}{variant}</div>;
 
   const resolved = placed || skipped;
-  const isMine = selectedOption?.number === number && selectedOption.variant === variant;
-  const chosenOptIdx = isMine ? selectedOption.optionIndex : null;
+  // "isMine" = this exact card instance owns the current selection
+  const isMine =
+    !!selectedOption && selectedOption.slot === slot && selectedOption.slotIdx === slotIdx;
+  const chosenOptIdx = isMine ? selectedOption!.optionIndex : null;
 
   const handleReveal = () => {
     if (disabled || resolved) return;
     if (!revealed) {
-      revealCard(number, variant);
+      revealCard(slot, slotIdx);
       if (card.options.length === 1) {
-        selectOption({ number, variant, optionIndex: card.options[0].option_index });
+        selectOption({ slot, slotIdx, optionIndex: card.options[0].option_index });
       }
     }
   };
@@ -70,12 +75,12 @@ export function Card({ number, variant, disabled }: CardProps) {
               key={opt.option_index}
               className={`option-btn ${isSelected ? 'on' : ''}`}
               onClick={() =>
-                !resolved && selectOption({ number, variant, optionIndex: opt.option_index })
+                !resolved && selectOption({ slot, slotIdx, optionIndex: opt.option_index })
               }
               disabled={resolved}
               aria-label={`Option ${opt.option_index}: ${opt.name_zh}`}
             >
-              <FurnitureShape option={opt} cellSize={14} />
+              <FurnitureShape option={opt} number={number} variant={variant} cellSize={14} />
               <span className="opt-name">{opt.name_zh}</span>
             </button>
           );
@@ -85,7 +90,7 @@ export function Card({ number, variant, disabled }: CardProps) {
         <button
           type="button"
           className="skip-card-btn"
-          onClick={() => skipCard(number, variant)}
+          onClick={() => skipCard(slot, slotIdx)}
           disabled={disabled}
         >
           ⤿ Skip this card

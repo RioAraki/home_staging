@@ -13,7 +13,10 @@
 // check (and is arguably fine). Full enclosure of furniture by walls is a
 // stricter check we may add later.
 
-import type { Scenario } from '../types';
+import type { Scenario, RoomSlot, WallEdge } from '../types';
+import type { PlacedPiece } from '../store/game';
+import { transformOption } from './geometry';
+import { cardByNumberVariant } from '../data';
 
 type Vertex = string;   // "r,c" — corner coordinate, 0 ≤ r,c ≤ 16
 type EdgeKey = string;  // "h:r:c" or "v:r:c"
@@ -32,7 +35,7 @@ function endpointsOfEdge(edgeKey: EdgeKey): [Vertex, Vertex] {
   return [vertexKey(r, c), vertexKey(r + 1, c)];
 }
 
-function exteriorWallEdges(scenario: Scenario): EdgeKey[] {
+export function exteriorWallEdges(scenario: Scenario): EdgeKey[] {
   const cells = scenario.grid.ascii.replace(/\n+$/, '').split('\n').map((r) => r.split(''));
   const legend = scenario.grid.legend;
   const isIndoor = (r: number, c: number) =>
@@ -82,4 +85,125 @@ export function validateWallTopology(
     }
   }
   return { ok: dangling.length === 0, danglingWalls: dangling };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Wall-edge compliance
+//
+// Rulebook §"卡上的墙":
+//   "某些家具的草图上一侧有一条加粗线——表示这一侧必须紧贴墙（内墙或外墙皆可）。
+//    这堵墙可以与既有墙共用，但不能在这一段开门。"
+//
+// → A furniture option's `wall_edges` lists which bbox sides must abut a wall
+//   (the bold edge on the printed card). The wall requirement applies to
+//   every NON-VOID cell on that side — i.e. shape ∪ open_spaces, not shape
+//   alone. (Island-style pieces like #30 the bar have the bar in the middle
+//   and the open seating in front, so the OPEN cells are what abut the wall.)
+//   Doors are disallowed on the required segment.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface WallEdgeRequirement {
+  edgeKey: EdgeKey;
+  side: WallEdge;
+}
+
+/** Compute the list of grid edges that a placed piece needs to be walls. */
+export function requiredWallEdgesForPiece(
+  shape: [number, number][],
+  openSpaces: [number, number][],
+  bbox: [number, number],
+  wallEdges: WallEdge[],
+  origin: [number, number],
+): WallEdgeRequirement[] {
+  const [R0, C0] = origin;
+  const [H, W] = bbox;
+  const nonVoid = [...shape, ...openSpaces];
+  const out: WallEdgeRequirement[] = [];
+  const seen = new Set<EdgeKey>();
+  const push = (edgeKey: EdgeKey, side: WallEdge) => {
+    if (seen.has(edgeKey)) return;
+    seen.add(edgeKey);
+    out.push({ edgeKey, side });
+  };
+  for (const side of wallEdges) {
+    for (const [r, c] of nonVoid) {
+      if (side === 'top' && r === 0) {
+        push(`h:${R0}:${C0 + c}`, side);
+      } else if (side === 'bottom' && r === H - 1) {
+        push(`h:${R0 + H}:${C0 + c}`, side);
+      } else if (side === 'left' && c === 0) {
+        push(`v:${R0 + r}:${C0}`, side);
+      } else if (side === 'right' && c === W - 1) {
+        push(`v:${R0 + r}:${C0 + W}`, side);
+      }
+    }
+  }
+  return out;
+}
+
+export interface WallEdgeViolation {
+  pieceIndex: number;
+  pieceLabel: string;
+  missing: WallEdgeRequirement[];
+  /** Subset of missing where the edge is currently a door (the bold edge can
+   *  never be a door per rule). */
+  doorOnRequired: WallEdgeRequirement[];
+}
+
+export interface WallEdgeComplianceResult {
+  ok: boolean;
+  violations: WallEdgeViolation[];
+}
+
+/** Check every placed piece's wall_edges. If filterRoomSlot is given, only
+ *  check pieces belonging to that room. */
+export function checkWallEdgeCompliance(
+  scenario: Scenario,
+  placedPieces: PlacedPiece[],
+  playerWalls: Record<EdgeKey, true>,
+  playerDoors: Record<EdgeKey, RoomSlot>,
+  filterRoomSlot?: RoomSlot,
+): WallEdgeComplianceResult {
+  const exteriorSet = new Set(exteriorWallEdges(scenario));
+  const violations: WallEdgeViolation[] = [];
+
+  placedPieces.forEach((p, idx) => {
+    if (filterRoomSlot && p.roomSlot !== filterRoomSlot) return;
+    const card = cardByNumberVariant(p.number, p.variant);
+    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+    if (!opt) return;
+    if (!opt.wall_edges || opt.wall_edges.length === 0) return;
+    const t = transformOption(opt, p.rotation, p.mirrored);
+    const required = requiredWallEdgesForPiece(
+      t.shape,
+      t.open_spaces,
+      t.bbox,
+      t.wall_edges,
+      p.origin,
+    );
+    const missing: WallEdgeRequirement[] = [];
+    const doorOnReq: WallEdgeRequirement[] = [];
+    for (const req of required) {
+      if (playerDoors[req.edgeKey]) {
+        // Doors are walls structurally, but the rule forbids a door on the
+        // bold-edge segment. Flag separately so the UI message is precise.
+        doorOnReq.push(req);
+        missing.push(req);
+        continue;
+      }
+      if (playerWalls[req.edgeKey]) continue;
+      if (exteriorSet.has(req.edgeKey)) continue;
+      missing.push(req);
+    }
+    if (missing.length > 0) {
+      violations.push({
+        pieceIndex: idx,
+        pieceLabel: `#${p.number}${p.variant} ${opt.name_zh}`,
+        missing,
+        doorOnRequired: doorOnReq,
+      });
+    }
+  });
+
+  return { ok: violations.length === 0, violations };
 }

@@ -1,35 +1,24 @@
-import { useEffect } from 'react';
 import { useGameStore } from '../store/game';
+import { themes } from '../vector/themes';
 import './Toolbar.css';
 
 export function Toolbar() {
-  const undo = useGameStore((s) => s.undo);
-  const pastLen = useGameStore((s) => s.past.length);
-
-  // Ctrl+Z / Cmd+Z handler
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        undo();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [undo]);
+  const themeId = useGameStore((s) => s.themeId);
+  const setThemeId = useGameStore((s) => s.setThemeId);
 
   return (
     <div className="toolbar">
-      <button
-        type="button"
-        className="undo-btn"
-        onClick={undo}
-        disabled={pastLen === 0}
-        title="Undo (Ctrl+Z)"
-      >
-        ↶ Undo
-        <span className="undo-count">{pastLen}</span>
-      </button>
+      <label className="theme-switcher" title="Switch the visual style of vector furniture">
+        🎨
+        <select
+          value={themeId}
+          onChange={(e) => setThemeId(e.target.value)}
+        >
+          {Object.values(themes).map((t) => (
+            <option key={t.id} value={t.id}>{t.label}</option>
+          ))}
+        </select>
+      </label>
     </div>
   );
 }

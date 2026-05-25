@@ -7,26 +7,27 @@ import './EndGameScreen.css';
 interface Props { scenario: Scenario }
 
 export function EndGameScreen({ scenario }: Props) {
-  const completedRoomSlots = useGameStore((s) => s.completedRoomSlots);
   const placedPieces = useGameStore((s) => s.placedPieces);
   const walls = useGameStore((s) => s.walls);
   const doors = useGameStore((s) => s.doors);
+  const frontDoorEdge = useGameStore((s) => s.frontDoorEdge);
+  const gameFinished = useGameStore((s) => s.gameFinished);
+  const unfinishGame = useGameStore((s) => s.unfinishGame);
   const initRun = useGameStore((s) => s.initRun);
 
-  const finished = scenario.rooms.every((r) => completedRoomSlots.has(r.slot));
   const score = useMemo(
-    () => (finished ? computeScore(scenario, placedPieces, walls, doors) : null),
-    [finished, scenario, placedPieces, walls, doors],
+    () => (gameFinished ? computeScore(scenario, placedPieces, walls, doors, frontDoorEdge) : null),
+    [gameFinished, scenario, placedPieces, walls, doors, frontDoorEdge],
   );
 
-  // Auto-open the score panel when the game first finishes. The user can
-  // dismiss it to inspect the floor plan and re-open via the floating chip.
+  // Auto-open the score panel the moment the player clicks Finish. They can
+  // dismiss to inspect the floor plan and re-open via the floating chip.
   const [showScore, setShowScore] = useState(false);
   useEffect(() => {
-    if (finished) setShowScore(true);
-  }, [finished]);
+    if (gameFinished) setShowScore(true);
+  }, [gameFinished]);
 
-  if (!finished || !score) return null;
+  if (!gameFinished || !score) return null;
 
   if (!showScore) {
     return (
@@ -151,6 +152,14 @@ export function EndGameScreen({ scenario }: Props) {
             onClick={() => setShowScore(false)}
           >
             👁 Hide & view floor plan
+          </button>
+          <button
+            type="button"
+            className="dismiss-btn"
+            onClick={() => { unfinishGame(); setShowScore(false); }}
+            title="Re-open the design — you can still change walls / doors / front door"
+          >
+            ↩ Resume editing
           </button>
           <button
             type="button"

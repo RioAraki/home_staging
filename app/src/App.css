@@ -3,11 +3,12 @@
 }
 
 .app {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--bg);
   color: var(--pen);
+  overflow: hidden;
 }
 
 .app-header {
@@ -38,12 +39,33 @@
   font-family: 'Patrick Hand', sans-serif;
 }
 
+.scenario-picker {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1.05rem;
+  cursor: pointer;
+  outline: none;
+  max-width: 80vw;
+}
+.scenario-picker:hover { border-color: var(--pen); background: rgba(255,255,255,0.04); }
+.scenario-picker option {
+  background: var(--bg);
+  color: var(--pen);
+  font-family: 'Patrick Hand', sans-serif;
+}
+
 .app-main {
   flex: 1;
   display: flex;
   align-items: stretch;
   padding: 1rem;
   gap: 1rem;
+  min-height: 0;          /* lets flex children scroll */
+  overflow: hidden;
 }
 
 .floor-plan-area {
@@ -51,9 +73,33 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 12px;
   padding: 0 1rem;
+  overflow: auto;        /* in case very large scenarios overflow */
+  min-width: 0;
 }
+
+/* Wraps RoomPanel + BonusPanel so they scroll together with a single
+   border/width treatment. */
+.sidebar {
+  flex: 0 0 auto;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px dashed var(--pen-soft);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.sidebar::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--gridline);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover { background: var(--pen-soft); }
 
 .placeholder {
   border: 1px dashed var(--pen-soft);

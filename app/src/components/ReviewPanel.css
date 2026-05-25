@@ -1,0 +1,659 @@
+.review-panel {
+  background: var(--bg);
+  color: var(--pen);
+  min-height: 100vh;
+  padding: 1.5rem 2rem 3rem;
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.review-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px dashed var(--pen-soft);
+  padding-bottom: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.review-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.review-header h1 {
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+}
+
+.sync-indicator {
+  font-size: 0.85rem;
+  color: var(--pen-soft);
+  font-family: 'Patrick Hand', sans-serif;
+}
+.sync-indicator.saved { color: rgba(120, 220, 120, 0.85); }
+.sync-indicator.saving { color: var(--accent); }
+.sync-indicator.error { color: var(--danger); }
+.sync-indicator.loading { color: var(--pen-soft); }
+
+.review-controls {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.review-filter {
+  background: rgba(255,255,255,0.05);
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+  min-width: 260px;
+}
+
+.review-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pen-soft);
+}
+
+.back-to-game {
+  margin-left: auto;
+  color: var(--accent);
+  text-decoration: none;
+}
+.back-to-game:hover { text-decoration: underline; }
+
+.review-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.95rem;
+}
+.review-btn:hover:not(:disabled) { background: rgba(255,255,255,0.06); border-color: var(--pen); }
+.review-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.review-btn.danger { border-color: var(--danger); color: var(--danger); }
+.review-btn.danger:hover:not(:disabled) { background: rgba(255,123,123,0.08); }
+
+.review-howto {
+  background: rgba(255, 225, 105, 0.06);
+  border: 1px dashed var(--accent);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--pen-soft);
+  font-size: 0.9rem;
+}
+.review-howto code {
+  background: rgba(255,255,255,0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+  color: var(--pen);
+}
+
+.comments-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.comment-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: rgba(255, 123, 123, 0.08);
+  border: 1px dashed var(--danger);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 0.9em;
+}
+.comment-marker {
+  color: var(--danger);
+}
+.comment-text {
+  flex: 1;
+  color: var(--pen);
+  word-break: break-word;
+}
+.comment-action {
+  background: transparent;
+  border: none;
+  color: var(--pen-soft);
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 1em;
+}
+.comment-action:hover { color: var(--pen); }
+.comment-action.danger:hover { color: var(--danger); }
+.comment-row.editing input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--danger);
+  color: var(--pen);
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-family: 'Patrick Hand', sans-serif;
+}
+.comment-row.editing button {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+}
+
+.comments-badge {
+  margin-left: 8px;
+  background: var(--danger);
+  color: var(--bg);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 0.75em;
+}
+
+.option-block.has-comments {
+  background: rgba(255, 123, 123, 0.03);
+  border-radius: 4px;
+  padding-left: 6px;
+  border-left: 3px solid var(--danger);
+}
+
+.option-block.reviewed {
+  background: rgba(120, 220, 120, 0.04);
+  border-left: 3px solid rgba(120, 220, 120, 0.6);
+  padding-left: 6px;
+  border-radius: 4px;
+  opacity: 0.92;
+}
+.option-block.reviewed.has-comments {
+  /* When both flagged & reviewed, the comment border wins — but tint stays. */
+  border-left-color: var(--danger);
+}
+
+.card-row.reviewed {
+  border-color: rgba(120, 220, 120, 0.4);
+  border-style: solid;
+}
+.card-reviewed-mark {
+  margin-left: 6px;
+  color: rgba(120, 220, 120, 0.85);
+}
+
+.reviewed-tick {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.reviewed-tick input { display: none; }
+.reviewed-tick-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px dashed var(--pen-soft);
+  border-radius: 4px;
+  color: rgba(120, 220, 120, 0.85);
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.03);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.reviewed-tick:hover .reviewed-tick-box {
+  background: rgba(120, 220, 120, 0.10);
+  border-color: rgba(120, 220, 120, 0.8);
+}
+.option-block.reviewed .reviewed-tick-box {
+  border: 1.5px solid rgba(120, 220, 120, 0.85);
+  background: rgba(120, 220, 120, 0.15);
+}
+
+.reviewed-badge {
+  margin-left: 8px;
+  background: rgba(120, 220, 120, 0.85);
+  color: var(--bg);
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-size: 0.75em;
+  font-weight: bold;
+}
+
+.edit-badge {
+  margin-left: 8px;
+  background: var(--accent);
+  color: var(--bg);
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-size: 0.75em;
+  font-weight: bold;
+}
+
+.option-block.has-edit {
+  border-left: 3px solid var(--accent);
+  padding-left: 6px;
+  background: rgba(255, 225, 105, 0.04);
+  border-radius: 4px;
+}
+
+.edit-summary {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 225, 105, 0.08);
+  border: 1px dashed var(--accent);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9em;
+}
+.edit-summary code {
+  background: rgba(255,255,255,0.08);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+}
+.edit-summary-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.option-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.edit-btn {
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+.edit-btn:hover {
+  background: rgba(255, 225, 105, 0.08) !important;
+}
+
+/* ────────── Visual cell editor ────────── */
+.cell-editor {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: rgba(255, 225, 105, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dim-label {
+  font-family: 'Patrick Hand', sans-serif;
+  color: var(--pen-soft);
+}
+.dim-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dim-btn:hover { background: rgba(255,255,255,0.06); border-color: var(--pen); }
+.dim-val {
+  font-family: ui-monospace, monospace;
+  font-size: 1.05rem;
+  min-width: 22px;
+  text-align: center;
+  color: var(--accent);
+  font-weight: 700;
+}
+.editor-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+  font-size: 0.85em;
+  color: var(--pen-soft);
+}
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-weight: bold;
+  border-radius: 3px;
+}
+.legend-chip.shape { background: rgba(255,255,255,0.85); color: var(--bg); }
+.legend-chip.open { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
+.legend-chip.void { border: 1px dashed var(--pen-soft); color: var(--pen-soft); }
+.legend-hint { color: var(--pen-soft); font-style: italic; }
+
+.editor-grid-wrap {
+  position: relative;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.editor-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+  display: block;
+}
+.editor-grid {
+  position: relative;
+  display: grid;
+  z-index: 1;
+}
+.editor-cell {
+  border: 1px dashed rgba(255,255,255,0.3);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  transition: background 0.1s ease, border-color 0.1s ease;
+  padding: 0;
+  margin: 0;
+}
+.editor-cell:hover {
+  border-color: var(--accent);
+  background: rgba(255, 225, 105, 0.08);
+}
+.editor-cell.shape {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255,255,255,0.85);
+}
+.editor-cell.shape .cell-letter {
+  color: var(--bg);
+}
+.editor-cell.open {
+  background: transparent;
+  border: 1.5px solid var(--accent);
+}
+.editor-cell.open .cell-letter {
+  color: var(--accent);
+  font-size: 2.2rem;
+  line-height: 0.4;
+}
+.editor-cell.void {
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,0.25);
+}
+
+.editor-walls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.wall-side-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen-soft);
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.9rem;
+  text-transform: lowercase;
+}
+.wall-side-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.wall-side-btn.on {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+/* Overlay bold black lines on the editor grid sides to mimic the printed
+   card's bold "must-be-wall" marker. */
+.wall-overlay {
+  position: absolute;
+  background: var(--accent);
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: 0 0 4px rgba(255, 225, 105, 0.7);
+}
+.wall-overlay.top    { top: -3px;    left: 0; right: 0; height: 6px; }
+.wall-overlay.bottom { bottom: -3px; left: 0; right: 0; height: 6px; }
+.wall-overlay.left   { top: 0; bottom: 0; left: -3px;   width: 6px;  }
+.wall-overlay.right  { top: 0; bottom: 0; right: -3px;  width: 6px;  }
+
+.editor-actions {
+  display: flex;
+  gap: 8px;
+}
+.editor-save {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.editor-save:hover { filter: brightness(1.05); }
+.editor-cancel {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+}
+.editor-cancel:hover { background: rgba(255,255,255,0.06); }
+
+.review-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.card-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 1.5rem;
+  border: 1px dashed var(--pen-soft);
+  border-radius: 8px;
+  padding: 1rem;
+  background: rgba(255,255,255,0.02);
+}
+.card-row.flagged {
+  border-color: var(--danger);
+  border-style: solid;
+  background: rgba(255, 123, 123, 0.04);
+}
+
+.card-row-original {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.card-row-label {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+.card-row-original img {
+  width: 180px;
+  height: auto;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+}
+
+.card-row-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.option-block {
+  border-top: 1px dashed rgba(255,255,255,0.10);
+  padding-top: 12px;
+}
+.option-block:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.option-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.option-title {
+  font-size: 1.1rem;
+  color: var(--pen);
+}
+.opt-en {
+  color: var(--pen-soft);
+  font-size: 0.95em;
+}
+.option-bbox {
+  color: var(--pen-soft);
+  font-size: 0.95em;
+}
+.option-bbox code {
+  background: rgba(255,255,255,0.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+  color: var(--pen);
+}
+
+.option-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  gap: 14px;
+  align-items: start;
+}
+.compare-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pane-label {
+  color: var(--pen-soft);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.opt-crop {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 3px;
+  background: #fff8;
+}
+.opt-svg-wrap {
+  padding: 6px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  display: inline-block;
+}
+.cells-table {
+  border-collapse: collapse;
+  font-size: 0.85em;
+}
+.cells-table th {
+  text-align: left;
+  color: var(--pen-soft);
+  padding: 2px 8px 2px 0;
+  vertical-align: top;
+}
+.cells-table td {
+  font-family: ui-monospace, monospace;
+  color: var(--pen);
+  word-break: break-all;
+}
+.opt-notes {
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 0.9em;
+}
+
+.flag-btn {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen-soft);
+  padding: 3px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.85em;
+}
+.flag-btn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.flag-form {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.flag-form input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px dashed var(--danger);
+  color: var(--pen);
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.9em;
+}
+.flag-form button {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.85em;
+}

@@ -1,8 +1,8 @@
+/* RoomPanel sits inside .sidebar (App.css) which controls width / border /
+   scrolling. This file styles only its inner content. */
 .room-panel {
-  flex: 0 0 auto;
-  width: 280px;
   padding: 12px 16px;
-  border-right: 1px dashed var(--pen-soft);
+  flex: 0 0 auto;
 }
 
 .room-panel-title {
@@ -45,24 +45,56 @@
   opacity: 0.4;
 }
 
+.room-header-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 8px;
+}
 .room-header {
+  flex: 1;
   display: flex;
   align-items: baseline;
   gap: 10px;
-  width: 100%;
   background: transparent;
   border: none;
   color: var(--pen);
   font-family: 'Patrick Hand', sans-serif;
   font-size: 1rem;
   padding: 0;
-  margin-bottom: 8px;
   cursor: pointer;
   text-align: left;
 }
 
 .room-header:disabled {
   cursor: not-allowed;
+}
+
+.room-collapse-btn {
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen-soft);
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+  width: 28px;
+  height: 24px;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.room-collapse-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.06);
+  color: var(--pen);
+  border-color: var(--pen);
+}
+.room-collapse-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.room-item.collapsed {
+  padding-bottom: 4px;
 }
 
 .room-slot {
@@ -98,6 +130,27 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.card-wrap {
+  position: relative;
+}
+
+/* "× N" hint that shows on multi-copy cards so the player can tell
+   apart e.g. bed-1 and bed-2 in a room of two beds. */
+.copy-tag {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  z-index: 2;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  pointer-events: none;
 }
 
 .skip-rest-btn {

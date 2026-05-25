@@ -9,6 +9,18 @@
   display: block;
 }
 
+/* Same treatment as FloorPlan placed pieces — invert dark sketch to bright,
+   then lighten-blend so the cream paper backdrop disappears into navy. */
+.furniture-shape .piece-art image {
+  filter: invert(1);
+  mix-blend-mode: lighten;
+}
+
+/* Open-space marker — single white dot at cell centre. */
+.furniture-shape .open-space-dot {
+  fill: rgba(255, 255, 255, 0.85);
+}
+
 .shape-name {
   font-family: 'Patrick Hand', sans-serif;
   font-size: 0.85rem;

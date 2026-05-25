@@ -1,5 +1,5 @@
 import { useGameStore, isRoomReadyToSeal } from '../store/game';
-import { validateWallTopology } from '../lib/walls';
+import { validateWallTopology, checkWallEdgeCompliance } from '../lib/walls';
 import type { Scenario } from '../types';
 import './WallModeBanner.css';
 
@@ -7,9 +7,9 @@ interface Props { scenario: Scenario }
 
 export function WallModeBanner({ scenario }: Props) {
   const activeRoomSlot = useGameStore((s) => s.activeRoomSlot);
-  const chosenVariants = useGameStore((s) => s.chosenVariants);
   const placedCardKeys = useGameStore((s) => s.placedCardKeys);
   const skippedCardKeys = useGameStore((s) => s.skippedCardKeys);
+  const placedPieces = useGameStore((s) => s.placedPieces);
   const walls = useGameStore((s) => s.walls);
   const doors = useGameStore((s) => s.doors);
   const wallPhase = useGameStore((s) => s.wallPhase);
@@ -21,12 +21,19 @@ export function WallModeBanner({ scenario }: Props) {
   if (!activeRoomSlot) return null;
   const ready = isRoomReadyToSeal(
     scenario,
-    { chosenVariants, placedCardKeys, skippedCardKeys },
+    { placedCardKeys, skippedCardKeys },
     activeRoomSlot,
   );
   if (!ready) return null;
 
   const topology = validateWallTopology(scenario, walls);
+  const wallEdgeCompliance = checkWallEdgeCompliance(
+    scenario,
+    placedPieces,
+    walls,
+    doors,
+    activeRoomSlot,
+  );
   const wallCount = Object.keys(walls).length;
   const myDoorCount = Object.values(doors).filter((r) => r === activeRoomSlot).length;
   const room = scenario.rooms.find((r) => r.slot === activeRoomSlot);
@@ -39,10 +46,24 @@ export function WallModeBanner({ scenario }: Props) {
     setWallPhase('door');
   };
 
+  const formatWallEdgeError = () => {
+    const lines = wallEdgeCompliance.violations.map((v) => {
+      if (v.doorOnRequired.length > 0) {
+        return `${v.pieceLabel}: door placed on its bold edge (not allowed) — ${v.doorOnRequired.length} segment(s)`;
+      }
+      return `${v.pieceLabel}: missing wall on ${v.missing.length} required segment(s)`;
+    });
+    return `Wall-edge rule unmet — ${lines.join(' · ')}`;
+  };
+
   const handleConfirm = () => {
     // Re-check topology in case walls were modified after switching phases
     if (!topology.ok) {
       setError(`Walls must be continuous — ${topology.danglingWalls.length} dangling edge(s) found.`);
+      return;
+    }
+    if (!wallEdgeCompliance.ok) {
+      setError(formatWallEdgeError());
       return;
     }
     completeRoom();
@@ -63,6 +84,11 @@ export function WallModeBanner({ scenario }: Props) {
           walls: {wallCount}{!topology.ok && ` (${topology.danglingWalls.length} dangling)`}
         </span>
         <span className="door-stat">my door: {myDoorCount}/1</span>
+        {!wallEdgeCompliance.ok && (
+          <span className="bad-stat" title={formatWallEdgeError()}>
+            wall-edge: {wallEdgeCompliance.violations.length} pending
+          </span>
+        )}
       </div>
       <div className="wall-banner-actions">
         {wallPhase === 'walls' ? (

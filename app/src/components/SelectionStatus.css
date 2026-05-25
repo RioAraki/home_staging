@@ -1,13 +1,14 @@
 .selection-status {
   display: flex;
   align-items: center;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 10px 16px;
   border: 1px dashed var(--pen-soft);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
   margin-bottom: 12px;
-  min-height: 60px;
+  width: 100%;
 }
 
 .selection-status.empty {
@@ -59,7 +60,9 @@
   margin-left: auto;
   display: flex;
   gap: 6px;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .sel-rotate {
