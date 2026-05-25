@@ -20,6 +20,7 @@ import {
   computeRegions,
   analyseAccessibility,
   analyseOpenSpaceAccessibility,
+  findOrphanRegions,
 } from '../lib/regions';
 import { optionImageUrl } from '../lib/optionImage';
 import { FurnitureVector, hasVectorVisual } from '../vector/FurnitureVector';
@@ -296,12 +297,19 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
 
   const completedRoomSlots = useGameStore((s) => s.completedRoomSlots);
 
-  // Pieces that won't score — same logic as scoring.ts, run live, but only
-  // flagged once the piece's room has been sealed (so the player isn't
-  // misled while still mid-walling).
+  // Pieces that won't score — same logic as scoring.ts. Flag once the
+  // piece's room is either sealed OR has at least one door drawn for it
+  // (which is the earliest moment the open-space accessibility check makes
+  // sense — before that, no door cell to start the BFS from).
   const ignoredPieceFlags = useMemo(() => {
     const out = new Set<number>();
-    if (completedRoomSlots.size === 0) return out;
+    const roomsWithDoor = new Set<string>();
+    for (const owner of Object.values(playerDoors)) roomsWithDoor.add(owner);
+    const eligibleRooms = new Set<string>([
+      ...completedRoomSlots,
+      ...roomsWithDoor,
+    ]);
+    if (eligibleRooms.size === 0) return out;
     const access = analyseAccessibility(
       scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge,
     );
@@ -313,12 +321,24 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
         .violations.map((v) => v.pieceIndex),
     );
     placedPieces.forEach((p, idx) => {
-      if (!completedRoomSlots.has(p.roomSlot)) return;
+      if (!eligibleRooms.has(p.roomSlot)) return;
       const valid = pieceAccess.validPieceIndices.has(idx) && !wallEdgeViolators.has(idx);
       if (!valid) out.add(idx);
     });
     return out;
   }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge, completedRoomSlots]);
+
+  // Orphan regions — indoor cells that the player walled off into a dead
+  // pocket (no furniture inside AND unreachable from the front door via the
+  // door graph). Highlighted in red so the player notices.
+  const orphanCellSet = useMemo(() => {
+    if (!frontDoorEdge) return new Set<string>();
+    const access = analyseAccessibility(
+      scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge,
+    );
+    const { cells } = findOrphanRegions(access, !!frontDoorEdge);
+    return new Set(cells);
+  }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge]);
 
   const [hover, setHover] = useState<Cell | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
@@ -460,6 +480,28 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize} width={cellSize} height={cellSize} className="indoor" />
           ))}
         </g>
+
+        {/* Orphan-region overlay — indoor cells the player walled off into a
+            dead pocket (no door connection to outside, no furniture). */}
+        {orphanCellSet.size > 0 && (
+          <g className="orphan-cells" transform={`translate(${labelGap}, ${labelGap})`}>
+            {Array.from(orphanCellSet).map((k) => {
+              const [rs, cs] = k.split(',');
+              const r = parseInt(rs, 10);
+              const c = parseInt(cs, 10);
+              return (
+                <rect key={`orph-${k}`}
+                  x={c * cellSize} y={r * cellSize}
+                  width={cellSize} height={cellSize}
+                  fill="rgba(255, 80, 80, 0.18)"
+                  stroke="var(--danger)"
+                  strokeWidth="1.2"
+                  strokeDasharray="4 3"
+                  pointerEvents="none" />
+              );
+            })}
+          </g>
+        )}
 
         <g className="exterior-walls" transform={`translate(${labelGap}, ${labelGap})`} filter="url(#sketch)">
           {exteriorWalls.map((e, i) => {

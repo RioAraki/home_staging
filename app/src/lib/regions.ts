@@ -273,6 +273,32 @@ export function isRoomAccessible(
   return result.outsideAccessible.has(reg);
 }
 
+/**
+ * Find indoor regions that have no purpose — empty (no placed pieces) AND
+ * unreachable from outside via the door graph. These are "dead pockets"
+ * created when the player draws walls that enclose a space with nothing in
+ * it and no door to anywhere else.
+ *
+ * Only meaningful once the front door is set (otherwise everything is
+ * unreachable from outside and the whole building would be flagged).
+ */
+export function findOrphanRegions(
+  result: AccessibilityResult,
+  frontDoorSet: boolean,
+): { regionIds: RegionId[]; cells: CellKey[] } {
+  if (!frontDoorSet) return { regionIds: [], cells: [] };
+  const ids: RegionId[] = [];
+  const cells: CellKey[] = [];
+  for (const id of result.hallwayRegions) {
+    if (result.outsideAccessible.has(id)) continue;
+    ids.push(id);
+    for (const k of result.regionMap.cellsByRegion.get(id) ?? []) {
+      cells.push(k);
+    }
+  }
+  return { regionIds: ids, cells };
+}
+
 /** Shortest 4-neighbour grid path between two cells, blocked by walls (and
  *  doors, which are walls structurally). Returns null if unreachable. Only
  *  walks through indoor cells. */
@@ -427,11 +453,12 @@ export function analyseOpenSpaceAccessibility(
       pushReason(slot, 'room region not detected');
       continue;
     }
-    if (!access.outsideAccessible.has(roomReg)) {
-      for (const idx of pieceIdxs) ignored.add(idx);
-      pushReason(slot, 'room not reachable from outside');
-      continue;
-    }
+    // NOTE: we deliberately do NOT check `outsideAccessible` here. The
+    // per-piece open-space check only cares whether each piece's open
+    // spaces are reachable from the ROOM's own door — a local
+    // walkability question. Whether the room connects to the front door
+    // is a building-level concern, handled separately at finish time
+    // (see FinishGameBanner / scoring's room.accessible flag).
     const doorCell = findRoomDoorCell(doors, access.regionMap, access.roomToRegion, slot);
     if (!doorCell) {
       for (const idx of pieceIdxs) ignored.add(idx);

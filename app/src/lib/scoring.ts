@@ -321,11 +321,17 @@ export function computeScore(
   const wallEdgeCompliance = checkWallEdgeCompliance(scenario, placedPieces, walls, doors);
   const wallEdgeViolators = new Set(wallEdgeCompliance.violations.map((v) => v.pieceIndex));
 
-  // Per-piece counts and grouping. A piece counts only if it passes BOTH
-  // open-space accessibility AND wall-edge requirements.
-  const validPieceFlags = placedPieces.map(
-    (_, idx) => pieceAccess.validPieceIndices.has(idx) && !wallEdgeViolators.has(idx),
-  );
+  // Per-piece counts and grouping. A piece counts only if:
+  //   - its open spaces are reachable from its room's door (pieceAccess)
+  //   - its wall_edges are backed by walls (wallEdgeCompliance)
+  //   - its room is reachable from outside via the front door + door graph
+  //     (building-level connectivity — checked here, not inside pieceAccess)
+  const validPieceFlags = placedPieces.map((p, idx) => {
+    if (!pieceAccess.validPieceIndices.has(idx)) return false;
+    if (wallEdgeViolators.has(idx)) return false;
+    if (!isRoomAccessible(access, p.roomSlot)) return false;
+    return true;
+  });
   const pieceSquares = placedPieces.map(squaresPerPiece);
 
   const rooms: RoomScore[] = scenario.rooms.map((room) => {
