@@ -564,37 +564,41 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             .map((e) => renderWindowSymbol(e, cellSize))}
         </g>
 
-        {/* Hit-zones along the exterior wall — for window-mode (toggle) */}
+        {/* Hit-zones along the exterior wall — for window-mode (toggle).
+            Each edge gets a fat invisible click target (16-px stroke) for
+            easy pointing plus a thin visible dashed line for indication. */}
         {windowMode && (
           <g className="window-hit" transform={`translate(${labelGap}, ${labelGap})`}>
             {exteriorWalls.map((e, i) => {
-              const isHorizontal = e.y1 === e.y2;
               const isHovered = hoverEdge === e.key;
               const isOn = !!windows[e.key];
               const stroke = isHovered
                 ? '#6fb3d6'
                 : isOn ? 'rgba(111,179,214,0.7)' : 'rgba(111,179,214,0.30)';
               const sw = isHovered ? 6 : 4;
-              const common = {
-                stroke, strokeWidth: sw, strokeDasharray: '3 2',
-                style: { cursor: 'pointer' as const },
-                onMouseEnter: () => setHoverEdge(e.key),
-                onMouseLeave: () => setHoverEdge(null),
-                onClick: () => toggleWindow(e.key),
-              };
-              if (isHorizontal) {
-                return (
-                  <line key={`winhit-h-${i}`}
-                    x1={e.x1 * cellSize} y1={e.y1 * cellSize}
-                    x2={e.x2 * cellSize} y2={e.y2 * cellSize}
-                    {...common} />
-                );
-              }
+              const x1 = e.x1 * cellSize, y1 = e.y1 * cellSize;
+              const x2 = e.x2 * cellSize, y2 = e.y2 * cellSize;
               return (
-                <line key={`winhit-v-${i}`}
-                  x1={e.x1 * cellSize} y1={e.y1 * cellSize}
-                  x2={e.x2 * cellSize} y2={e.y2 * cellSize}
-                  {...common} />
+                <g key={`winhit-${i}`}>
+                  {/* Fat transparent click target. */}
+                  <line
+                    x1={x1} y1={y1} x2={x2} y2={y2}
+                    stroke="transparent"
+                    strokeWidth={16}
+                    style={{ cursor: 'pointer', pointerEvents: 'stroke' }}
+                    onMouseEnter={() => setHoverEdge(e.key)}
+                    onMouseLeave={() => setHoverEdge(null)}
+                    onClick={() => toggleWindow(e.key)}
+                  />
+                  {/* Thin visible indicator. */}
+                  <line
+                    x1={x1} y1={y1} x2={x2} y2={y2}
+                    stroke={stroke}
+                    strokeWidth={sw}
+                    strokeDasharray="3 2"
+                    style={{ pointerEvents: 'none' }}
+                  />
+                </g>
               );
             })}
           </g>
@@ -848,42 +852,9 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           })}
         </g>
 
-        {/* Demolish-mode hit zones — rendered HERE (after every visible
-            wall / door / window / front-door element) so clicks land on
-            this overlay instead of being absorbed by the visual lines /
-            symbols underneath. Each existing edge gets its own clickable
-            line; the cell hit-zones below double as piece-demolish
-            triggers. */}
-        {demolishMode && (() => {
-          const edgeKeys = new Set<string>();
-          for (const k of Object.keys(playerWalls)) edgeKeys.add(k);
-          for (const k of Object.keys(playerDoors)) edgeKeys.add(k);
-          for (const k of Object.keys(windows)) edgeKeys.add(k);
-          if (frontDoorEdge) edgeKeys.add(frontDoorEdge);
-          return (
-            <g className="demolish-edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
-              {Array.from(edgeKeys).map((ek) => {
-                const [type, rStr, cStr] = ek.split(':');
-                const r = parseInt(rStr, 10);
-                const c = parseInt(cStr, 10);
-                const isHovered = hoverEdge === ek;
-                const common = {
-                  stroke: isHovered ? 'var(--danger)' : 'rgba(255,100,100,0.35)',
-                  strokeWidth: isHovered ? 6 : 4,
-                  strokeDasharray: '3 2',
-                  style: { cursor: 'pointer' as const },
-                  onMouseEnter: () => setHoverEdge(ek),
-                  onMouseLeave: () => setHoverEdge(null),
-                  onClick: () => demolishAtEdge(ek),
-                };
-                if (type === 'h') {
-                  return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={(c+1)*cellSize} y2={r*cellSize} {...common} />;
-                }
-                return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={c*cellSize} y2={(r+1)*cellSize} {...common} />;
-              })}
-            </g>
-          );
-        })()}
+        {/* (Demolish-mode hit zones moved further below — must render
+            AFTER the cell-hit layer so edge clicks aren't shadowed by the
+            cell-wide transparent rects.) */}
 
         {/* Wall-edge requirements that aren't satisfied — yellow glow on
             the specific edges that need walls, so the player can see WHERE
@@ -974,6 +945,54 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           )}
         </g>
         )}
+
+        {/* Demolish-mode hit zones — rendered AFTER cell-hit (and all
+            visible walls / doors / windows / front-door) so edge clicks
+            land here instead of being absorbed by either the visual lines
+            or the cell-wide transparent rects underneath. A fat
+            transparent click target (14-px stroke) sits beneath each
+            visible dashed line for easier targeting. */}
+        {demolishMode && (() => {
+          const edgeKeys = new Set<string>();
+          for (const k of Object.keys(playerWalls)) edgeKeys.add(k);
+          for (const k of Object.keys(playerDoors)) edgeKeys.add(k);
+          for (const k of Object.keys(windows)) edgeKeys.add(k);
+          if (frontDoorEdge) edgeKeys.add(frontDoorEdge);
+          return (
+            <g className="demolish-edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
+              {Array.from(edgeKeys).map((ek) => {
+                const [type, rStr, cStr] = ek.split(':');
+                const r = parseInt(rStr, 10);
+                const c = parseInt(cStr, 10);
+                const isHovered = hoverEdge === ek;
+                const x1 = c * cellSize;
+                const y1 = r * cellSize;
+                const x2 = type === 'h' ? (c + 1) * cellSize : c * cellSize;
+                const y2 = type === 'h' ? r * cellSize : (r + 1) * cellSize;
+                return (
+                  <g key={`dem-${ek}`}>
+                    <line
+                      x1={x1} y1={y1} x2={x2} y2={y2}
+                      stroke="transparent"
+                      strokeWidth={14}
+                      style={{ cursor: 'pointer', pointerEvents: 'stroke' }}
+                      onMouseEnter={() => setHoverEdge(ek)}
+                      onMouseLeave={() => setHoverEdge(null)}
+                      onClick={() => demolishAtEdge(ek)}
+                    />
+                    <line
+                      x1={x1} y1={y1} x2={x2} y2={y2}
+                      stroke={isHovered ? 'var(--danger)' : 'rgba(255,100,100,0.35)'}
+                      strokeWidth={isHovered ? 6 : 4}
+                      strokeDasharray="3 2"
+                      style={{ pointerEvents: 'none' }}
+                    />
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })()}
 
         {/* Edge hit-zones (wall + door drawing) */}
         {inWallMode && !frontDoorMode && !windowMode && (
