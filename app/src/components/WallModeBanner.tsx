@@ -1,5 +1,6 @@
 import { useGameStore, isRoomReadyToSeal } from '../store/game';
 import { validateWallTopology, checkWallEdgeCompliance } from '../lib/walls';
+import { frontDoorOpensIntoRoom } from '../lib/regions';
 import type { Scenario } from '../types';
 import './WallModeBanner.css';
 
@@ -17,6 +18,7 @@ export function WallModeBanner({ scenario }: Props) {
   const completeRoom = useGameStore((s) => s.completeRoom);
   const setError = useGameStore((s) => s.setError);
   const lastError = useGameStore((s) => s.lastError);
+  const frontDoorEdge = useGameStore((s) => s.frontDoorEdge);
 
   if (!activeRoomSlot) return null;
   const ready = isRoomReadyToSeal(
@@ -36,6 +38,12 @@ export function WallModeBanner({ scenario }: Props) {
   );
   const wallCount = Object.keys(walls).length;
   const myDoorCount = Object.values(doors).filter((r) => r === activeRoomSlot).length;
+  // True when the front door opens directly into the active room — this
+  // room then doubles as the lobby and doesn't need its own door (Castle
+  // Café's dining area is the canonical case).
+  const frontDoorIsThisRoom = frontDoorOpensIntoRoom(
+    scenario, placedPieces, walls, frontDoorEdge, activeRoomSlot,
+  );
   const room = scenario.rooms.find((r) => r.slot === activeRoomSlot);
 
   const handleNext = () => {
@@ -75,6 +83,8 @@ export function WallModeBanner({ scenario }: Props) {
         <strong>Room {activeRoomSlot} {room?.name_zh}</strong> furniture done.
         {wallPhase === 'walls' ? (
           <> Phase 1 — click cell edges to draw walls (must connect at both ends).</>
+        ) : frontDoorIsThisRoom && myDoorCount === 0 ? (
+          <> Phase 2 — front door opens directly into this room, no extra door needed. Click ✓ Confirm.</>
         ) : (
           <> Phase 2 — click any wall to make it this room's door (only one).</>
         )}
@@ -83,7 +93,10 @@ export function WallModeBanner({ scenario }: Props) {
         <span className={topology.ok ? '' : 'bad-stat'}>
           walls: {wallCount}{!topology.ok && ` (${topology.danglingWalls.length} dangling)`}
         </span>
-        <span className="door-stat">my door: {myDoorCount}/1</span>
+        <span className="door-stat">
+          my door: {myDoorCount}/1
+          {frontDoorIsThisRoom && myDoorCount === 0 && ' (front door opens in — none needed)'}
+        </span>
         {!wallEdgeCompliance.ok && (
           <span className="bad-stat" title={formatWallEdgeError()}>
             wall-edge: {wallEdgeCompliance.violations.length} pending

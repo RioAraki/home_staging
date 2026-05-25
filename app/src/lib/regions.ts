@@ -273,6 +273,30 @@ export function isRoomAccessible(
   return result.outsideAccessible.has(reg);
 }
 
+/** True iff the front door's interior side falls in the same wall-bounded
+ *  region as one of the named room's placed pieces. When this holds, the
+ *  room doubles as the entrance lobby (Castle Café's dining area is the
+ *  canonical example — no separate room-door is required because the front
+ *  door already opens directly into the room). */
+export function frontDoorOpensIntoRoom(
+  scenario: Scenario,
+  placedPieces: PlacedPiece[],
+  walls: Record<string, true>,
+  frontDoorEdge: string | null,
+  slot: RoomSlot,
+): boolean {
+  if (!frontDoorEdge) return false;
+  const regionMap = computeRegions(scenario, walls);
+  const roomToRegion = assignRoomsToRegions(placedPieces, regionMap);
+  const ownerReg = roomToRegion.get(slot);
+  if (ownerReg === undefined) return false;
+  for (const [r, c] of edgeSides(frontDoorEdge)) {
+    const reg = regionMap.cellToRegion.get(`${r},${c}`);
+    if (reg !== undefined && reg === ownerReg) return true;
+  }
+  return false;
+}
+
 /**
  * Find indoor regions that have no purpose — empty (no placed pieces) AND
  * unreachable from outside via the door graph. These are "dead pockets"

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { RoomSlot, Scenario } from '../types';
 import { cardByNumberVariant } from '../data';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../lib/walls';
+import { frontDoorOpensIntoRoom } from '../lib/regions';
 import type { PersistedState } from '../lib/persistence';
 
 export type Variant = 'A' | 'B';
@@ -333,12 +334,16 @@ export const useGameStore = create<GameState>((set, get) => {
       // demolish pieces, and place new furniture. The room's existing walls /
       // doors / placed pieces are preserved — only the "finished" flag drops.
       const wasSealed = completedRoomSlots.has(slot);
-      // Smart wallPhase: when re-entering a sealed room that already has its
-      // door, jump straight to 'door' phase so the player can re-Confirm with
-      // one click (they came back to tweak furniture, not to redo the walls).
-      // Brand-new selections and un-sealed rooms without doors stay in 'walls'.
+      // Smart wallPhase: when re-entering a sealed room that's still
+      // sealable as-is (has its own door, OR the front door opens directly
+      // into it), jump straight to 'door' phase so the player can re-Confirm
+      // with one click. Brand-new selections and un-sealable rooms stay in
+      // 'walls'.
       const myDoorCount = Object.values(doors).filter((r) => r === slot).length;
-      const nextPhase: WallPhase = wasSealed && myDoorCount === 1 ? 'door' : 'walls';
+      const { scenario: sc, placedPieces: pp, walls: ws, frontDoorEdge: fd } = get();
+      const frontDoorIsThisRoom = !!sc && frontDoorOpensIntoRoom(sc, pp, ws, fd, slot);
+      const isSealable = myDoorCount === 1 || (myDoorCount === 0 && frontDoorIsThisRoom);
+      const nextPhase: WallPhase = wasSealed && isSealable ? 'door' : 'walls';
       mutate(() => {
         const nextCompleted = new Set(completedRoomSlots);
         if (wasSealed) nextCompleted.delete(slot);
@@ -729,11 +734,23 @@ export const useGameStore = create<GameState>((set, get) => {
     unfinishGame: () => mutate(() => set({ gameFinished: false })),
 
     completeRoom: () => {
-      const { activeRoomSlot, doors } = get();
+      const { activeRoomSlot, doors, scenario, placedPieces, walls, frontDoorEdge } = get();
       if (!activeRoomSlot) return false;
       const myDoors = Object.values(doors).filter((r) => r === activeRoomSlot).length;
-      if (myDoors !== 1) {
-        set({ lastError: 'Each room needs exactly one door before closing.' });
+      // Normal rule: each room needs exactly one door. Exception: if the
+      // front door's indoor side falls inside this room's region, the
+      // room doesn't need its own door (it doubles as the entrance lobby
+      // — Castle Café's dining area uses this). 2+ doors is still wrong.
+      const frontDoorIsThisRoom = !!scenario && frontDoorOpensIntoRoom(
+        scenario, placedPieces, walls, frontDoorEdge, activeRoomSlot,
+      );
+      const okWithoutDoor = myDoors === 0 && frontDoorIsThisRoom;
+      if (!(myDoors === 1 || okWithoutDoor)) {
+        set({
+          lastError: myDoors > 1
+            ? `Room ${activeRoomSlot} has ${myDoors} doors — only one is allowed.`
+            : 'Each room needs exactly one door before closing (unless the front door opens directly into this room).',
+        });
         return false;
       }
       mutate(() => {
