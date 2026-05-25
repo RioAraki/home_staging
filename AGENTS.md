@@ -2,34 +2,51 @@
 
 ## Auto-commit + push after each completed stage
 
-When you finish a coherent "stage" of work — typically corresponding to a
-checked-off task in the conversation's task list, or a self-contained feature
-the user can verify in isolation — commit the diff and push to `origin/main`
-**without being asked**.
+Stop relying on "do I feel like this is a stage" — that judgement fails on
+small tweaks and continuation work. Instead use these **hard triggers**:
 
-Definition of a "stage":
-- A new feature that the user can test in the running app
-- A bugfix the user verified
-- A data correction batch (yaml edits, script runs)
-- A non-trivial refactor that passes type-check and validation
-- Multi-file changes that belong together (data + code wired up)
+### Mandatory `git status` check points
 
-Do **not** auto-commit:
-- Half-finished work that still has TODOs / unsubmitted changes
-- Pure exploration (debug scripts you intend to delete)
-- Changes the user explicitly hasn't approved (e.g. discarding their flagged data)
+Run `git status` and, if the working tree has any tracked changes you made,
+commit + push **before doing anything else**:
 
-Workflow:
-1. `git status` + `git diff` to confirm scope
-2. Stage the relevant files explicitly (avoid `git add .`/`-A` so you don't
-   pull in junk like `.DS_Store` or accidentally-edited unrelated files)
-3. Commit with a concise message: subject line < 70 chars, body explains
-   the *why* in 1–3 short paragraphs, end with the Co-Authored-By trailer
-4. `git push origin main` — never `--force` unless explicitly told
-5. Report the commit hash + 1-line summary to the user
+1. **User confirmation phrases**: `OK` / `好` / `没问题` / `确认了` /
+   `looks good` / `nice` etc. These are end-of-stage signals from the user.
+2. **TaskUpdate(status: completed)**: marking a task done = its diff is
+   shippable. Commit immediately after, in the same turn.
+3. **Before answering a new unrelated question**: if the user pivots topic
+   and you have uncommitted code, push first, then answer.
+4. **Before invoking a long-running sub-task**: don't leave dirty state
+   when delegating to Agent/Explore.
 
-Then continue with the next task. The user explicitly said:
-> "我很难每一步都叮嘱你要 commit and push" — so don't wait to be asked.
+### What to commit even if "trivial"
+
+A 2-line CSS tweak the user just verified IS a stage. A debug script
+deletion IS a stage. The cost of an extra small commit (5 sec) is
+much lower than the cost of a tangled diff later.
+
+### Skip auto-commit only when
+
+- Half-finished work with TODOs you've explicitly flagged in conversation
+- Exploratory scripts you're going to delete this turn anyway
+- Changes the user has flagged as wrong but you haven't reverted yet
+- Working tree is clean (`git status` shows no diff) — no-op, move on
+
+### Workflow per commit
+
+1. `git status` to confirm scope
+2. Stage with explicit paths (no `git add .` or `-A`) — avoids junk
+   files and accidentally-edited unrelated paths
+3. `git diff --cached --stat` if scope is unclear
+4. Commit: subject < 70 chars, body explains the *why* in 1-3 short
+   paragraphs, end with `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`
+5. `git push origin main` — never `--force` without explicit ask
+6. Report the commit hash + 1-line summary
+
+### Self-audit
+
+If the user ever asks "did you commit?", run `git log --oneline -3` AND
+`git status` and report honestly. Don't say "yes" without checking.
 
 ## Other project rules
 
