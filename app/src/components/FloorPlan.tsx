@@ -328,6 +328,19 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
     return out;
   }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge, completedRoomSlots]);
 
+  // Wall-edge requirements that aren't currently satisfied — shown as a
+  // yellow dashed glow on the exact edge that needs a wall, so the player
+  // sees WHICH side of which piece is missing its required wall and can
+  // rotate or move instead of guessing.
+  const unsatisfiedWallEdges = useMemo(() => {
+    const out: string[] = [];
+    const compliance = checkWallEdgeCompliance(scenario, placedPieces, playerWalls, playerDoors);
+    for (const v of compliance.violations) {
+      for (const req of v.missing) out.push(req.edgeKey);
+    }
+    return out;
+  }, [scenario, placedPieces, playerWalls, playerDoors]);
+
   // Orphan regions — indoor cells that the player walled off into a dead
   // pocket (no furniture inside AND unreachable from the front door via the
   // door graph). Highlighted in red so the player notices.
@@ -777,6 +790,21 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
                   )
                 : null;
             return renderDoorSymbol(edgeKey, ownerCell, cellSize, 'room-door');
+          })}
+        </g>
+
+        {/* Wall-edge requirements that aren't satisfied — yellow glow on
+            the specific edges that need walls, so the player can see WHERE
+            to rotate / move the offending piece. */}
+        <g className="needs-wall-layer" transform={`translate(${labelGap}, ${labelGap})`}>
+          {unsatisfiedWallEdges.map((ek, i) => {
+            const [type, rStr, cStr] = ek.split(':');
+            const r = parseInt(rStr, 10);
+            const c = parseInt(cStr, 10);
+            const props = type === 'h'
+              ? { x1: c * cellSize, y1: r * cellSize, x2: (c + 1) * cellSize, y2: r * cellSize }
+              : { x1: c * cellSize, y1: r * cellSize, x2: c * cellSize, y2: (r + 1) * cellSize };
+            return <line key={`needs-${i}`} {...props} className="needs-wall" />;
           })}
         </g>
 

@@ -52,6 +52,18 @@
   stroke-dasharray: 5 3;
 }
 
+/* Unsatisfied wall_edge requirement — bright yellow dashed glow on the
+   specific edge that needs to be against a wall. Tells the player WHERE
+   to rotate / move the piece. */
+.floor-plan .needs-wall-layer line.needs-wall {
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 5 4;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 3px rgba(255, 225, 105, 0.6));
+}
+
 /* Window symbol — two casement leaves hinged at each end of the opening,
    swung outward 45°, with quarter-circle arcs showing swing path. */
 .floor-plan .window-symbol .window-leaf {

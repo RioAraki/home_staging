@@ -1,5 +1,5 @@
 import { cardByNumberVariant } from '../data';
-import { useGameStore } from '../store/game';
+import { useGameStore, isRoomReadyToSeal } from '../store/game';
 import { FurnitureShape } from './FurnitureShape';
 import { useMemo } from 'react';
 import './SelectionStatus.css';
@@ -12,6 +12,16 @@ export function SelectionStatus() {
   const skipSelected = useGameStore((s) => s.skipSelected);
   const jokerUsed = useGameStore((s) => s.jokerUsed);
   const lastError = useGameStore((s) => s.lastError);
+  // WallModeBanner already shows lastError when it's visible — avoid
+  // duplicating the message in two places.
+  const scenario = useGameStore((s) => s.scenario);
+  const activeRoomSlot = useGameStore((s) => s.activeRoomSlot);
+  const placedCardKeys = useGameStore((s) => s.placedCardKeys);
+  const skippedCardKeys = useGameStore((s) => s.skippedCardKeys);
+  const wallModeShowsError =
+    !!scenario && !!activeRoomSlot &&
+    isRoomReadyToSeal(scenario, { placedCardKeys, skippedCardKeys }, activeRoomSlot);
+  const showLocalError = lastError && !wallModeShowsError;
 
   const rawOption = useMemo(() => {
     if (!selected) return null;
@@ -85,7 +95,7 @@ export function SelectionStatus() {
           Cancel
         </button>
       </div>
-      {lastError && <div className="sel-error">{lastError}</div>}
+      {showLocalError && <div className="sel-error">{lastError}</div>}
     </div>
   );
 }
