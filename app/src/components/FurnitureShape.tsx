@@ -125,15 +125,24 @@ export function FurnitureShape({
           />
         ))}
 
-        {/* Wall edges — thick stroke along each (cell, side) the option's
-            printed card shows as a bold border. */}
+        {/* Wall edges — bold amber stroke along each (cell, side) the option's
+            printed card shows as a bold border. Inset by half the stroke
+            width so the line stays inside the SVG viewBox (a stroke
+            centered on the boundary would lose half its width to clipping).
+            Amber + thick so wall mistakes jump out in the review UI. */}
         {wallStrokes.map(({ r, c, side }, i) => {
+          const sw = Math.max(3, cellSize * 0.12);
+          const inset = sw / 2;
           const x = c * cellSize;
           const y = r * cellSize;
-          if (side === 'top')    return <line key={`w${i}`} x1={x} y1={y} x2={x + cellSize} y2={y} stroke="#fff" strokeWidth="3" />;
-          if (side === 'bottom') return <line key={`w${i}`} x1={x} y1={y + cellSize} x2={x + cellSize} y2={y + cellSize} stroke="#fff" strokeWidth="3" />;
-          if (side === 'left')   return <line key={`w${i}`} x1={x} y1={y} x2={x} y2={y + cellSize} stroke="#fff" strokeWidth="3" />;
-          return <line key={`w${i}`} x1={x + cellSize} y1={y} x2={x + cellSize} y2={y + cellSize} stroke="#fff" strokeWidth="3" />;
+          const common = { stroke: 'var(--accent, #ffe169)', strokeWidth: sw, strokeLinecap: 'round' as const };
+          if (side === 'top')
+            return <line key={`w${i}`} x1={x} y1={y + inset} x2={x + cellSize} y2={y + inset} {...common} />;
+          if (side === 'bottom')
+            return <line key={`w${i}`} x1={x} y1={y + cellSize - inset} x2={x + cellSize} y2={y + cellSize - inset} {...common} />;
+          if (side === 'left')
+            return <line key={`w${i}`} x1={x + inset} y1={y} x2={x + inset} y2={y + cellSize} {...common} />;
+          return <line key={`w${i}`} x1={x + cellSize - inset} y1={y} x2={x + cellSize - inset} y2={y + cellSize} {...common} />;
         })}
       </svg>
       {showName && <div className="shape-name">{option.name_zh}</div>}
