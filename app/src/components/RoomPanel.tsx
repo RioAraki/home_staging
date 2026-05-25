@@ -141,7 +141,7 @@ export function RoomPanel({ rooms }: RoomPanelProps) {
                         variant={variant}
                         slot={room.slot}
                         slotIdx={slotIdx}
-                        disabled={!isActive || demolishMode}
+                        disabled={demolishMode}
                       />
                     </div>
                   );

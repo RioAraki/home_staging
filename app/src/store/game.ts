@@ -330,7 +330,12 @@ export const useGameStore = create<GameState>((set, get) => {
         // placed anything in it yet — they're still deciding which room to
         // start with. Once a piece lands the room is "in progress".
         const hasPlacedInActive = placedPieces.some((p) => p.roomSlot === activeRoomSlot);
-        if (hasPlacedInActive) return;
+        if (hasPlacedInActive) {
+          set({
+            lastError: `Finish Room ${activeRoomSlot} first — withdraw its pieces or seal it before switching to Room ${slot}.`,
+          });
+          return;
+        }
       }
       // Re-entering a sealed room un-seals it so the player can revise walls,
       // demolish pieces, and place new furniture. The room's existing walls /

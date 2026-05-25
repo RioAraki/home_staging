@@ -23,6 +23,19 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
   const skipCard = useGameStore((s) => s.skipCard);
   const unskipCard = useGameStore((s) => s.unskipCard);
   const unplaceCard = useGameStore((s) => s.unplaceCard);
+  const activeRoomSlot = useGameStore((s) => s.activeRoomSlot);
+  const selectRoom = useGameStore((s) => s.selectRoom);
+
+  // Auto-select this card's room if it isn't already active. Returns
+  // true on success (room is now active), false if selectRoom refused
+  // — e.g. another room is mid-build with placed pieces. In the refusal
+  // case selectRoom surfaces a lastError so the user knows why nothing
+  // happened.
+  const ensureRoomActive = (): boolean => {
+    if (activeRoomSlot === slot) return true;
+    selectRoom(slot);
+    return useGameStore.getState().activeRoomSlot === slot;
+  };
 
   const card = cardByNumberVariant(number, variant);
   if (!card) return <div className="card error">no card {number}{variant}</div>;
@@ -35,6 +48,7 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
 
   const handleReveal = () => {
     if (disabled || resolved) return;
+    if (!ensureRoomActive()) return;
     if (!revealed) {
       revealCard(slot, slotIdx);
       if (card.options.length === 1) {
@@ -76,9 +90,11 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
               type="button"
               key={opt.option_index}
               className={`option-btn ${isSelected ? 'on' : ''}`}
-              onClick={() =>
-                !resolved && !disabled && selectOption({ slot, slotIdx, optionIndex: opt.option_index })
-              }
+              onClick={() => {
+                if (resolved || disabled) return;
+                if (!ensureRoomActive()) return;
+                selectOption({ slot, slotIdx, optionIndex: opt.option_index });
+              }}
               disabled={resolved || disabled}
               aria-label={`Option ${opt.option_index}: ${opt.name_zh}`}
             >
@@ -92,7 +108,11 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
         <button
           type="button"
           className="skip-card-btn"
-          onClick={() => skipCard(slot, slotIdx)}
+          onClick={() => {
+            if (disabled) return;
+            if (!ensureRoomActive()) return;
+            skipCard(slot, slotIdx);
+          }}
           disabled={disabled}
         >
           ⤿ Skip this card
