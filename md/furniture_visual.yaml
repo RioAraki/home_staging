@@ -13,48 +13,12 @@
 # different colours / strokes, so adding a new theme does NOT require
 # re-authoring any schema entries.
 #
+# When an option has NO entry here, the FurnitureVector renderer returns
+# null and the caller falls back to the raster card crop. Prefer the raster
+# until a primitive faithfully matches the printed art — a generic "burst"
+# primitive applied to every plant looks worse than the actual card image.
+#
 # Coordinate convention: cells use the SAME (row, col) layout as the option's
 # `shape` in furniture_data.yaml. 0-indexed within the option's bbox.
 
-entries:
-
-  # ─────────────────────────────────── #19 plants (all 4 variants) ─────────
-  # All four use the same `plant_leaf_burst` primitive with different cell
-  # placements + density so we can validate theme switching regardless of
-  # which variant the game rolls.
-
-  - number: 19
-    variant: A
-    option_index: 1
-    parts:
-      # 玫瑰 / Rose — L-shape, 3 plant cells
-      - kind: plant_leaf_burst
-        cells: [[0, 0], [0, 1], [1, 0]]
-        density: 6
-
-  - number: 19
-    variant: A
-    option_index: 2
-    parts:
-      # 郁金香 / Tulip — diagonal, 2 plant cells
-      - kind: plant_leaf_burst
-        cells: [[0, 0], [1, 1]]
-        density: 5
-
-  - number: 19
-    variant: B
-    option_index: 1
-    parts:
-      # 吊兰 / Spider plant — single cell, fuller burst
-      - kind: plant_leaf_burst
-        cells: [[0, 0]]
-        density: 9
-
-  - number: 19
-    variant: B
-    option_index: 2
-    parts:
-      # 金钱树 / Money tree — 2 cells side by side
-      - kind: plant_leaf_burst
-        cells: [[0, 0], [0, 1]]
-        density: 8
+entries: []
