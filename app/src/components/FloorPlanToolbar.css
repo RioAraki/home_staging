@@ -7,6 +7,7 @@
 
 .fp-front-door-btn,
 .fp-window-btn,
+.fp-demolish-btn,
 .fp-save-btn,
 .fp-load-btn,
 .fp-reset-btn,
@@ -23,12 +24,24 @@
 
 .fp-front-door-btn:hover,
 .fp-window-btn:hover,
+.fp-demolish-btn:hover,
 .fp-save-btn:hover:not(:disabled),
 .fp-load-btn:hover:not(:disabled),
 .fp-reset-btn:hover,
 .fp-undo-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--pen);
+}
+
+.fp-demolish-btn {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.fp-demolish-btn.active {
+  background: var(--danger);
+  color: var(--bg);
+  border-style: solid;
+  border-color: var(--danger);
 }
 
 .fp-save-btn,

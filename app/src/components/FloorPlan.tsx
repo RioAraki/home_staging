@@ -275,6 +275,9 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
   const windows = useGameStore((s) => s.windows);
   const windowMode = useGameStore((s) => s.windowMode);
   const toggleWindow = useGameStore((s) => s.toggleWindow);
+  const demolishMode = useGameStore((s) => s.demolishMode);
+  const demolishAtCell = useGameStore((s) => s.demolishAtCell);
+  const demolishAtEdge = useGameStore((s) => s.demolishAtEdge);
   const themeId = useGameStore((s) => s.themeId) as ThemeId;
 
   const inWallMode =
@@ -417,6 +420,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
 
   const handleCellClick = useCallback(
     (r: number, c: number) => {
+      if (demolishMode) { demolishAtCell([r, c]); return; }
       if (inWallMode) return;
       if (!selected || !transformedSel) return;
       const result = validatePlacement(scenario, transformedSel, [r, c], placedPieces);
@@ -426,15 +430,17 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
       }
       placeSelected([r, c]);
     },
-    [inWallMode, selected, transformedSel, scenario, placedPieces, placeSelected, setError],
+    [demolishMode, demolishAtCell, inWallMode, selected, transformedSel, scenario, placedPieces, placeSelected, setError],
   );
 
   const handleCellEnter = (r: number, c: number) => {
+    if (demolishMode) { setHover([r, c]); return; }
     if (!selected) { if (hover) setHover(null); return; }
     setHover([r, c]);
   };
 
   const handleEdgeClick = (edgeKey: string) => {
+    if (demolishMode) { demolishAtEdge(edgeKey); return; }
     if (!inWallMode) return;
     if (wallPhase === 'walls') toggleWall(edgeKey);
     else setDoor(edgeKey);
@@ -593,6 +599,41 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             })}
           </g>
         )}
+
+        {/* Demolish-mode hit zones over existing walls / doors / windows /
+            front door — click to remove. Each existing edge gets its own
+            clickable line; the cell hit-zones below double as piece-
+            demolish triggers. */}
+        {demolishMode && (() => {
+          const edgeKeys = new Set<string>();
+          for (const k of Object.keys(playerWalls)) edgeKeys.add(k);
+          for (const k of Object.keys(playerDoors)) edgeKeys.add(k);
+          for (const k of Object.keys(windows)) edgeKeys.add(k);
+          if (frontDoorEdge) edgeKeys.add(frontDoorEdge);
+          return (
+            <g className="demolish-edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
+              {Array.from(edgeKeys).map((ek) => {
+                const [type, rStr, cStr] = ek.split(':');
+                const r = parseInt(rStr, 10);
+                const c = parseInt(cStr, 10);
+                const isHovered = hoverEdge === ek;
+                const common = {
+                  stroke: isHovered ? 'var(--danger)' : 'rgba(255,100,100,0.35)',
+                  strokeWidth: isHovered ? 6 : 4,
+                  strokeDasharray: '3 2',
+                  style: { cursor: 'pointer' as const },
+                  onMouseEnter: () => setHoverEdge(ek),
+                  onMouseLeave: () => setHoverEdge(null),
+                  onClick: () => demolishAtEdge(ek),
+                };
+                if (type === 'h') {
+                  return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={(c+1)*cellSize} y2={r*cellSize} {...common} />;
+                }
+                return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={c*cellSize} y2={(r+1)*cellSize} {...common} />;
+              })}
+            </g>
+          );
+        })()}
 
         {/* Hit-zones along the exterior wall — only active in front-door mode */}
         {frontDoorMode && (
@@ -888,7 +929,8 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           </g>
         )}
 
-        {/* Cell hit-zones (placement only when NOT in wall/front-door/window mode) */}
+        {/* Cell hit-zones (placement when not in any specialised mode; also
+            active in demolish mode to let the player click a piece off). */}
         {!frontDoorMode && !windowMode && (
         <g className="cell-hit" transform={`translate(${labelGap}, ${labelGap})`}>
           {Array.from({ length: rows }, (_, r) =>
@@ -902,7 +944,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
                 fill="transparent"
                 onMouseEnter={() => handleCellEnter(r, c)}
                 onClick={() => handleCellClick(r, c)}
-                style={{ cursor: selected && !inWallMode ? 'crosshair' : 'default' }}
+                style={{ cursor: demolishMode ? 'crosshair' : (selected && !inWallMode ? 'crosshair' : 'default') }}
               />
             )),
           )}

@@ -17,6 +17,8 @@ export function FloorPlanToolbar() {
   const windowMode = useGameStore((s) => s.windowMode);
   const toggleWindowMode = useGameStore((s) => s.toggleWindowMode);
   const windowCount = useGameStore((s) => Object.keys(s.windows).length);
+  const demolishMode = useGameStore((s) => s.demolishMode);
+  const toggleDemolishMode = useGameStore((s) => s.toggleDemolishMode);
   const scenario = useGameStore((s) => s.scenario);
   const initRun = useGameStore((s) => s.initRun);
   const resetCurrentScenario = useGameStore((s) => s.resetCurrentScenario);
@@ -135,6 +137,14 @@ export function FloorPlanToolbar() {
         title="Toggle window placement mode — click any exterior wall edge to add / remove a window"
       >
         🪟 {windowMode ? 'Click an exterior edge…' : `Windows (${windowCount})`}
+      </button>
+      <button
+        type="button"
+        className={`fp-demolish-btn ${demolishMode ? 'active' : ''}`}
+        onClick={toggleDemolishMode}
+        title="Demolish mode — click a piece's shape cell to remove it, click a wall/door/window to remove it. Click again to exit."
+      >
+        ⛏ {demolishMode ? 'Click to demolish…' : 'Demolish'}
       </button>
       <button
         type="button"

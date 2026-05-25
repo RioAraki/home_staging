@@ -78,6 +78,9 @@ export interface GameState extends Undoable {
   frontDoorMode: boolean;
   /** UI-only: true while in "click an exterior edge to toggle window" mode. */
   windowMode: boolean;
+  /** UI-only: true while in demolish mode — click a shape cell to remove
+   *  the piece on it, click a wall/door/window edge to remove that edge. */
+  demolishMode: boolean;
   /** Visual theme for vector furniture rendering. UI-only, not undoable. */
   themeId: string;
 
@@ -101,6 +104,9 @@ export interface GameState extends Undoable {
   setFrontDoor: (edgeKey: string) => void;
   toggleWindowMode: () => void;
   toggleWindow: (edgeKey: string) => void;
+  toggleDemolishMode: () => void;
+  demolishAtCell: (cell: [number, number]) => void;
+  demolishAtEdge: (edgeKey: string) => void;
   setThemeId: (id: string) => void;
   finishGame: () => void;
   unfinishGame: () => void;
@@ -200,6 +206,7 @@ export const useGameStore = create<GameState>((set, get) => {
     scenario: null,
     frontDoorMode: false,
     windowMode: false,
+    demolishMode: false,
     themeId: 'blueprint',
 
     initRun: (scenario, saved) => {
@@ -241,6 +248,7 @@ export const useGameStore = create<GameState>((set, get) => {
         scenario,
         frontDoorMode: false,
         windowMode: false,
+        demolishMode: false,
         frontDoorEdge: lockedFrontDoor,
       });
     },
@@ -263,6 +271,7 @@ export const useGameStore = create<GameState>((set, get) => {
         scenario,
         frontDoorMode: false,
         windowMode: false,
+        demolishMode: false,
         frontDoorEdge: lockedFrontDoor,
       });
     },
@@ -425,7 +434,12 @@ export const useGameStore = create<GameState>((set, get) => {
     setWallPhase: (phase) => set({ wallPhase: phase, lastError: null }),
 
     toggleFrontDoorMode: () =>
-      set({ frontDoorMode: !get().frontDoorMode, lastError: null }),
+      set({
+        frontDoorMode: !get().frontDoorMode,
+        windowMode: false,
+        demolishMode: false,
+        lastError: null,
+      }),
 
     setFrontDoor: (edgeKey) => {
       const { scenario } = get();
@@ -459,8 +473,115 @@ export const useGameStore = create<GameState>((set, get) => {
       set({
         windowMode: !get().windowMode,
         frontDoorMode: false,
+        demolishMode: false,
         lastError: null,
       }),
+
+    toggleDemolishMode: () =>
+      set({
+        demolishMode: !get().demolishMode,
+        frontDoorMode: false,
+        windowMode: false,
+        selectedOption: null,
+        lastError: null,
+      }),
+
+    demolishAtCell: ([targetR, targetC]) => {
+      const { placedPieces, placedCardKeys, completedRoomSlots } = get();
+      // Find pieces whose SHAPE contains this cell. Open-space cells don't
+      // count — clicking those is a no-op (per user rule).
+      const toRemove: number[] = [];
+      placedPieces.forEach((p, idx) => {
+        const card = cardByNumberVariant(p.number, p.variant);
+        const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+        if (!opt) return;
+        // Inline transform — we don't want to drag the geometry import into
+        // the store; reuse the shape cells stored by the piece's data.
+        const cells: Array<[number, number]> = [];
+        for (const [sr, sc] of opt.shape) cells.push([sr, sc]);
+        // Apply rotation + mirror, same as transformOption.
+        const [bRows, bCols] = opt.bbox;
+        const rotated = cells.map(([r, c]) => {
+          let rr = r, cc = c;
+          if (p.mirrored) cc = bCols - 1 - cc;
+          for (let i = 0; i < p.rotation; i++) {
+            const nr = cc;
+            const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
+            rr = nr; cc = nc;
+          }
+          return [rr, cc] as [number, number];
+        });
+        for (const [r, c] of rotated) {
+          if (p.origin[0] + r === targetR && p.origin[1] + c === targetC) {
+            toRemove.push(idx);
+            break;
+          }
+        }
+      });
+      if (toRemove.length === 0) return;
+      mutate(() => {
+        const removeSet = new Set(toRemove);
+        const newPieces = placedPieces.filter((_, idx) => !removeSet.has(idx));
+        const removedInstances = toRemove.map((idx) =>
+          instanceKey(placedPieces[idx].slot, placedPieces[idx].slotIdx),
+        );
+        const newPlacedKeys = new Set(placedCardKeys);
+        for (const k of removedInstances) newPlacedKeys.delete(k);
+        const affectedRooms = new Set(
+          toRemove.map((idx) => placedPieces[idx].roomSlot),
+        );
+        const newCompleted = new Set(completedRoomSlots);
+        for (const s of affectedRooms) newCompleted.delete(s);
+        set({
+          placedPieces: newPieces,
+          placedCardKeys: newPlacedKeys,
+          completedRoomSlots: newCompleted,
+          gameFinished: false,
+          lastError: null,
+        });
+      });
+    },
+
+    demolishAtEdge: (edgeKey) => {
+      const { walls, doors, windows, frontDoorEdge, scenario, completedRoomSlots } = get();
+      // Determine what's on this edge (in priority order).
+      if (frontDoorEdge === edgeKey) {
+        // Don't allow demolishing scenario-locked front doors.
+        if (scenario && autoFrontDoor(scenario)) {
+          set({ lastError: "This scenario fixes the front door — can't demolish." });
+          return;
+        }
+        mutate(() => set({ frontDoorEdge: null, gameFinished: false, lastError: null }));
+        return;
+      }
+      if (windows[edgeKey]) {
+        mutate(() => {
+          const next = { ...windows };
+          delete next[edgeKey];
+          set({ windows: next, gameFinished: false, lastError: null });
+        });
+        return;
+      }
+      if (walls[edgeKey] || doors[edgeKey]) {
+        mutate(() => {
+          const nextWalls = { ...walls };
+          delete nextWalls[edgeKey];
+          const nextDoors = { ...doors };
+          const owner = nextDoors[edgeKey];
+          delete nextDoors[edgeKey];
+          // A demolished door un-finalises its owner room.
+          const newCompleted = new Set(completedRoomSlots);
+          if (owner) newCompleted.delete(owner);
+          set({
+            walls: nextWalls,
+            doors: nextDoors,
+            completedRoomSlots: newCompleted,
+            gameFinished: false,
+            lastError: null,
+          });
+        });
+      }
+    },
 
     toggleWindow: (edgeKey) => {
       // Caller already validated the edge is on the building exterior; we
