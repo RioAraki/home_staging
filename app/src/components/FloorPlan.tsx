@@ -744,14 +744,32 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
                   const elems: React.ReactElement[] = [];
                   const x = ac * cellSize;
                   const y = ar * cellSize;
-                  for (const side of t.wall_edges) {
-                    if (side === 'top' && lr === 0) {
+                  // For each wall_edges entry, decide whether this open cell
+                  // is covered by it. String entries fan out to all bbox-side
+                  // non-void cells; tuple entries match exact (row, col).
+                  for (const entry of t.wall_edges) {
+                    let side: 'top' | 'bottom' | 'left' | 'right';
+                    let matches: boolean;
+                    if (typeof entry === 'string') {
+                      side = entry;
+                      matches =
+                        (side === 'top' && lr === 0) ||
+                        (side === 'bottom' && lr === tH - 1) ||
+                        (side === 'left' && lc === 0) ||
+                        (side === 'right' && lc === tW - 1);
+                    } else {
+                      const [er, ec, eside] = entry;
+                      side = eside;
+                      matches = er === lr && ec === lc;
+                    }
+                    if (!matches) continue;
+                    if (side === 'top') {
                       elems.push(<line key={`wm${i}t`} x1={x + inset} y1={y + inset} x2={x + cellSize - inset} y2={y + inset} className="open-wall-marker" />);
-                    } else if (side === 'bottom' && lr === tH - 1) {
+                    } else if (side === 'bottom') {
                       elems.push(<line key={`wm${i}b`} x1={x + inset} y1={y + cellSize - inset} x2={x + cellSize - inset} y2={y + cellSize - inset} className="open-wall-marker" />);
-                    } else if (side === 'left' && lc === 0) {
+                    } else if (side === 'left') {
                       elems.push(<line key={`wm${i}l`} x1={x + inset} y1={y + inset} x2={x + inset} y2={y + cellSize - inset} className="open-wall-marker" />);
-                    } else if (side === 'right' && lc === tW - 1) {
+                    } else if (side === 'right') {
                       elems.push(<line key={`wm${i}r`} x1={x + cellSize - inset} y1={y + inset} x2={x + cellSize - inset} y2={y + cellSize - inset} className="open-wall-marker" />);
                     }
                   }

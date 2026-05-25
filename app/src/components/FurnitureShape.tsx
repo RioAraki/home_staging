@@ -44,8 +44,33 @@ export function FurnitureShape({
   const origPxH = origRows * cellSize;
   const imageUrl = optionImageUrl(number, variant, option.option_index);
 
-  const isWall = (edge: 'top' | 'right' | 'bottom' | 'left') =>
-    t.wall_edges.includes(edge);
+  // Map each wall_edges entry to a list of (cellRow, cellCol, side) the
+  // bold stroke should cover on the card preview. String entries fan out to
+  // every non-void cell on that bbox side; tuple entries are taken verbatim.
+  const wallStrokes: Array<{ r: number; c: number; side: 'top' | 'right' | 'bottom' | 'left' }> = (() => {
+    const out: Array<{ r: number; c: number; side: 'top' | 'right' | 'bottom' | 'left' }> = [];
+    const nonVoid = [...t.shape, ...t.open_spaces];
+    const [tH, tW] = t.bbox;
+    for (const entry of t.wall_edges) {
+      if (typeof entry === 'string') {
+        const side = entry;
+        for (const [r, c] of nonVoid) {
+          if (
+            (side === 'top' && r === 0) ||
+            (side === 'bottom' && r === tH - 1) ||
+            (side === 'left' && c === 0) ||
+            (side === 'right' && c === tW - 1)
+          ) {
+            out.push({ r, c, side });
+          }
+        }
+      } else {
+        const [r, c, side] = entry;
+        out.push({ r, c, side });
+      }
+    }
+    return out;
+  })();
 
   // Clip mask = SHAPE cells only. Open-space cells render just the centre
   // dot (the scanned crop's borders are imprecise around them).
@@ -100,19 +125,16 @@ export function FurnitureShape({
           />
         ))}
 
-        {/* Wall edges (thicker outer stroke on relevant side). */}
-        {isWall('top') && (
-          <line x1="0" y1="0" x2={w} y2="0" stroke="#fff" strokeWidth="3" />
-        )}
-        {isWall('right') && (
-          <line x1={w} y1="0" x2={w} y2={h} stroke="#fff" strokeWidth="3" />
-        )}
-        {isWall('bottom') && (
-          <line x1="0" y1={h} x2={w} y2={h} stroke="#fff" strokeWidth="3" />
-        )}
-        {isWall('left') && (
-          <line x1="0" y1="0" x2="0" y2={h} stroke="#fff" strokeWidth="3" />
-        )}
+        {/* Wall edges — thick stroke along each (cell, side) the option's
+            printed card shows as a bold border. */}
+        {wallStrokes.map(({ r, c, side }, i) => {
+          const x = c * cellSize;
+          const y = r * cellSize;
+          if (side === 'top')    return <line key={`w${i}`} x1={x} y1={y} x2={x + cellSize} y2={y} stroke="#fff" strokeWidth="3" />;
+          if (side === 'bottom') return <line key={`w${i}`} x1={x} y1={y + cellSize} x2={x + cellSize} y2={y + cellSize} stroke="#fff" strokeWidth="3" />;
+          if (side === 'left')   return <line key={`w${i}`} x1={x} y1={y} x2={x} y2={y + cellSize} stroke="#fff" strokeWidth="3" />;
+          return <line key={`w${i}`} x1={x + cellSize} y1={y} x2={x + cellSize} y2={y + cellSize} stroke="#fff" strokeWidth="3" />;
+        })}
       </svg>
       {showName && <div className="shape-name">{option.name_zh}</div>}
     </div>

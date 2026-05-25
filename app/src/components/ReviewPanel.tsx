@@ -10,7 +10,7 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { furnitureCards } from '../data';
-import type { FurnitureCard, FurnitureOption } from '../types';
+import type { FurnitureCard, FurnitureOption, WallEdgeSpec } from '../types';
 import { FurnitureShape } from './FurnitureShape';
 import './ReviewPanel.css';
 
@@ -45,8 +45,10 @@ interface ProposedEdit {
   shape: [number, number][];
   open_spaces: [number, number][];
   /** Optional — included starting in schema v3. Empty array means
-   *  "explicitly no wall_edges required". */
-  wall_edges?: ('top' | 'right' | 'bottom' | 'left')[];
+   *  "explicitly no wall_edges required". Tuple entries are pass-through
+   *  from yaml (the visual cell editor only edits bbox-side strings; any
+   *  per-cell tuples are preserved verbatim on save). */
+  wall_edges?: WallEdgeSpec[];
   ts: number;
 }
 
@@ -628,7 +630,9 @@ function OptionBlock({ number, variant, opt, reviewed, edit, comments, onFlag, o
         <div className="option-bbox">
           bbox <code>[{rows}, {cols}]</code>
           {opt.wall_edges && opt.wall_edges.length > 0 && (
-            <> · wall_edges <code>[{opt.wall_edges.join(', ')}]</code></>
+            <> · wall_edges <code>[{opt.wall_edges.map((e) =>
+              typeof e === 'string' ? e : `${e[2]}@[${e[0]},${e[1]}]`,
+            ).join(', ')}]</code></>
           )}
           {opt.printed_markers && opt.printed_markers > 1 && (
             <> · markers <code>{opt.printed_markers}</code></>
@@ -739,10 +743,15 @@ function CellEditor({ number, variant, opt, initial, onSave, onCancel }: CellEdi
     for (const [r, c] of src.open_spaces) m.set(`${r},${c}`, 'open');
     return m;
   });
-  const [wallSides, setWallSides] = useState<Set<SideKey>>(() => {
-    const initialEdges = initial?.wall_edges ?? opt.wall_edges ?? [];
-    return new Set(initialEdges as SideKey[]);
-  });
+  // The visual editor only handles bbox-side strings. Per-cell tuple
+  // entries from yaml are preserved verbatim and re-emitted on save.
+  const initialEdges: WallEdgeSpec[] = initial?.wall_edges ?? opt.wall_edges ?? [];
+  const [wallSides, setWallSides] = useState<Set<SideKey>>(
+    () => new Set(initialEdges.filter((e): e is SideKey => typeof e === 'string')),
+  );
+  const preservedTuples = initialEdges.filter(
+    (e): e is [number, number, SideKey] => typeof e !== 'string',
+  );
 
   const cycleCell = (r: number, c: number) => {
     const k = `${r},${c}`;
@@ -771,7 +780,10 @@ function CellEditor({ number, variant, opt, initial, onSave, onCancel }: CellEdi
         else if (cls === 'open') open.push([r, c]);
       }
     }
-    const wall_edges = ALL_SIDES.filter((s) => wallSides.has(s));
+    const wall_edges: WallEdgeSpec[] = [
+      ...ALL_SIDES.filter((s) => wallSides.has(s)),
+      ...preservedTuples,
+    ];
     onSave({ bbox: [rows, cols], shape, open_spaces: open, wall_edges });
   };
 

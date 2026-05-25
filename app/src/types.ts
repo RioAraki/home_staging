@@ -3,6 +3,15 @@
 export type RoomSlot = 'I' | 'II' | 'III' | 'IV' | 'V';
 export type WallEdge = 'top' | 'right' | 'bottom' | 'left';
 
+/** An entry in `FurnitureOption.wall_edges`. Either:
+ *  - A whole bbox side (string) — applies to every non-void cell on that side.
+ *    The vast majority of pieces use this shorthand.
+ *  - A specific [row, col, side] tuple — applies only to that one cell's
+ *    side. Used when the printed walls don't cover a full bbox side
+ *    (e.g. #31B opt1 瓷砖壁炉 — bottom wall covers only [1,0] and [1,1],
+ *    not [1,2]). */
+export type WallEdgeSpec = WallEdge | [number, number, WallEdge];
+
 // ────────────────────── Furniture ──────────────────────
 
 export interface FurnitureOption {
@@ -12,7 +21,7 @@ export interface FurnitureOption {
   bbox: [number, number];           // [rows, cols] of the option's bbox
   shape: Array<[number, number]>;   // occupied cells (row, col)
   open_spaces: Array<[number, number]>;
-  wall_edges: WallEdge[];
+  wall_edges: WallEdgeSpec[];
   printed_markers: number;
   notes?: string;
   verify?: boolean;

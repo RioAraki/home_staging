@@ -1,6 +1,6 @@
 // Geometry helpers for furniture pieces on the 16×16 grid.
 
-import type { FurnitureOption, WallEdge } from '../types';
+import type { FurnitureOption, WallEdge, WallEdgeSpec } from '../types';
 
 export type Cell = [number, number];          // [row, col]
 export type Rotation = 0 | 1 | 2 | 3;          // 90° CW steps
@@ -9,7 +9,7 @@ export interface TransformedShape {
   bbox: [number, number];                       // [rows, cols] after transform
   shape: Cell[];                                // cells the furniture occupies
   open_spaces: Cell[];                          // cells that must stay walkable
-  wall_edges: WallEdge[];                       // exterior edges requiring a wall
+  wall_edges: WallEdgeSpec[];                   // exterior edges requiring a wall
 }
 
 /**
@@ -56,13 +56,19 @@ export function transformOption(
     bbox: [H2, W2],
     shape: option.shape.map(([r, c]) => transformCell(r, c)),
     open_spaces: option.open_spaces.map(([r, c]) => transformCell(r, c)),
-    wall_edges: (option.wall_edges ?? []).map((e) => {
-      // Mirror swaps left/right
-      let edge: WallEdge = e;
-      if (mirrored && (edge === 'left' || edge === 'right')) {
-        edge = edge === 'left' ? 'right' : 'left';
+    wall_edges: (option.wall_edges ?? []).map((entry): WallEdgeSpec => {
+      const mirrorSide = (s: WallEdge): WallEdge =>
+        mirrored && (s === 'left' || s === 'right')
+          ? s === 'left' ? 'right' : 'left'
+          : s;
+      if (typeof entry === 'string') {
+        return rotateWallEdge(mirrorSide(entry), rotation);
       }
-      return rotateWallEdge(edge, rotation);
+      // Per-cell tuple: mirror + rotate BOTH the cell and the side.
+      const [r, c, side] = entry;
+      const [rm, cm] = applyMirror(r, c);
+      const [rr, cc] = rotateCell(rm, cm, H, W, rotation);
+      return [rr, cc, rotateWallEdge(mirrorSide(side), rotation)];
     }),
   };
 }

@@ -13,7 +13,7 @@
 // check (and is arguably fine). Full enclosure of furniture by walls is a
 // stricter check we may add later.
 
-import type { Scenario, RoomSlot, WallEdge } from '../types';
+import type { Scenario, RoomSlot, WallEdge, WallEdgeSpec } from '../types';
 import type { PlacedPiece } from '../store/game';
 import { transformOption } from './geometry';
 import { cardByNumberVariant } from '../data';
@@ -107,12 +107,19 @@ export interface WallEdgeRequirement {
   side: WallEdge;
 }
 
-/** Compute the list of grid edges that a placed piece needs to be walls. */
+/** Compute the list of grid edges that a placed piece needs to be walls.
+ *
+ *  Each `wallEdges` entry is either:
+ *  - A bare side string ('top'|'bottom'|'left'|'right') — fans out to every
+ *    non-void cell touching that bbox side. This is the common case.
+ *  - A `[row, col, side]` tuple — emits one requirement for that specific
+ *    cell + side, regardless of the bbox boundary. Used when the printed
+ *    walls don't cover a full side. */
 export function requiredWallEdgesForPiece(
   shape: [number, number][],
   openSpaces: [number, number][],
   bbox: [number, number],
-  wallEdges: WallEdge[],
+  wallEdges: WallEdgeSpec[],
   origin: [number, number],
 ): WallEdgeRequirement[] {
   const [R0, C0] = origin;
@@ -125,17 +132,30 @@ export function requiredWallEdgesForPiece(
     seen.add(edgeKey);
     out.push({ edgeKey, side });
   };
-  for (const side of wallEdges) {
-    for (const [r, c] of nonVoid) {
-      if (side === 'top' && r === 0) {
-        push(`h:${R0}:${C0 + c}`, side);
-      } else if (side === 'bottom' && r === H - 1) {
-        push(`h:${R0 + H}:${C0 + c}`, side);
-      } else if (side === 'left' && c === 0) {
-        push(`v:${R0 + r}:${C0}`, side);
-      } else if (side === 'right' && c === W - 1) {
-        push(`v:${R0 + r}:${C0 + W}`, side);
+  const cellEdgeKey = (r: number, c: number, side: WallEdge): EdgeKey => {
+    switch (side) {
+      case 'top':    return `h:${R0 + r}:${C0 + c}`;
+      case 'bottom': return `h:${R0 + r + 1}:${C0 + c}`;
+      case 'left':   return `v:${R0 + r}:${C0 + c}`;
+      case 'right':  return `v:${R0 + r}:${C0 + c + 1}`;
+    }
+  };
+  for (const entry of wallEdges) {
+    if (typeof entry === 'string') {
+      const side = entry;
+      for (const [r, c] of nonVoid) {
+        if (
+          (side === 'top' && r === 0) ||
+          (side === 'bottom' && r === H - 1) ||
+          (side === 'left' && c === 0) ||
+          (side === 'right' && c === W - 1)
+        ) {
+          push(cellEdgeKey(r, c, side), side);
+        }
       }
+    } else {
+      const [r, c, side] = entry;
+      push(cellEdgeKey(r, c, side), side);
     }
   }
   return out;
