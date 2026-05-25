@@ -14,9 +14,17 @@ export function RoomPanel({ rooms }: RoomPanelProps) {
   const chosenVariants = useGameStore((s) => s.chosenVariants);
   const skippedCardKeys = useGameStore((s) => s.skippedCardKeys);
   const placedCardKeys = useGameStore((s) => s.placedCardKeys);
+  const placedPieces = useGameStore((s) => s.placedPieces);
   const skipCard = useGameStore((s) => s.skipCard);
   const selectRoom = useGameStore((s) => s.selectRoom);
   const autoRevealRoom = useGameStore((s) => s.autoRevealRoom);
+
+  // Other rooms are "locked" only when the active room has at least one
+  // placed piece — until then the player can freely jump between rooms to
+  // decide where to start.
+  const activeHasPieces =
+    activeRoomSlot !== null &&
+    placedPieces.some((p) => p.roomSlot === activeRoomSlot);
 
   // Per-room collapse state. Rooms auto-collapse when they finish, and the
   // player can manually expand/collapse via the ⌃/⌄ toggle on the header.
@@ -46,7 +54,8 @@ export function RoomPanel({ rooms }: RoomPanelProps) {
   const otherRoomActive = (slot: string) =>
     activeRoomSlot !== null &&
     activeRoomSlot !== slot &&
-    !completedRoomSlots.has(activeRoomSlot);
+    !completedRoomSlots.has(activeRoomSlot) &&
+    activeHasPieces;
 
   return (
     <aside className="room-panel">

@@ -219,9 +219,15 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     selectRoom: (slot) => {
-      const { activeRoomSlot, completedRoomSlots } = get();
-      if (activeRoomSlot && activeRoomSlot !== slot && !completedRoomSlots.has(activeRoomSlot)) return;
+      const { activeRoomSlot, completedRoomSlots, placedPieces } = get();
       if (completedRoomSlots.has(slot)) return;
+      if (activeRoomSlot && activeRoomSlot !== slot && !completedRoomSlots.has(activeRoomSlot)) {
+        // Allow switching away from the active room only if the player hasn't
+        // placed anything in it yet — they're still deciding which room to
+        // start with. Once a piece lands the room is "in progress".
+        const hasPlacedInActive = placedPieces.some((p) => p.roomSlot === activeRoomSlot);
+        if (hasPlacedInActive) return;
+      }
       set({ activeRoomSlot: slot, wallPhase: 'walls', lastError: null });
     },
 
