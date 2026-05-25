@@ -439,13 +439,12 @@ export function analyseOpenSpaceAccessibility(
       continue;
     }
     // BFS from door cell across walkable cells inside the room region.
+    // The door cell itself is ALWAYS seeded — even if a piece's shape happens
+    // to occupy it (very common: cabinet right next to the door). The player
+    // physically enters via the door, then walks around the furniture; the
+    // door cell is a hole in the wall, not a "stand here" requirement.
     const regionCells = new Set(access.regionMap.cellsByRegion.get(roomReg) ?? []);
     const walkable = (k: string) => regionCells.has(k) && !allBlockingCells.has(k);
-    if (!walkable(doorCell)) {
-      for (const idx of pieceIdxs) ignored.add(idx);
-      pushReason(slot, 'door cell blocked by furniture');
-      continue;
-    }
     const reached = new Set<string>([doorCell]);
     const queue = [doorCell];
     while (queue.length) {
