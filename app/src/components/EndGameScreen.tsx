@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import type { Scenario } from '../types';
 import { useGameStore } from '../store/game';
 import { computeScore } from '../lib/scoring';
+import { clearSavedState } from '../lib/persistence';
 import './EndGameScreen.css';
 
 interface Props { scenario: Scenario }
@@ -165,7 +166,13 @@ export function EndGameScreen({ scenario }: Props) {
           <button
             type="button"
             className="play-again-btn"
-            onClick={() => initRun(scenario)}
+            onClick={async () => {
+              // Wipe the on-disk save for this scenario too — otherwise
+              // navigating to another scenario and back would re-load the
+              // finished session and dump the player on the score screen.
+              await clearSavedState(scenario.id);
+              initRun(scenario);
+            }}
           >
             ↻ Play again (re-roll variants)
           </button>
