@@ -97,6 +97,8 @@ export interface GameState extends Undoable {
   placeSelected: (origin: [number, number]) => boolean;
   skipSelected: () => void;
   skipCard: (slot: RoomSlot, slotIdx: number) => void;
+  unskipCard: (slot: RoomSlot, slotIdx: number) => void;
+  unplaceCard: (slot: RoomSlot, slotIdx: number) => void;
   toggleWall: (edgeKey: string) => void;
   setDoor: (edgeKey: string) => void;
   setWallPhase: (phase: WallPhase) => void;
@@ -470,6 +472,46 @@ export const useGameStore = create<GameState>((set, get) => {
         const nextSkipped = new Set(get().skippedCardKeys);
         nextSkipped.add(key);
         set({ revealedCardKeys: nextRevealed, skippedCardKeys: nextSkipped, lastError: null });
+      });
+    },
+
+    unskipCard: (slot, slotIdx) => {
+      // Bring a skipped card back to a placeable state — useful when the
+      // player re-enters a sealed room (it un-seals; demolish frees placed
+      // cards but skip persists unless they explicitly un-skip).
+      const key = instanceKey(slot, slotIdx);
+      if (!get().skippedCardKeys.has(key)) return;
+      mutate(() => {
+        const nextSkipped = new Set(get().skippedCardKeys);
+        nextSkipped.delete(key);
+        set({ skippedCardKeys: nextSkipped, gameFinished: false, lastError: null });
+      });
+    },
+
+    unplaceCard: (slot, slotIdx) => {
+      // Withdraw a placed piece for this card instance from the floor plan,
+      // same effect as demolishing it via the canvas but triggered from the
+      // sidebar card. Drops the piece, frees the instance key, and un-seals
+      // its room so the player can re-edit walls if they want.
+      const key = instanceKey(slot, slotIdx);
+      const { placedPieces, placedCardKeys, completedRoomSlots } = get();
+      if (!placedCardKeys.has(key)) return;
+      const newPieces = placedPieces.filter(
+        (p) => !(p.slot === slot && p.slotIdx === slotIdx),
+      );
+      if (newPieces.length === placedPieces.length) return;   // nothing actually removed
+      mutate(() => {
+        const newPlacedKeys = new Set(placedCardKeys);
+        newPlacedKeys.delete(key);
+        const newCompleted = new Set(completedRoomSlots);
+        newCompleted.delete(slot);
+        set({
+          placedPieces: newPieces,
+          placedCardKeys: newPlacedKeys,
+          completedRoomSlots: newCompleted,
+          gameFinished: false,
+          lastError: null,
+        });
       });
     },
 

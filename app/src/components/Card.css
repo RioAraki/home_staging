@@ -133,6 +133,29 @@
   opacity: 0.4;
 }
 
+.unskip-card-btn,
+.unplace-card-btn {
+  margin-top: 6px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(120, 220, 120, 0.55);
+  color: rgba(180, 240, 180, 0.95);
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.85rem;
+}
+.unskip-card-btn:hover:not(:disabled),
+.unplace-card-btn:hover:not(:disabled) {
+  background: rgba(120, 220, 120, 0.10);
+}
+.unskip-card-btn:disabled,
+.unplace-card-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 .card-options {
   display: flex;
   flex-direction: column;

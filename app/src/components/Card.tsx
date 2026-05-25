@@ -21,6 +21,8 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
   const revealCard = useGameStore((s) => s.revealCard);
   const selectOption = useGameStore((s) => s.selectOption);
   const skipCard = useGameStore((s) => s.skipCard);
+  const unskipCard = useGameStore((s) => s.unskipCard);
+  const unplaceCard = useGameStore((s) => s.unplaceCard);
 
   const card = cardByNumberVariant(number, variant);
   if (!card) return <div className="card error">no card {number}{variant}</div>;
@@ -94,6 +96,28 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
           disabled={disabled}
         >
           ⤿ Skip this card
+        </button>
+      )}
+      {skipped && !placed && (
+        <button
+          type="button"
+          className="unskip-card-btn"
+          onClick={() => unskipCard(slot, slotIdx)}
+          disabled={disabled}
+          title="Bring this skipped card back so you can place it"
+        >
+          ↺ Un-skip
+        </button>
+      )}
+      {placed && (
+        <button
+          type="button"
+          className="unplace-card-btn"
+          onClick={() => unplaceCard(slot, slotIdx)}
+          disabled={disabled}
+          title="Remove this piece from the floor plan and free the card for another placement"
+        >
+          ↺ Withdraw piece
         </button>
       )}
     </div>
