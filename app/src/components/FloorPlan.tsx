@@ -373,6 +373,25 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
     return new Set(cells);
   }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge, completedRoomSlots]);
 
+  // Cells of rooms that have a door issue (e.g. door opens into another
+  // room instead of a hallway in a hallway-required scenario). Painted
+  // red over the entire room region so the violation is impossible to
+  // miss — the FinishGameBanner row alone is too easy to overlook.
+  const problemRoomCellSet = useMemo(() => {
+    const out = new Set<string>();
+    const access = analyseAccessibility(
+      scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge,
+    );
+    if (access.doorIssues.length === 0) return out;
+    const problemRooms = new Set(access.doorIssues.map((d) => d.roomSlot));
+    for (const slot of problemRooms) {
+      const reg = access.roomToRegion.get(slot);
+      if (reg === undefined) continue;
+      for (const k of access.regionMap.cellsByRegion.get(reg) ?? []) out.add(k);
+    }
+    return out;
+  }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge]);
+
   const [hover, setHover] = useState<Cell | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
 
@@ -529,6 +548,29 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize} width={cellSize} height={cellSize} className="indoor" />
           ))}
         </g>
+
+        {/* Problem-room overlay — rooms whose doors violate a hallway /
+            structural rule (e.g. room A's door opens straight into room B
+            when the scenario requires a hallway between them). Painted as
+            a translucent red wash across every cell of the offending
+            room's region. Rendered before orphan-cells so orphan stripes
+            stack on top when they overlap. */}
+        {problemRoomCellSet.size > 0 && (
+          <g className="problem-room-cells" transform={`translate(${labelGap}, ${labelGap})`}>
+            {Array.from(problemRoomCellSet).map((k) => {
+              const [rs, cs] = k.split(',');
+              const r = parseInt(rs, 10);
+              const c = parseInt(cs, 10);
+              return (
+                <rect key={`prob-${k}`}
+                  x={c * cellSize} y={r * cellSize}
+                  width={cellSize} height={cellSize}
+                  fill="rgba(255, 80, 80, 0.22)"
+                  pointerEvents="none" />
+              );
+            })}
+          </g>
+        )}
 
         {/* Orphan-region overlay — indoor cells the player walled off into a
             dead pocket (no door connection to outside, no furniture). */}
