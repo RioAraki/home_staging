@@ -283,10 +283,10 @@ scenarios:
       on_exterior_wall_anywhere: true
       forced_cells: []
     drawing:
-    - id: no_carpet_on_porch
+    - id: no_furniture_on_carpet
       kind: drawing_constraint
-      text_zh: 前廊上不要铺地毯。
-      text_en: Do not place the carpet on the front porch.
+      text_zh: 地毯上不能放置家具。
+      text_en: Do not place furniture on top of the carpet.
     scoring: []
   bonus_points:
   - text_zh: 主办公室的每张家具卡都至少装了一份

@@ -405,7 +405,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
 
   const ghostValidity = useMemo(() => {
     if (!selected || !transformedSel || !hover) return null;
-    return validatePlacement(scenario, transformedSel, hover, placedPieces);
+    return validatePlacement(scenario, transformedSel, hover, placedPieces, selected.number);
   }, [selected, transformedSel, hover, scenario, placedPieces]);
 
   const ghostCells: Cell[] = useMemo(() => {
@@ -423,7 +423,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
       if (demolishMode) { demolishAtCell([r, c]); return; }
       if (inWallMode) return;
       if (!selected || !transformedSel) return;
-      const result = validatePlacement(scenario, transformedSel, [r, c], placedPieces);
+      const result = validatePlacement(scenario, transformedSel, [r, c], placedPieces, selected.number);
       if (!result.valid) {
         setError(result.reason ?? 'Invalid placement');
         return;

@@ -18,6 +18,13 @@
 //         and a shape cell is occupied / not walkable)
 //       · pre-drawn obstacles
 //   - OPEN-SPACE ↔ OPEN-SPACE overlap IS allowed (explicit rule).
+//
+// Carpet (#33) exception: by default, carpets behave like a thin layer
+// beneath the floor — other furniture's shape / open cells may overlap with
+// carpet shape cells, and a carpet may be placed under existing non-carpet
+// furniture. A scenario can opt out by adding a `drawing` rule with
+// `id: no_furniture_on_carpet`, in which case carpet cells block placement
+// like any other shape (山中诊所 / The Mountain Surgery uses this).
 
 import type { Scenario, CellAttrs } from '../types';
 import type { Cell, TransformedShape } from './geometry';
@@ -31,6 +38,8 @@ export interface ValidationResult {
   reason?: string;
   badCells?: Cell[];
 }
+
+const CARPET_NUMBER = 33;
 
 function gridCells(scenario: Scenario): string[][] {
   return scenario.grid.ascii.replace(/\n+$/, '').split('\n').map((r) => r.split(''));
@@ -68,22 +77,29 @@ function isObstacle(attrs: CellAttrs | null): boolean {
 }
 
 interface PlacedFootprint {
-  shape: Set<string>;        // "r,c" of occupied cells from placed pieces
-  openSpaces: Set<string>;   // "r,c" of open-space cells from placed pieces
+  nonCarpetShape: Set<string>;  // "r,c" of shape cells from non-carpet pieces
+  carpetShape: Set<string>;     // "r,c" of shape cells from carpet pieces (#33)
+  openSpaces: Set<string>;      // "r,c" of open-space cells (all pieces)
 }
 
 function collectFootprints(placed: PlacedPiece[]): PlacedFootprint {
-  const shape = new Set<string>();
+  const nonCarpetShape = new Set<string>();
+  const carpetShape = new Set<string>();
   const openSpaces = new Set<string>();
   for (const p of placed) {
     const card = cardByNumberVariant(p.number, p.variant);
     const opt = card?.options.find((o) => o.option_index === p.optionIndex);
     if (!opt) continue;
     const t = transformOption(opt, p.rotation, p.mirrored);
-    for (const [r, c] of absoluteCells(t.shape, p.origin)) shape.add(`${r},${c}`);
+    const targetShape = p.number === CARPET_NUMBER ? carpetShape : nonCarpetShape;
+    for (const [r, c] of absoluteCells(t.shape, p.origin)) targetShape.add(`${r},${c}`);
     for (const [r, c] of absoluteCells(t.open_spaces, p.origin)) openSpaces.add(`${r},${c}`);
   }
-  return { shape, openSpaces };
+  return { nonCarpetShape, carpetShape, openSpaces };
+}
+
+function noFurnitureOnCarpet(scenario: Scenario): boolean {
+  return (scenario.rules?.drawing ?? []).some((d) => d.id === 'no_furniture_on_carpet');
 }
 
 export function validatePlacement(
@@ -91,9 +107,12 @@ export function validatePlacement(
   transformed: TransformedShape,
   origin: Cell,
   alreadyPlaced: PlacedPiece[],
+  newPieceNumber: number,
 ): ValidationResult {
   const cells = gridCells(scenario);
   const placed = collectFootprints(alreadyPlaced);
+  const strict = noFurnitureOnCarpet(scenario);
+  const newIsCarpet = newPieceNumber === CARPET_NUMBER;
 
   const absShape = absoluteCells(transformed.shape, origin);
   const absOpen = absoluteCells(transformed.open_spaces, origin);
@@ -107,22 +126,49 @@ export function validatePlacement(
       continue;
     }
     const key = `${r},${c}`;
-    if (placed.shape.has(key) || placed.openSpaces.has(key)) {
-      badShape.push([r, c]);
+    // Non-carpet shape always blocks.
+    if (placed.nonCarpetShape.has(key)) {
+      // Exception: a NEW carpet being placed UNDER existing non-carpet
+      // furniture is allowed in default mode (carpet is a thin layer).
+      if (!(newIsCarpet && !strict)) {
+        badShape.push([r, c]);
+        continue;
+      }
+    }
+    // Open spaces always block shape (cell must stay walkable).
+    if (placed.openSpaces.has(key)) {
+      // Exception: a NEW carpet under an existing open-space cell is still
+      // walkable, so allowed in default mode.
+      if (!(newIsCarpet && !strict)) {
+        badShape.push([r, c]);
+        continue;
+      }
+    }
+    // Carpet shape blocks only in strict mode (or carpet-on-carpet always).
+    if (placed.carpetShape.has(key)) {
+      if (strict || newIsCarpet) {
+        badShape.push([r, c]);
+        continue;
+      }
     }
   }
   if (badShape.length) {
     // Build a friendlier message
     const firstBad = badShape[0];
     const attrs = cellAttrs(scenario, cells, firstBad[0], firstBad[1]);
+    const key = `${firstBad[0]},${firstBad[1]}`;
     let reason = 'Invalid placement';
     if (!inBounds(firstBad)) reason = 'Furniture goes outside the 16×16 grid';
     else if (!isIndoor(attrs)) reason = 'Furniture must stay inside the building';
     else if (isObstacle(attrs)) reason = 'Cannot cover a predetermined obstacle';
-    else if (placed.shape.has(`${firstBad[0]},${firstBad[1]}`))
+    else if (placed.nonCarpetShape.has(key))
       reason = 'Overlaps another furniture piece';
-    else if (placed.openSpaces.has(`${firstBad[0]},${firstBad[1]}`))
-      reason = 'Cannot cover another piece\'s open space';
+    else if (placed.carpetShape.has(key))
+      reason = newIsCarpet
+        ? 'Carpets cannot stack on top of each other'
+        : 'This scenario forbids placing furniture on a carpet (地毯上不能放置家具)';
+    else if (placed.openSpaces.has(key))
+      reason = "Cannot cover another piece's open space";
     return { valid: false, reason, badCells: badShape };
   }
 
@@ -135,20 +181,30 @@ export function validatePlacement(
       continue;
     }
     const key = `${r},${c}`;
-    if (placed.shape.has(key)) {
+    if (placed.nonCarpetShape.has(key)) {
       badOpen.push([r, c]);
+      continue;
+    }
+    // Open-space over a carpet cell is fine in default mode (carpet is
+    // walkable). In strict mode the carpet behaves like normal shape.
+    if (placed.carpetShape.has(key) && strict) {
+      badOpen.push([r, c]);
+      continue;
     }
     // Note: open ↔ open overlap is allowed (rulebook).
   }
   if (badOpen.length) {
     const firstBad = badOpen[0];
     const attrs = cellAttrs(scenario, cells, firstBad[0], firstBad[1]);
+    const key = `${firstBad[0]},${firstBad[1]}`;
     let reason = 'Open-space cell is invalid';
     if (!inBounds(firstBad)) reason = 'Open space extends outside the grid';
     else if (!isIndoor(attrs)) reason = 'Open space must stay inside the building';
     else if (isObstacle(attrs)) reason = 'Open space cannot land on a predetermined obstacle';
-    else if (placed.shape.has(`${firstBad[0]},${firstBad[1]}`))
-      reason = 'Open space cannot land on another piece\'s furniture';
+    else if (placed.nonCarpetShape.has(key))
+      reason = "Open space cannot land on another piece's furniture";
+    else if (placed.carpetShape.has(key))
+      reason = 'This scenario forbids open spaces over a carpet (地毯上不能放置家具)';
     return { valid: false, reason, badCells: badOpen };
   }
 
