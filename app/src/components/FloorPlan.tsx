@@ -21,6 +21,7 @@ import {
   analyseAccessibility,
   analyseOpenSpaceAccessibility,
   findOrphanRegions,
+  frontDoorOpensIntoRoom,
 } from '../lib/regions';
 import { optionImageUrl } from '../lib/optionImage';
 import { FurnitureVector, hasVectorVisual } from '../vector/FurnitureVector';
@@ -308,16 +309,28 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
     const out = new Set<number>();
     const roomsWithDoor = new Set<string>();
     for (const owner of Object.values(playerDoors)) roomsWithDoor.add(owner);
-    const eligibleRooms = new Set<string>([
-      ...completedRoomSlots,
-      ...roomsWithDoor,
-    ]);
-    if (eligibleRooms.size === 0) return out;
     const access = analyseAccessibility(
       scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge,
     );
+    // Rooms where the front door opens directly in (Castle Café dining)
+    // are also eligible — they don't need their own door but their pieces
+    // still need walkability from the front-door entry point.
+    const roomsWithFrontDoor = new Set<string>();
+    if (frontDoorEdge) {
+      for (const r of scenario.rooms) {
+        if (frontDoorOpensIntoRoom(scenario, placedPieces, playerWalls, frontDoorEdge, r.slot)) {
+          roomsWithFrontDoor.add(r.slot);
+        }
+      }
+    }
+    const eligibleRooms = new Set<string>([
+      ...completedRoomSlots,
+      ...roomsWithDoor,
+      ...roomsWithFrontDoor,
+    ]);
+    if (eligibleRooms.size === 0) return out;
     const pieceAccess = analyseOpenSpaceAccessibility(
-      scenario, placedPieces, playerWalls, playerDoors, access,
+      scenario, placedPieces, playerWalls, playerDoors, access, frontDoorEdge,
     );
     const wallEdgeViolators = new Set(
       checkWallEdgeCompliance(scenario, placedPieces, playerWalls, playerDoors)

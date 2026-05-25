@@ -393,7 +393,7 @@ export function computeScore(
   windows: Record<string, true> = {},
 ): ScoreBreakdown {
   const access = analyseAccessibility(scenario, placedPieces, walls, doors, frontDoorEdge);
-  const pieceAccess = analyseOpenSpaceAccessibility(scenario, placedPieces, walls, doors, access);
+  const pieceAccess = analyseOpenSpaceAccessibility(scenario, placedPieces, walls, doors, access, frontDoorEdge);
   const wallEdgeCompliance = checkWallEdgeCompliance(scenario, placedPieces, walls, doors);
   const wallEdgeViolators = new Set(wallEdgeCompliance.violations.map((v) => v.pieceIndex));
 

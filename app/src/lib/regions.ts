@@ -449,6 +449,7 @@ export function analyseOpenSpaceAccessibility(
   walls: Record<string, true>,
   doors: Record<string, RoomSlot>,
   access: AccessibilityResult,
+  frontDoorEdge: string | null = null,
 ): PieceAccessibility {
   const valid = new Set<number>();
   const ignored = new Set<number>();
@@ -483,7 +484,18 @@ export function analyseOpenSpaceAccessibility(
     // walkability question. Whether the room connects to the front door
     // is a building-level concern, handled separately at finish time
     // (see FinishGameBanner / scoring's room.accessible flag).
-    const doorCell = findRoomDoorCell(doors, access.regionMap, access.roomToRegion, slot);
+    // Prefer the room's own door as BFS seed. If the room doesn't have its
+    // own door but the front door's indoor side falls in this room's region
+    // (Castle Café dining: front door opens directly into the room and the
+    // room itself doubles as the lobby), use that as the entry point
+    // instead.
+    let doorCell = findRoomDoorCell(doors, access.regionMap, access.roomToRegion, slot);
+    if (!doorCell && frontDoorEdge) {
+      for (const [r, c] of edgeSides(frontDoorEdge)) {
+        const k = `${r},${c}`;
+        if (access.regionMap.cellToRegion.get(k) === roomReg) { doorCell = k; break; }
+      }
+    }
     if (!doorCell) {
       for (const idx of pieceIdxs) ignored.add(idx);
       pushReason(slot, 'door not on room boundary');
