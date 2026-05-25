@@ -75,9 +75,9 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
               key={opt.option_index}
               className={`option-btn ${isSelected ? 'on' : ''}`}
               onClick={() =>
-                !resolved && selectOption({ slot, slotIdx, optionIndex: opt.option_index })
+                !resolved && !disabled && selectOption({ slot, slotIdx, optionIndex: opt.option_index })
               }
-              disabled={resolved}
+              disabled={resolved || disabled}
               aria-label={`Option ${opt.option_index}: ${opt.name_zh}`}
             >
               <FurnitureShape option={opt} number={number} variant={variant} cellSize={14} />

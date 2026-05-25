@@ -15,6 +15,7 @@ export function RoomPanel({ rooms }: RoomPanelProps) {
   const skippedCardKeys = useGameStore((s) => s.skippedCardKeys);
   const placedCardKeys = useGameStore((s) => s.placedCardKeys);
   const placedPieces = useGameStore((s) => s.placedPieces);
+  const demolishMode = useGameStore((s) => s.demolishMode);
   const skipCard = useGameStore((s) => s.skipCard);
   const selectRoom = useGameStore((s) => s.selectRoom);
   const autoRevealRoom = useGameStore((s) => s.autoRevealRoom);
@@ -140,7 +141,7 @@ export function RoomPanel({ rooms }: RoomPanelProps) {
                         variant={variant}
                         slot={room.slot}
                         slotIdx={slotIdx}
-                        disabled={!isActive}
+                        disabled={!isActive || demolishMode}
                       />
                     </div>
                   );

@@ -355,7 +355,11 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     selectOption: ({ slot, slotIdx, optionIndex }) => {
-      const { scenario, chosenVariants } = get();
+      const { scenario, chosenVariants, demolishMode } = get();
+      // While demolish mode is active, suppress new furniture selections —
+      // the canvas is in "click to delete" mode and a hovering ghost piece
+      // would be confusing.
+      if (demolishMode) return;
       const number = lookupNumber(scenario, slot, slotIdx);
       if (number === null) return;
       const variant = chosenVariants[number] ?? 'A';
