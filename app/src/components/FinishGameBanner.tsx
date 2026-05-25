@@ -36,11 +36,16 @@ export function FinishGameBanner({ scenario }: Props) {
     const bad = scenario.rooms
       .filter((r) => completedRoomSlots.has(r.slot) && !isRoomAccessible(access, r.slot))
       .map((r) => r.slot);
+    // Defer door-issue reporting until every room is sealed: mid-game,
+    // we can't tell whether a "door opens into a room" issue will
+    // resolve itself once the remaining rooms claim the pockets they're
+    // supposed to. Premature flagging confused the player.
+    const doorIssues = allRoomsSealed ? access.doorIssues : [];
     return {
       orphanCount: orphans,
       unreachableRooms: bad,
-      doorIssueCount: access.doorIssues.length,
-      doorIssueSummary: access.doorIssues.map((d) => d.reason).join(' · '),
+      doorIssueCount: doorIssues.length,
+      doorIssueSummary: doorIssues.map((d) => d.reason).join(' · '),
     };
   }, [scenario, placedPieces, walls, doors, frontDoorEdge, completedRoomSlots, allRoomsSealed]);
 

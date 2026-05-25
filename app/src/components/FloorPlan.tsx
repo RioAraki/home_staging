@@ -377,8 +377,17 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
   // room instead of a hallway in a hallway-required scenario). Painted
   // red over the entire room region so the violation is impossible to
   // miss — the FinishGameBanner row alone is too easy to overlook.
+  //
+  // Only flagged once the front door is set AND every room is sealed.
+  // Before that the player can't reasonably judge a door violation:
+  // future rooms may still claim the pocket the door opens into, the
+  // front door's location decides which room is the lobby, etc.
+  // Premature red-washing the living room while the kitchen is being
+  // built is the exact bug the user kept hitting.
   const problemRoomCellSet = useMemo(() => {
     const out = new Set<string>();
+    if (!frontDoorEdge) return out;
+    if (completedRoomSlots.size < scenario.rooms.length) return out;
     const access = analyseAccessibility(
       scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge,
     );
@@ -390,7 +399,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
       for (const k of access.regionMap.cellsByRegion.get(reg) ?? []) out.add(k);
     }
     return out;
-  }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge]);
+  }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge, completedRoomSlots]);
 
   const [hover, setHover] = useState<Cell | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);
