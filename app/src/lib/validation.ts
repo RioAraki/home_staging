@@ -138,8 +138,10 @@ export function validatePlacement(
     // Open spaces always block shape (cell must stay walkable).
     if (placed.openSpaces.has(key)) {
       // Exception: a NEW carpet under an existing open-space cell is still
-      // walkable, so allowed in default mode.
-      if (!(newIsCarpet && !strict)) {
+      // walkable — carpets are thin layers. This holds in strict mode too,
+      // because the "no furniture on carpet" rule only governs shape-on-
+      // carpet, not the open / carpet relationship.
+      if (!newIsCarpet) {
         badShape.push([r, c]);
         continue;
       }
@@ -185,13 +187,10 @@ export function validatePlacement(
       badOpen.push([r, c]);
       continue;
     }
-    // Open-space over a carpet cell is fine in default mode (carpet is
-    // walkable). In strict mode the carpet behaves like normal shape.
-    if (placed.carpetShape.has(key) && strict) {
-      badOpen.push([r, c]);
-      continue;
-    }
-    // Note: open ↔ open overlap is allowed (rulebook).
+    // Open-space cells over a carpet are ALWAYS allowed — carpet is
+    // walkable, and the scenario-specific "no_furniture_on_carpet" rule
+    // only forbids furniture (shape) on carpet, not open-space cells.
+    // Open ↔ open overlap is allowed unconditionally (rulebook).
   }
   if (badOpen.length) {
     const firstBad = badOpen[0];
@@ -203,8 +202,6 @@ export function validatePlacement(
     else if (isObstacle(attrs)) reason = 'Open space cannot land on a predetermined obstacle';
     else if (placed.nonCarpetShape.has(key))
       reason = "Open space cannot land on another piece's furniture";
-    else if (placed.carpetShape.has(key))
-      reason = 'This scenario forbids open spaces over a carpet (地毯上不能放置家具)';
     return { valid: false, reason, badCells: badOpen };
   }
 
