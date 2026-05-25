@@ -52,13 +52,14 @@
   stroke-dasharray: 5 3;
 }
 
-/* Window overlay on top of the exterior wall — short cyan dashed segment. */
-.floor-plan .windows-layer line.window-line {
-  stroke: #6fb3d6;
-  stroke-width: 5;
-  stroke-linecap: round;
-  stroke-dasharray: 2 2;
-  opacity: 0.95;
+/* Window symbol — small box protruding outward from the exterior wall. */
+.floor-plan .window-symbol .window-frame {
+  stroke: #a8d8ee;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.floor-plan .window-symbol .window-glass {
+  opacity: 0.7;
 }
 
 /* Placed-piece artwork — invert the white-paper sketch and lighten-blend it

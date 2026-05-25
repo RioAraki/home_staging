@@ -40,6 +40,7 @@ function parseAsciiGrid(ascii: string) {
 interface ExteriorEdge {
   x1: number; y1: number; x2: number; y2: number;
   key: string;                                // canonical edge key h:R:C / v:R:C
+  outward: 'N' | 'S' | 'E' | 'W';             // direction from indoor towards outdoor
 }
 
 /**
@@ -137,25 +138,73 @@ function deriveExteriorWalls(cells: string[][], legend: Scenario['grid']['legend
     legend[cells[r][c]]?.terrain === 'indoor';
   const out: ExteriorEdge[] = [];
   const seen = new Set<string>();
-  const push = (x1: number, y1: number, x2: number, y2: number, key: string) => {
+  const push = (x1: number, y1: number, x2: number, y2: number, key: string, outward: ExteriorEdge['outward']) => {
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ x1, y1, x2, y2, key });
+    out.push({ x1, y1, x2, y2, key, outward });
   };
   for (let r = 0; r < cells.length; r++) {
     for (let c = 0; c < cells[r].length; c++) {
       if (!isIndoor(r, c)) continue;
-      // Top edge of (r,c) = horizontal edge h:r:c
-      if (!isIndoor(r - 1, c)) push(c, r, c + 1, r, `h:${r}:${c}`);
-      // Bottom edge of (r,c) = h:r+1:c
-      if (!isIndoor(r + 1, c)) push(c, r + 1, c + 1, r + 1, `h:${r + 1}:${c}`);
-      // Left edge of (r,c) = v:r:c
-      if (!isIndoor(r, c - 1)) push(c, r, c, r + 1, `v:${r}:${c}`);
-      // Right edge of (r,c) = v:r:c+1
-      if (!isIndoor(r, c + 1)) push(c + 1, r, c + 1, r + 1, `v:${r}:${c + 1}`);
+      // Top edge of (r,c) = horizontal edge h:r:c, outdoor is to the NORTH
+      if (!isIndoor(r - 1, c)) push(c, r, c + 1, r, `h:${r}:${c}`, 'N');
+      // Bottom edge → outdoor SOUTH
+      if (!isIndoor(r + 1, c)) push(c, r + 1, c + 1, r + 1, `h:${r + 1}:${c}`, 'S');
+      // Left edge → outdoor WEST
+      if (!isIndoor(r, c - 1)) push(c, r, c, r + 1, `v:${r}:${c}`, 'W');
+      // Right edge → outdoor EAST
+      if (!isIndoor(r, c + 1)) push(c + 1, r, c + 1, r + 1, `v:${r}:${c + 1}`, 'E');
     }
   }
   return out;
+}
+
+/**
+ * Architectural window symbol — a small rectangle that protrudes outward
+ * from the wall on the outdoor side, with diagonal-hatch "glass" fill.
+ * Mirrors the rulebook's window iconography.
+ */
+function renderWindowSymbol(
+  edge: ExteriorEdge,
+  cellSize: number,
+  patternId: string,
+): React.ReactElement {
+  const margin = cellSize * 0.10;     // inset from edge endpoints
+  const depth = cellSize * 0.18;      // how far the box protrudes outward
+  const isHorizontal = edge.y1 === edge.y2;
+
+  // Endpoints of the section of the wall the window sits on (after margin).
+  let inA: [number, number], inB: [number, number];
+  // Outer corners (on the outdoor side) of the window box.
+  let outA: [number, number], outB: [number, number];
+
+  if (isHorizontal) {
+    const y = edge.y1 * cellSize;
+    const x1 = edge.x1 * cellSize + margin;
+    const x2 = edge.x2 * cellSize - margin;
+    const dy = edge.outward === 'N' ? -depth : depth;
+    inA = [x1, y]; inB = [x2, y];
+    outA = [x1, y + dy]; outB = [x2, y + dy];
+  } else {
+    const x = edge.x1 * cellSize;
+    const y1 = edge.y1 * cellSize + margin;
+    const y2 = edge.y2 * cellSize - margin;
+    const dx = edge.outward === 'W' ? -depth : depth;
+    inA = [x, y1]; inB = [x, y2];
+    outA = [x + dx, y1]; outB = [x + dx, y2];
+  }
+
+  const boxPath = `M ${inA[0]} ${inA[1]} L ${outA[0]} ${outA[1]} L ${outB[0]} ${outB[1]} L ${inB[0]} ${inB[1]}`;
+
+  return (
+    <g key={`window-${edge.key}`} className="window-symbol">
+      {/* glass — semitransparent diagonal hatch fill inside the protrusion */}
+      <path d={`${boxPath} Z`} className="window-glass" fill={`url(#${patternId})`} />
+      {/* frame — three lines forming the protrusion box (the wall side is left
+          open so the wall line shows through as the inner edge) */}
+      <path d={boxPath} className="window-frame" fill="none" />
+    </g>
+  );
 }
 
 export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
@@ -323,6 +372,9 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           <pattern id="ghost-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
           </pattern>
+          <pattern id="window-glass-hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="5" stroke="#a8d8ee" strokeWidth="0.9" />
+          </pattern>
         </defs>
 
         <rect x={labelGap} y={labelGap} width={gridW} height={gridH} className="paper-bg" />
@@ -391,27 +443,12 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           </g>
         )}
 
-        {/* Windows — cyan dashed strip on top of the exterior wall.
-            Window cells don't block movement; pure decoration unless a bonus
-            references them (e.g. room_has_window_facing). */}
+        {/* Windows — architectural symbol: small rectangle protruding from the
+            wall on the outdoor side, with diagonal-hatch glass fill. */}
         <g className="windows-layer" transform={`translate(${labelGap}, ${labelGap})`}>
-          {exteriorWalls.filter((e) => windows[e.key]).map((e, i) => {
-            const isHorizontal = e.y1 === e.y2;
-            if (isHorizontal) {
-              return (
-                <line key={`win-h-${i}`}
-                  x1={e.x1 * cellSize + 4} y1={e.y1 * cellSize}
-                  x2={e.x2 * cellSize - 4} y2={e.y2 * cellSize}
-                  className="window-line" />
-              );
-            }
-            return (
-              <line key={`win-v-${i}`}
-                x1={e.x1 * cellSize} y1={e.y1 * cellSize + 4}
-                x2={e.x2 * cellSize} y2={e.y2 * cellSize - 4}
-                className="window-line" />
-            );
-          })}
+          {exteriorWalls
+            .filter((e) => windows[e.key])
+            .map((e) => renderWindowSymbol(e, cellSize, 'window-glass-hatch'))}
         </g>
 
         {/* Hit-zones along the exterior wall — for window-mode (toggle) */}
