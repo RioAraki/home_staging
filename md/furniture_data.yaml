@@ -441,7 +441,9 @@ cards:
         wall_edges: []
         printed_markers: 0
         chair_count: 0
-        notes: "Vertical column: shelf at top + 1 cell open + toilet at bottom."
+        cell_features:
+          - [0, 0, shelf]
+        notes: "Vertical column: shelf at top + 1 cell open + toilet at bottom. The top cell is tagged `shelf` so this piece counts toward the 置物架(3) bonus alongside standalone shelves."
 
   # ─────────────────────────────────────────── #09 洗手台 / Sink ─────
   - number: 9
@@ -457,7 +459,9 @@ cards:
         wall_edges: []
         printed_markers: 0
         chair_count: 0
-        notes: "Vertical column: sink on top + shelf below. Access from the right of the sink."
+        cell_features:
+          - [1, 1, shelf]
+        notes: "Sink at (0,0) + shelf at (1,1). The shelf cell is tagged `shelf` so this piece counts toward the 置物架(3) bonus alongside standalone shelves."
       - option_index: 2
         name_zh: "并排洗手池"
         name_en: "Side-by-side sinks"

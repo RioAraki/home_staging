@@ -60,6 +60,28 @@ function squaresPerPiece(p: PlacedPiece): number {
 const TABLE_NUMBERS = new Set([4, 5]);    // dining tables + small tables
 const PLANT_NUMBERS = new Set([19]);      // plants/florals
 
+/** Composite pieces can advertise that they include another card's
+ *  functionality via cell_features (e.g. #8B opt2 "toilet with shelf"
+ *  tags the shelf cell). This maps the standalone furniture number that
+ *  bonuses target to the cell_features tag that means "this composite
+ *  contains one". Add entries here as new composite tags are introduced. */
+const FEATURE_FOR_NUMBER: Record<number, string> = {
+  3: 'shelf',
+  19: 'plant',
+};
+
+/** True iff this placed piece should count toward "furniture #N" bonuses —
+ *  either because its card IS #N, or because it's a composite carrying the
+ *  feature equivalent of #N (via cell_features). */
+function pieceCountsAsFurniture(p: PlacedPiece, target: number): boolean {
+  if (p.number === target) return true;
+  const feature = FEATURE_FOR_NUMBER[target];
+  if (!feature) return false;
+  const card = cardByNumberVariant(p.number, p.variant);
+  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+  return !!opt?.cell_features?.some(([, , t]) => t === feature);
+}
+
 /** All world-cell occupancy from shape cells of a placed piece. */
 function pieceShapeCells(p: PlacedPiece): Array<[number, number]> {
   const card = cardByNumberVariant(p.number, p.variant);
@@ -127,15 +149,30 @@ export function evaluateBonusCondition(
     case 'count_installed': {
       const f = arg.furniture as number;
       const min = (arg.min as number) ?? 1;
-      return { earned: placedPieces.filter((p) => p.number === f).length >= min, evaluator: key };
+      const matched = placedPieces.filter((p) => pieceCountsAsFurniture(p, f));
+      const composites = matched.filter((p) => p.number !== f).length;
+      return {
+        earned: matched.length >= min,
+        evaluator: key,
+        note: composites > 0
+          ? `${matched.length}/${min} (incl. ${composites} composite)`
+          : `${matched.length}/${min}`,
+      };
     }
     case 'count_installed_in_room': {
       const slot = arg.room_slot as RoomSlot;
       const f = arg.furniture as number;
       const min = (arg.min as number) ?? 1;
+      const matched = placedPieces.filter(
+        (p) => p.roomSlot === slot && pieceCountsAsFurniture(p, f),
+      );
+      const composites = matched.filter((p) => p.number !== f).length;
       return {
-        earned: placedPieces.filter((p) => p.roomSlot === slot && p.number === f).length >= min,
+        earned: matched.length >= min,
         evaluator: key,
+        note: composites > 0
+          ? `${matched.length}/${min} in room ${slot} (incl. ${composites} composite)`
+          : `${matched.length}/${min} in room ${slot}`,
       };
     }
     case 'all_installed': {
