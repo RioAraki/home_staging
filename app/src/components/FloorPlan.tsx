@@ -600,40 +600,9 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           </g>
         )}
 
-        {/* Demolish-mode hit zones over existing walls / doors / windows /
-            front door — click to remove. Each existing edge gets its own
-            clickable line; the cell hit-zones below double as piece-
-            demolish triggers. */}
-        {demolishMode && (() => {
-          const edgeKeys = new Set<string>();
-          for (const k of Object.keys(playerWalls)) edgeKeys.add(k);
-          for (const k of Object.keys(playerDoors)) edgeKeys.add(k);
-          for (const k of Object.keys(windows)) edgeKeys.add(k);
-          if (frontDoorEdge) edgeKeys.add(frontDoorEdge);
-          return (
-            <g className="demolish-edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
-              {Array.from(edgeKeys).map((ek) => {
-                const [type, rStr, cStr] = ek.split(':');
-                const r = parseInt(rStr, 10);
-                const c = parseInt(cStr, 10);
-                const isHovered = hoverEdge === ek;
-                const common = {
-                  stroke: isHovered ? 'var(--danger)' : 'rgba(255,100,100,0.35)',
-                  strokeWidth: isHovered ? 6 : 4,
-                  strokeDasharray: '3 2',
-                  style: { cursor: 'pointer' as const },
-                  onMouseEnter: () => setHoverEdge(ek),
-                  onMouseLeave: () => setHoverEdge(null),
-                  onClick: () => demolishAtEdge(ek),
-                };
-                if (type === 'h') {
-                  return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={(c+1)*cellSize} y2={r*cellSize} {...common} />;
-                }
-                return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={c*cellSize} y2={(r+1)*cellSize} {...common} />;
-              })}
-            </g>
-          );
-        })()}
+        {/* (Demolish-mode hit zones moved below — must render AFTER walls /
+            doors / windows / front-door visuals so clicks aren't absorbed
+            by those visible elements.) */}
 
         {/* Hit-zones along the exterior wall — only active in front-door mode */}
         {frontDoorMode && (
@@ -878,6 +847,43 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             return renderDoorSymbol(edgeKey, ownerCell, cellSize, 'room-door');
           })}
         </g>
+
+        {/* Demolish-mode hit zones — rendered HERE (after every visible
+            wall / door / window / front-door element) so clicks land on
+            this overlay instead of being absorbed by the visual lines /
+            symbols underneath. Each existing edge gets its own clickable
+            line; the cell hit-zones below double as piece-demolish
+            triggers. */}
+        {demolishMode && (() => {
+          const edgeKeys = new Set<string>();
+          for (const k of Object.keys(playerWalls)) edgeKeys.add(k);
+          for (const k of Object.keys(playerDoors)) edgeKeys.add(k);
+          for (const k of Object.keys(windows)) edgeKeys.add(k);
+          if (frontDoorEdge) edgeKeys.add(frontDoorEdge);
+          return (
+            <g className="demolish-edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
+              {Array.from(edgeKeys).map((ek) => {
+                const [type, rStr, cStr] = ek.split(':');
+                const r = parseInt(rStr, 10);
+                const c = parseInt(cStr, 10);
+                const isHovered = hoverEdge === ek;
+                const common = {
+                  stroke: isHovered ? 'var(--danger)' : 'rgba(255,100,100,0.35)',
+                  strokeWidth: isHovered ? 6 : 4,
+                  strokeDasharray: '3 2',
+                  style: { cursor: 'pointer' as const },
+                  onMouseEnter: () => setHoverEdge(ek),
+                  onMouseLeave: () => setHoverEdge(null),
+                  onClick: () => demolishAtEdge(ek),
+                };
+                if (type === 'h') {
+                  return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={(c+1)*cellSize} y2={r*cellSize} {...common} />;
+                }
+                return <line key={`dem-${ek}`} x1={c*cellSize} y1={r*cellSize} x2={c*cellSize} y2={(r+1)*cellSize} {...common} />;
+              })}
+            </g>
+          );
+        })()}
 
         {/* Wall-edge requirements that aren't satisfied — yellow glow on
             the specific edges that need walls, so the player can see WHERE
