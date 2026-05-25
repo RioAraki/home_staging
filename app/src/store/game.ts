@@ -537,12 +537,40 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     setDoor: (edgeKey) => {
-      const { walls, doors, wallPhase, activeRoomSlot } = get();
+      const { walls, doors, wallPhase, activeRoomSlot, placedPieces } = get();
       if (wallPhase !== 'door' || !activeRoomSlot) return;
       if (!walls[edgeKey]) return;
+      // Both cells flanking the door must be walkable — a door butted up
+      // against a piece's shape is structurally blocked (no one can walk
+      // through). Toggling OFF the current door is always allowed.
+      const isToggleOff = doors[edgeKey] === activeRoomSlot;
+      if (!isToggleOff) {
+        const [a, b] = edgeAdjacentCells(edgeKey);
+        const shapeCells = new Set<string>();
+        for (const p of placedPieces) {
+          const card = cardByNumberVariant(p.number, p.variant);
+          const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+          if (!opt) continue;
+          const [bRows, bCols] = opt.bbox;
+          for (const [sr, sc] of opt.shape) {
+            let rr = sr, cc = sc;
+            if (p.mirrored) cc = bCols - 1 - cc;
+            for (let i = 0; i < p.rotation; i++) {
+              const nr = cc;
+              const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
+              rr = nr; cc = nc;
+            }
+            shapeCells.add(`${p.origin[0] + rr},${p.origin[1] + cc}`);
+          }
+        }
+        if (shapeCells.has(`${a[0]},${a[1]}`) || shapeCells.has(`${b[0]},${b[1]}`)) {
+          set({ lastError: 'Both sides of a door must be open — one side is blocked by a furniture piece.' });
+          return;
+        }
+      }
       mutate(() => {
         const nextDoors = { ...doors };
-        if (nextDoors[edgeKey] === activeRoomSlot) {
+        if (isToggleOff) {
           delete nextDoors[edgeKey];
         } else {
           for (const key of Object.keys(nextDoors)) {

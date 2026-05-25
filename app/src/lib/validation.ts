@@ -108,11 +108,31 @@ export function validatePlacement(
   origin: Cell,
   alreadyPlaced: PlacedPiece[],
   newPieceNumber: number,
+  doors: Record<string, unknown> = {},
+  frontDoorEdge: string | null = null,
 ): ValidationResult {
   const cells = gridCells(scenario);
   const placed = collectFootprints(alreadyPlaced);
   const strict = noFurnitureOnCarpet(scenario);
   const newIsCarpet = newPieceNumber === CARPET_NUMBER;
+
+  // Cells on either side of a door (room door or front door) must stay
+  // walkable — a furniture shape on one side would jam the door shut.
+  const doorAdjacentCells = new Set<string>();
+  const collectAdj = (edgeKey: string) => {
+    const [type, rStr, cStr] = edgeKey.split(':');
+    const r = parseInt(rStr, 10);
+    const c = parseInt(cStr, 10);
+    if (type === 'h') {
+      doorAdjacentCells.add(`${r - 1},${c}`);
+      doorAdjacentCells.add(`${r},${c}`);
+    } else {
+      doorAdjacentCells.add(`${r},${c - 1}`);
+      doorAdjacentCells.add(`${r},${c}`);
+    }
+  };
+  for (const k of Object.keys(doors)) collectAdj(k);
+  if (frontDoorEdge) collectAdj(frontDoorEdge);
 
   const absShape = absoluteCells(transformed.shape, origin);
   const absOpen = absoluteCells(transformed.open_spaces, origin);
@@ -153,6 +173,12 @@ export function validatePlacement(
         continue;
       }
     }
+    // Don't block a door — both cells flanking a door must stay walkable.
+    // Carpets are walkable so they're exempt here.
+    if (doorAdjacentCells.has(key) && !newIsCarpet) {
+      badShape.push([r, c]);
+      continue;
+    }
   }
   if (badShape.length) {
     // Build a friendlier message
@@ -171,6 +197,8 @@ export function validatePlacement(
         : 'This scenario forbids placing furniture on a carpet (地毯上不能放置家具)';
     else if (placed.openSpaces.has(key))
       reason = "Cannot cover another piece's open space";
+    else if (doorAdjacentCells.has(key))
+      reason = 'Cell flanks a door — both sides of every door must stay walkable';
     return { valid: false, reason, badCells: badShape };
   }
 

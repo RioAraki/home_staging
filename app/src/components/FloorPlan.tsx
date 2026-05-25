@@ -422,7 +422,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
 
   const ghostValidity = useMemo(() => {
     if (!selected || !transformedSel || !hover) return null;
-    return validatePlacement(scenario, transformedSel, hover, placedPieces, selected.number);
+    return validatePlacement(scenario, transformedSel, hover, placedPieces, selected.number, playerDoors, frontDoorEdge);
   }, [selected, transformedSel, hover, scenario, placedPieces]);
 
   const ghostCells: Cell[] = useMemo(() => {
