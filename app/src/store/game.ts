@@ -320,8 +320,8 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     selectRoom: (slot) => {
-      const { activeRoomSlot, completedRoomSlots, placedPieces } = get();
-      if (completedRoomSlots.has(slot)) return;
+      const { activeRoomSlot, completedRoomSlots, placedPieces, doors } = get();
+      if (activeRoomSlot === slot && !completedRoomSlots.has(slot)) return;
       if (activeRoomSlot && activeRoomSlot !== slot && !completedRoomSlots.has(activeRoomSlot)) {
         // Allow switching away from the active room only if the player hasn't
         // placed anything in it yet — they're still deciding which room to
@@ -329,7 +329,27 @@ export const useGameStore = create<GameState>((set, get) => {
         const hasPlacedInActive = placedPieces.some((p) => p.roomSlot === activeRoomSlot);
         if (hasPlacedInActive) return;
       }
-      set({ activeRoomSlot: slot, wallPhase: 'walls', lastError: null });
+      // Re-entering a sealed room un-seals it so the player can revise walls,
+      // demolish pieces, and place new furniture. The room's existing walls /
+      // doors / placed pieces are preserved — only the "finished" flag drops.
+      const wasSealed = completedRoomSlots.has(slot);
+      // Smart wallPhase: when re-entering a sealed room that already has its
+      // door, jump straight to 'door' phase so the player can re-Confirm with
+      // one click (they came back to tweak furniture, not to redo the walls).
+      // Brand-new selections and un-sealed rooms without doors stay in 'walls'.
+      const myDoorCount = Object.values(doors).filter((r) => r === slot).length;
+      const nextPhase: WallPhase = wasSealed && myDoorCount === 1 ? 'door' : 'walls';
+      mutate(() => {
+        const nextCompleted = new Set(completedRoomSlots);
+        if (wasSealed) nextCompleted.delete(slot);
+        set({
+          activeRoomSlot: slot,
+          completedRoomSlots: nextCompleted,
+          wallPhase: nextPhase,
+          gameFinished: wasSealed ? false : get().gameFinished,
+          lastError: null,
+        });
+      });
     },
 
     autoRevealRoom: (slot) => {
