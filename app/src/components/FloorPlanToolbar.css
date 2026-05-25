@@ -7,6 +7,7 @@
 
 .fp-front-door-btn,
 .fp-window-btn,
+.fp-reset-btn,
 .fp-undo-btn {
   background: transparent;
   border: 1px dashed var(--pen-soft);
@@ -20,9 +21,18 @@
 
 .fp-front-door-btn:hover,
 .fp-window-btn:hover,
+.fp-reset-btn:hover,
 .fp-undo-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--pen);
+}
+
+.fp-reset-btn {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.fp-reset-btn:hover {
+  background: rgba(255, 123, 123, 0.08);
 }
 
 .fp-window-btn.active {

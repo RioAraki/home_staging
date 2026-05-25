@@ -219,11 +219,9 @@ scenarios:
   page_image: images/scenarios/page_06.png
   rooms:
   - slot: I
-    name_zh: 家用办公室
-    name_en: Home office
+    name_zh: 主办公室
+    name_en: Main office
     furniture_numbers:
-    - 3
-    - 3
     - 16
     - 18
     - 21
@@ -233,8 +231,9 @@ scenarios:
     - 32
     - 32
     - 32
+    - 33
   - slot: II
-    name_zh: 候诊室
+    name_zh: 等待室
     name_en: Waiting room
     furniture_numbers:
     - 1
@@ -242,7 +241,7 @@ scenarios:
     - 19
     - 19
   - slot: III
-    name_zh: 前台
+    name_zh: 接待区
     name_en: Reception
     furniture_numbers:
     - 3
@@ -290,8 +289,8 @@ scenarios:
       text_en: Do not place the carpet on the front porch.
     scoring: []
   bonus_points:
-  - text_zh: 家用办公室的所有家具都至少装了一份
-    text_en: Home-office furniture all installed at least once
+  - text_zh: 主办公室的每张家具卡都至少装了一份
+    text_en: Every main-office furniture card has at least one piece placed
     points: 10
     condition:
       all_installed_in_room:
@@ -304,14 +303,15 @@ scenarios:
         - 31
         - 32
         - 33
-  - text_zh: 候诊室至多 2 扇门且为方形
-    text_en: Waiting room has at most 2 doors and is square
+  - text_zh: 等待室和接待区的门距离最多 2 格
+    text_en: Distance between waiting-room and reception doors is at most 2
     points: 3
     condition:
-      room_shape_square_and_max_doors:
-        room_slot: II
-        max_doors: 2
-  - text_zh: 前台有朝北的窗
+      door_distance_between_rooms_max:
+        room_a: II
+        room_b: III
+        max: 2
+  - text_zh: 接待区有一个朝北的窗户
     text_en: Reception has a north-facing window
     points: 3
     condition:

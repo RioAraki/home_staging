@@ -12,6 +12,7 @@ import { BonusPanel } from './components/BonusPanel';
 import { FloorPlanToolbar } from './components/FloorPlanToolbar';
 import { Toolbar } from './components/Toolbar';
 import { useGameStore } from './store/game';
+import { saveState, type PersistedState } from './lib/persistence';
 
 const AVAILABLE_SCENARIO_IDS = [
   'training',
@@ -44,10 +45,11 @@ function App() {
   const [scenarioId, setScenarioId] = useState<string>(loadScenarioId);
   const scenario = scenarioById(scenarioId);
   const initRun = useGameStore((s) => s.initRun);
-  const placedPieces = useGameStore((s) => s.placedPieces);
   const hash = useHashRoute();
 
-  // Re-init the game store whenever the scenario changes.
+  // Re-init the game store whenever the scenario changes. initRun internally
+  // restores the per-scenario saved session if one exists, so this acts as
+  // "load" — switching scenarios doesn't discard work.
   useEffect(() => {
     if (scenario) initRun(scenario);
   }, [scenario, initRun]);
@@ -57,15 +59,44 @@ function App() {
     localStorage.setItem(SCENARIO_STORAGE_KEY, scenarioId);
   }, [scenarioId]);
 
+  // Auto-save: on every store mutation, debounce ~250ms and write the
+  // current state to per-scenario localStorage. Each scenario has its own
+  // save slot — switching never destroys the others.
+  useEffect(() => {
+    let timer: number | null = null;
+    const unsub = useGameStore.subscribe((state) => {
+      if (!state.scenario) return;
+      if (timer !== null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        const snapshot: PersistedState = {
+          v: 1,
+          ts: Date.now(),
+          chosenVariants: state.chosenVariants,
+          activeRoomSlot: state.activeRoomSlot,
+          completedRoomSlots: Array.from(state.completedRoomSlots),
+          revealedCardKeys: Array.from(state.revealedCardKeys),
+          placedCardKeys: Array.from(state.placedCardKeys),
+          skippedCardKeys: Array.from(state.skippedCardKeys),
+          placedPieces: state.placedPieces,
+          walls: state.walls,
+          doors: state.doors,
+          windows: state.windows,
+          jokerUsed: state.jokerUsed,
+          frontDoorEdge: state.frontDoorEdge,
+          gameFinished: state.gameFinished,
+        };
+        saveState(state.scenario.id, snapshot);
+      }, 250);
+    });
+    return () => {
+      if (timer !== null) window.clearTimeout(timer);
+      unsub();
+    };
+  }, []);
+
   const changeScenario = (next: string) => {
     if (next === scenarioId) return;
-    if (placedPieces.length > 0) {
-      const ok = confirm(
-        `Switching scenarios will discard your current progress (${placedPieces.length} placed piece(s)). Continue?`,
-      );
-      if (!ok) return;
-    }
-    setScenarioId(next);
+    setScenarioId(next);   // each scenario has its own save slot, no prompt needed
   };
 
   if (hash === '#/review') {
@@ -90,7 +121,7 @@ function App() {
               className="scenario-picker"
               value={scenarioId}
               onChange={(e) => changeScenario(e.target.value)}
-              title="Switch scenario (discards current progress)"
+              title="Switch scenario — each scenario keeps its own auto-saved session"
             >
               {availableScenarios.map((s) => (
                 <option key={s.id} value={s.id}>

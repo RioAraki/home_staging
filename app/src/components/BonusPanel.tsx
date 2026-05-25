@@ -94,7 +94,12 @@ export function BonusPanel({ scenario }: Props) {
             title={e.note}
           >
             <span className="bonus-marker">{e.earned ? '✓' : '○'}</span>
-            <span className="bonus-text">{e.bp.text_zh}</span>
+            <span className="bonus-text">
+              {e.bp.text_zh}
+              {e.note && (
+                <span className="bonus-note">— {e.note}</span>
+              )}
+            </span>
             <span className="bonus-pts">+{e.bp.points}</span>
           </li>
         ))}

@@ -98,8 +98,17 @@ export function evaluateBonusCondition(
     case 'all_installed_in_room': {
       const slot = arg.room_slot as RoomSlot;
       const required = (arg.furniture as number[]) ?? [];
-      const placedInRoom = placedPieces.filter((p) => p.roomSlot === slot).map((p) => p.number);
-      return { earned: required.every((n) => placedInRoom.includes(n)), evaluator: key };
+      const placedInRoom = new Set(
+        placedPieces.filter((p) => p.roomSlot === slot).map((p) => p.number),
+      );
+      const missing = required.filter((n) => !placedInRoom.has(n));
+      return {
+        earned: missing.length === 0,
+        evaluator: key,
+        note: missing.length === 0
+          ? `all ${required.length} required cards placed in room ${slot}`
+          : `missing in room ${slot}: ${missing.map((n) => `#${n}`).join(', ')}`,
+      };
     }
     case 'count_installed': {
       const f = arg.furniture as number;
@@ -235,6 +244,46 @@ export function evaluateBonusCondition(
         earned: isFilledRect && isSquare && doorCount <= maxDoors,
         evaluator: key,
         note: `region ${h}×${w}, filled=${isFilledRect}, doors=${doorCount}`,
+      };
+    }
+
+    case 'door_distance_between_rooms_max': {
+      // Walk from one room's door (hallway side) to the other room's door
+      // (hallway side), using the BFS path distance helper (4-neighbour,
+      // walls block). Bonus earned iff distance ≤ max.
+      if (!ctx) return { earned: false, evaluator: key, note: 'walls context missing' };
+      const roomA = arg.room_a as RoomSlot;
+      const roomB = arg.room_b as RoomSlot;
+      const max = (arg.max as number) ?? 1;
+      const access = analyseAccessibility(scenario, placedPieces, ctx.walls, ctx.doors, null);
+      const hallwaySideForRoom = (slot: RoomSlot): [number, number] | null => {
+        const roomReg = access.roomToRegion.get(slot);
+        for (const [edgeKey, owner] of Object.entries(ctx.doors)) {
+          if (owner !== slot) continue;
+          const [type, rStr, cStr] = edgeKey.split(':');
+          const r = parseInt(rStr, 10);
+          const c = parseInt(cStr, 10);
+          const sideA: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
+          const sideB: [number, number] = type === 'h' ? [r, c] : [r, c];
+          const regA = access.regionMap.cellToRegion.get(`${sideA[0]},${sideA[1]}`);
+          const regB = access.regionMap.cellToRegion.get(`${sideB[0]},${sideB[1]}`);
+          if (regA === roomReg) return sideB;
+          if (regB === roomReg) return sideA;
+        }
+        return null;
+      };
+      const a = hallwaySideForRoom(roomA);
+      const b = hallwaySideForRoom(roomB);
+      if (!a) return { earned: false, evaluator: key, note: `room ${roomA} has no door yet` };
+      if (!b) return { earned: false, evaluator: key, note: `room ${roomB} has no door yet` };
+      const d = pathDistance(scenario, ctx.walls, a, b);
+      if (d === null) {
+        return { earned: false, evaluator: key, note: `doors not connected (need walkable path ≤ ${max})` };
+      }
+      return {
+        earned: d <= max,
+        evaluator: key,
+        note: `door-to-door distance = ${d} (need ≤ ${max})`,
       };
     }
 

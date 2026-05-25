@@ -15,6 +15,15 @@ export function FloorPlanToolbar() {
   const toggleWindowMode = useGameStore((s) => s.toggleWindowMode);
   const windowCount = useGameStore((s) => Object.keys(s.windows).length);
   const scenario = useGameStore((s) => s.scenario);
+  const resetCurrentScenario = useGameStore((s) => s.resetCurrentScenario);
+  const placedCount = useGameStore((s) => s.placedPieces.length);
+
+  const handleReset = () => {
+    const msg = placedCount > 0
+      ? `Clear the saved session for "${scenario?.title_zh}" and start over? (${placedCount} placed piece(s) will be discarded; other scenarios' saves stay intact)`
+      : `Reset this scenario? (Re-roll furniture variants and clear walls / doors / windows.)`;
+    if (confirm(msg)) resetCurrentScenario();
+  };
 
   // Front door is "fixed by scenario" when pre_drawn has exactly one
   // target=front_door entry — the store auto-sets it on init, button locks.
@@ -65,6 +74,14 @@ export function FloorPlanToolbar() {
         title="Toggle window placement mode — click any exterior wall edge to add / remove a window"
       >
         🪟 {windowMode ? 'Click an exterior edge…' : `Windows (${windowCount})`}
+      </button>
+      <button
+        type="button"
+        className="fp-reset-btn"
+        onClick={handleReset}
+        title="Reset this scenario — clears placed furniture, walls, doors, windows and re-rolls variants. Other scenarios' saves are kept."
+      >
+        🗑 Reset scenario
       </button>
       <button
         type="button"

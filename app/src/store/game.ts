@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { RoomSlot, Scenario } from '../types';
 import { cardByNumberVariant } from '../data';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../lib/walls';
+import { loadSavedState, clearSavedState } from '../lib/persistence';
 
 export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
@@ -81,6 +82,7 @@ export interface GameState extends Undoable {
   themeId: string;
 
   initRun: (scenario: Scenario) => void;
+  resetCurrentScenario: () => void;
   selectRoom: (slot: RoomSlot) => void;
   autoRevealRoom: (slot: RoomSlot) => void;
   revealCard: (slot: RoomSlot, slotIdx: number) => void;
@@ -201,12 +203,58 @@ export const useGameStore = create<GameState>((set, get) => {
     themeId: 'blueprint',
 
     initRun: (scenario) => {
+      // Try to restore a saved session for this scenario first; otherwise
+      // start fresh with random variants. Auto-locked front-door applies in
+      // both cases (saved state preserves it; fresh init derives it).
+      const saved = loadSavedState(scenario.id);
+      if (saved) {
+        set({
+          ...blank,
+          chosenVariants: saved.chosenVariants,
+          activeRoomSlot: saved.activeRoomSlot,
+          completedRoomSlots: new Set(saved.completedRoomSlots),
+          revealedCardKeys: new Set(saved.revealedCardKeys),
+          placedCardKeys: new Set(saved.placedCardKeys),
+          skippedCardKeys: new Set(saved.skippedCardKeys),
+          placedPieces: saved.placedPieces,
+          walls: saved.walls,
+          doors: saved.doors,
+          windows: saved.windows,
+          jokerUsed: saved.jokerUsed,
+          frontDoorEdge: saved.frontDoorEdge,
+          gameFinished: saved.gameFinished,
+          scenario,
+          past: [],
+          frontDoorMode: false,
+          windowMode: false,
+        });
+        return;
+      }
       const nums = new Set<number>();
       for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
       const chosen: Record<number, Variant> = {};
       for (const n of nums) chosen[n] = pickRandomVariant();
       const lockedFrontDoor = autoFrontDoor(scenario);
-      // initRun is a hard reset (not undoable beyond it)
+      set({
+        ...blank,
+        chosenVariants: chosen,
+        past: [],
+        scenario,
+        frontDoorMode: false,
+        windowMode: false,
+        frontDoorEdge: lockedFrontDoor,
+      });
+    },
+
+    resetCurrentScenario: () => {
+      const { scenario } = get();
+      if (!scenario) return;
+      clearSavedState(scenario.id);
+      const nums = new Set<number>();
+      for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
+      const chosen: Record<number, Variant> = {};
+      for (const n of nums) chosen[n] = pickRandomVariant();
+      const lockedFrontDoor = autoFrontDoor(scenario);
       set({
         ...blank,
         chosenVariants: chosen,

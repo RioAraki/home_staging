@@ -85,7 +85,20 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 320px;
+  max-width: 420px;
+}
+
+.bonus-note {
+  margin-left: 6px;
+  font-style: italic;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+.bonus-item.earned .bonus-note {
+  color: rgba(120, 220, 120, 0.85);
+}
+.bonus-item.pending .bonus-note {
+  color: rgba(255, 200, 100, 0.9);
 }
 
 .bonus-pts {
