@@ -12,7 +12,7 @@ import { BonusPanel } from './components/BonusPanel';
 import { FloorPlanToolbar } from './components/FloorPlanToolbar';
 import { Toolbar } from './components/Toolbar';
 import { useGameStore } from './store/game';
-import { saveState, type PersistedState } from './lib/persistence';
+import { saveState, loadSavedState, type PersistedState } from './lib/persistence';
 
 const AVAILABLE_SCENARIO_IDS = [
   'training',
@@ -47,11 +47,18 @@ function App() {
   const initRun = useGameStore((s) => s.initRun);
   const hash = useHashRoute();
 
-  // Re-init the game store whenever the scenario changes. initRun internally
-  // restores the per-scenario saved session if one exists, so this acts as
-  // "load" — switching scenarios doesn't discard work.
+  // Re-init the game store whenever the scenario changes. Fetch the
+  // on-disk saved session (if any) for this scenario first, then hand it
+  // to initRun synchronously. Switching scenarios loads its own save.
   useEffect(() => {
-    if (scenario) initRun(scenario);
+    if (!scenario) return;
+    let cancelled = false;
+    (async () => {
+      const saved = await loadSavedState(scenario.id);
+      if (cancelled) return;
+      initRun(scenario, saved);
+    })();
+    return () => { cancelled = true; };
   }, [scenario, initRun]);
 
   // Persist scenario choice.

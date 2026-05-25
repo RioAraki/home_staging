@@ -3,6 +3,7 @@
 
 import { useEffect } from 'react';
 import { useGameStore } from '../store/game';
+import { clearSavedState } from '../lib/persistence';
 import './FloorPlanToolbar.css';
 
 export function FloorPlanToolbar() {
@@ -18,11 +19,13 @@ export function FloorPlanToolbar() {
   const resetCurrentScenario = useGameStore((s) => s.resetCurrentScenario);
   const placedCount = useGameStore((s) => s.placedPieces.length);
 
-  const handleReset = () => {
+  const handleReset = async () => {
     const msg = placedCount > 0
       ? `Clear the saved session for "${scenario?.title_zh}" and start over? (${placedCount} placed piece(s) will be discarded; other scenarios' saves stay intact)`
       : `Reset this scenario? (Re-roll furniture variants and clear walls / doors / windows.)`;
-    if (confirm(msg)) resetCurrentScenario();
+    if (!confirm(msg) || !scenario) return;
+    await clearSavedState(scenario.id);
+    resetCurrentScenario();
   };
 
   // Front door is "fixed by scenario" when pre_drawn has exactly one

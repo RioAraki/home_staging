@@ -1,17 +1,14 @@
-// Per-scenario game-state persistence to localStorage.
+// Per-scenario game-state persistence to a local JSON file on disk.
 //
-// The store's Undoable state shape contains JS `Set`s which don't round-trip
-// through JSON, so we hand-serialize. The undo history (`past`) and UI-only
-// flags (mode toggles, themeId) are deliberately NOT saved — restoring those
-// would be surprising and they're trivially recoverable.
+// Talks to the Vite dev-server middleware in `vite-plugins/game-save-sync.ts`,
+// which writes `md/saves/<scenarioId>.json`. The save format mirrors the
+// store's Undoable shape but with Sets serialized to arrays and UI-only
+// flags + undo history dropped — restoring those would be surprising.
 
 import type { PlacedPiece, Variant } from '../store/game';
 import type { RoomSlot } from '../types';
 
-const STORAGE_PREFIX = 'game_save_v1_';
-
 export interface PersistedState {
-  /** Schema version — bump if shape changes incompatibly. */
   v: 1;
   ts: number;
   chosenVariants: Record<number, Variant>;
@@ -29,31 +26,37 @@ export interface PersistedState {
   gameFinished: boolean;
 }
 
-export function storageKeyFor(scenarioId: string): string {
-  return `${STORAGE_PREFIX}${scenarioId}`;
-}
-
-export function loadSavedState(scenarioId: string): PersistedState | null {
+export async function loadSavedState(scenarioId: string): Promise<PersistedState | null> {
   try {
-    const raw = localStorage.getItem(storageKeyFor(scenarioId));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as PersistedState;
-    if (parsed.v !== 1) return null;          // schema mismatch
+    const res = await fetch(`/__game/load?scenarioId=${encodeURIComponent(scenarioId)}`);
+    if (res.status === 204) return null;          // no save yet
+    if (!res.ok) return null;
+    const parsed = (await res.json()) as PersistedState;
+    if (parsed.v !== 1) return null;              // schema mismatch
     return parsed;
   } catch {
     return null;
   }
 }
 
-export function saveState(scenarioId: string, snapshot: PersistedState): void {
+export async function saveState(scenarioId: string, snapshot: PersistedState): Promise<void> {
   try {
-    localStorage.setItem(storageKeyFor(scenarioId), JSON.stringify(snapshot));
+    await fetch(`/__game/save?scenarioId=${encodeURIComponent(scenarioId)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(snapshot),
+    });
   } catch {
-    // localStorage might be full; silently ignore. The user can still play —
-    // they just won't have auto-restore.
+    // Best-effort: dev-server might be down, just swallow.
   }
 }
 
-export function clearSavedState(scenarioId: string): void {
-  localStorage.removeItem(storageKeyFor(scenarioId));
+export async function clearSavedState(scenarioId: string): Promise<void> {
+  try {
+    await fetch(`/__game/reset?scenarioId=${encodeURIComponent(scenarioId)}`, {
+      method: 'POST',
+    });
+  } catch {
+    // ignore
+  }
 }

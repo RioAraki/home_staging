@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { RoomSlot, Scenario } from '../types';
 import { cardByNumberVariant } from '../data';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../lib/walls';
-import { loadSavedState, clearSavedState } from '../lib/persistence';
+import type { PersistedState } from '../lib/persistence';
 
 export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
@@ -81,7 +81,7 @@ export interface GameState extends Undoable {
   /** Visual theme for vector furniture rendering. UI-only, not undoable. */
   themeId: string;
 
-  initRun: (scenario: Scenario) => void;
+  initRun: (scenario: Scenario, saved?: PersistedState | null) => void;
   resetCurrentScenario: () => void;
   selectRoom: (slot: RoomSlot) => void;
   autoRevealRoom: (slot: RoomSlot) => void;
@@ -202,11 +202,10 @@ export const useGameStore = create<GameState>((set, get) => {
     windowMode: false,
     themeId: 'blueprint',
 
-    initRun: (scenario) => {
-      // Try to restore a saved session for this scenario first; otherwise
-      // start fresh with random variants. Auto-locked front-door applies in
-      // both cases (saved state preserves it; fresh init derives it).
-      const saved = loadSavedState(scenario.id);
+    initRun: (scenario, saved) => {
+      // If the caller pre-loaded a saved session, restore from it. Otherwise
+      // start fresh with random variants. Loading from disk is async so the
+      // caller (App.tsx) does the fetch before invoking this synchronously.
       if (saved) {
         set({
           ...blank,
@@ -247,9 +246,11 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     resetCurrentScenario: () => {
+      // Note: this only resets the in-memory state. The caller is
+      // responsible for clearing the on-disk save first (via the async
+      // clearSavedState helper in lib/persistence).
       const { scenario } = get();
       if (!scenario) return;
-      clearSavedState(scenario.id);
       const nums = new Set<number>();
       for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
       const chosen: Record<number, Variant> = {};
