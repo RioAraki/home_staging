@@ -10,14 +10,15 @@ export function EndGameScreen({ scenario }: Props) {
   const placedPieces = useGameStore((s) => s.placedPieces);
   const walls = useGameStore((s) => s.walls);
   const doors = useGameStore((s) => s.doors);
+  const windows = useGameStore((s) => s.windows);
   const frontDoorEdge = useGameStore((s) => s.frontDoorEdge);
   const gameFinished = useGameStore((s) => s.gameFinished);
   const unfinishGame = useGameStore((s) => s.unfinishGame);
   const initRun = useGameStore((s) => s.initRun);
 
   const score = useMemo(
-    () => (gameFinished ? computeScore(scenario, placedPieces, walls, doors, frontDoorEdge) : null),
-    [gameFinished, scenario, placedPieces, walls, doors, frontDoorEdge],
+    () => (gameFinished ? computeScore(scenario, placedPieces, walls, doors, frontDoorEdge, windows) : null),
+    [gameFinished, scenario, placedPieces, walls, doors, frontDoorEdge, windows],
   );
 
   // Auto-open the score panel the moment the player clicks Finish. They can

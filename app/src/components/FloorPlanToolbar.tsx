@@ -11,6 +11,9 @@ export function FloorPlanToolbar() {
   const frontDoorEdge = useGameStore((s) => s.frontDoorEdge);
   const frontDoorMode = useGameStore((s) => s.frontDoorMode);
   const toggleFrontDoorMode = useGameStore((s) => s.toggleFrontDoorMode);
+  const windowMode = useGameStore((s) => s.windowMode);
+  const toggleWindowMode = useGameStore((s) => s.toggleWindowMode);
+  const windowCount = useGameStore((s) => Object.keys(s.windows).length);
   const scenario = useGameStore((s) => s.scenario);
 
   // Front door is "fixed by scenario" when pre_drawn has exactly one
@@ -54,6 +57,14 @@ export function FloorPlanToolbar() {
         }
       >
         {frontDoorLabel}
+      </button>
+      <button
+        type="button"
+        className={`fp-window-btn ${windowMode ? 'active' : ''}`}
+        onClick={toggleWindowMode}
+        title="Toggle window placement mode — click any exterior wall edge to add / remove a window"
+      >
+        🪟 {windowMode ? 'Click an exterior edge…' : `Windows (${windowCount})`}
       </button>
       <button
         type="button"

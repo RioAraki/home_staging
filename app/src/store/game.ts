@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { RoomSlot, Scenario } from '../types';
 import { cardByNumberVariant } from '../data';
+import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../lib/walls';
 
 export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
@@ -51,6 +52,9 @@ interface Undoable {
   selectedOption: SelectedOption | null;
   walls: Record<string, true>;
   doors: Record<string, RoomSlot>;
+  /** Exterior-wall edges marked as windows. Purely decorative unless a bonus
+   *  condition references them (e.g. line-of-sight). */
+  windows: Record<string, true>;
   wallPhase: WallPhase;
   jokerUsed: boolean;
   /** Edge key on the exterior wall designated as the building's front door.
@@ -71,6 +75,8 @@ export interface GameState extends Undoable {
   /** UI-only: true while the player is in "click an exterior edge to set front
    *  door" mode. Not undoable. */
   frontDoorMode: boolean;
+  /** UI-only: true while in "click an exterior edge to toggle window" mode. */
+  windowMode: boolean;
   /** Visual theme for vector furniture rendering. UI-only, not undoable. */
   themeId: string;
 
@@ -91,6 +97,8 @@ export interface GameState extends Undoable {
   completeRoom: () => boolean;
   toggleFrontDoorMode: () => void;
   setFrontDoor: (edgeKey: string) => void;
+  toggleWindowMode: () => void;
+  toggleWindow: (edgeKey: string) => void;
   setThemeId: (id: string) => void;
   finishGame: () => void;
   unfinishGame: () => void;
@@ -113,6 +121,7 @@ const blank: Undoable = {
   selectedOption: null,
   walls: {},
   doors: {},
+  windows: {},
   wallPhase: 'walls',
   jokerUsed: false,
   frontDoorEdge: null,
@@ -131,6 +140,7 @@ function snapshot(s: Undoable): Undoable {
     selectedOption: s.selectedOption ? { ...s.selectedOption } : null,
     walls: { ...s.walls },
     doors: { ...s.doors },
+    windows: { ...s.windows },
     wallPhase: s.wallPhase,
     jokerUsed: s.jokerUsed,
     frontDoorEdge: s.frontDoorEdge,
@@ -187,6 +197,7 @@ export const useGameStore = create<GameState>((set, get) => {
     past: [],
     scenario: null,
     frontDoorMode: false,
+    windowMode: false,
     themeId: 'blueprint',
 
     initRun: (scenario) => {
@@ -202,6 +213,7 @@ export const useGameStore = create<GameState>((set, get) => {
         past: [],
         scenario,
         frontDoorMode: false,
+        windowMode: false,
         frontDoorEdge: lockedFrontDoor,
       });
     },
@@ -388,6 +400,33 @@ export const useGameStore = create<GameState>((set, get) => {
       set({ frontDoorMode: false });
     },
 
+    toggleWindowMode: () =>
+      set({
+        windowMode: !get().windowMode,
+        frontDoorMode: false,
+        lastError: null,
+      }),
+
+    toggleWindow: (edgeKey) => {
+      // Caller already validated the edge is on the building exterior; we
+      // double-check by re-deriving from scenario data.
+      const { scenario, windows } = get();
+      if (!scenario) return;
+      const exteriorSet = new Set(
+        exteriorWallEdgesFromScenario(scenario),
+      );
+      if (!exteriorSet.has(edgeKey)) {
+        set({ lastError: 'Windows can only be placed on exterior walls.' });
+        return;
+      }
+      mutate(() => {
+        const next = { ...windows };
+        if (next[edgeKey]) delete next[edgeKey];
+        else next[edgeKey] = true;
+        set({ windows: next, lastError: null });
+      });
+    },
+
     setThemeId: (id) => set({ themeId: id }),
 
     finishGame: () => mutate(() => set({ gameFinished: true, lastError: null })),
@@ -429,6 +468,7 @@ export const useGameStore = create<GameState>((set, get) => {
         chosenVariants: get().chosenVariants,
         past: [],
         frontDoorMode: false,
+        windowMode: false,
       }),
   };
 });

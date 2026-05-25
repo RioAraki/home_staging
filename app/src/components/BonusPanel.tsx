@@ -16,13 +16,14 @@ export function BonusPanel({ scenario }: Props) {
   const placedPieces = useGameStore((s) => s.placedPieces);
   const walls = useGameStore((s) => s.walls);
   const doors = useGameStore((s) => s.doors);
+  const windows = useGameStore((s) => s.windows);
 
   const evaluated = useMemo(
     () => scenario.bonus_points.map((bp) => ({
       bp,
-      ...evaluateBonusCondition(bp, scenario, placedPieces, { walls, doors }),
+      ...evaluateBonusCondition(bp, scenario, placedPieces, { walls, doors, windows }),
     })),
-    [scenario, placedPieces, walls, doors],
+    [scenario, placedPieces, walls, doors, windows],
   );
 
   if (evaluated.length === 0) {

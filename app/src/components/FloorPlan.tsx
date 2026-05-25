@@ -193,6 +193,9 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
   const frontDoorEdge = useGameStore((s) => s.frontDoorEdge);
   const frontDoorMode = useGameStore((s) => s.frontDoorMode);
   const setFrontDoor = useGameStore((s) => s.setFrontDoor);
+  const windows = useGameStore((s) => s.windows);
+  const windowMode = useGameStore((s) => s.windowMode);
+  const toggleWindow = useGameStore((s) => s.toggleWindow);
   const themeId = useGameStore((s) => s.themeId) as ThemeId;
 
   const inWallMode =
@@ -385,6 +388,65 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
               cellSize,
               'front-door-symbol',
             )}
+          </g>
+        )}
+
+        {/* Windows — cyan dashed strip on top of the exterior wall.
+            Window cells don't block movement; pure decoration unless a bonus
+            references them (e.g. room_has_window_facing). */}
+        <g className="windows-layer" transform={`translate(${labelGap}, ${labelGap})`}>
+          {exteriorWalls.filter((e) => windows[e.key]).map((e, i) => {
+            const isHorizontal = e.y1 === e.y2;
+            if (isHorizontal) {
+              return (
+                <line key={`win-h-${i}`}
+                  x1={e.x1 * cellSize + 4} y1={e.y1 * cellSize}
+                  x2={e.x2 * cellSize - 4} y2={e.y2 * cellSize}
+                  className="window-line" />
+              );
+            }
+            return (
+              <line key={`win-v-${i}`}
+                x1={e.x1 * cellSize} y1={e.y1 * cellSize + 4}
+                x2={e.x2 * cellSize} y2={e.y2 * cellSize - 4}
+                className="window-line" />
+            );
+          })}
+        </g>
+
+        {/* Hit-zones along the exterior wall — for window-mode (toggle) */}
+        {windowMode && (
+          <g className="window-hit" transform={`translate(${labelGap}, ${labelGap})`}>
+            {exteriorWalls.map((e, i) => {
+              const isHorizontal = e.y1 === e.y2;
+              const isHovered = hoverEdge === e.key;
+              const isOn = !!windows[e.key];
+              const stroke = isHovered
+                ? '#6fb3d6'
+                : isOn ? 'rgba(111,179,214,0.7)' : 'rgba(111,179,214,0.30)';
+              const sw = isHovered ? 6 : 4;
+              const common = {
+                stroke, strokeWidth: sw, strokeDasharray: '3 2',
+                style: { cursor: 'pointer' as const },
+                onMouseEnter: () => setHoverEdge(e.key),
+                onMouseLeave: () => setHoverEdge(null),
+                onClick: () => toggleWindow(e.key),
+              };
+              if (isHorizontal) {
+                return (
+                  <line key={`winhit-h-${i}`}
+                    x1={e.x1 * cellSize} y1={e.y1 * cellSize}
+                    x2={e.x2 * cellSize} y2={e.y2 * cellSize}
+                    {...common} />
+                );
+              }
+              return (
+                <line key={`winhit-v-${i}`}
+                  x1={e.x1 * cellSize} y1={e.y1 * cellSize}
+                  x2={e.x2 * cellSize} y2={e.y2 * cellSize}
+                  {...common} />
+              );
+            })}
           </g>
         )}
 
@@ -627,8 +689,8 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           </g>
         )}
 
-        {/* Cell hit-zones (placement only when NOT in wall/front-door mode) */}
-        {!frontDoorMode && (
+        {/* Cell hit-zones (placement only when NOT in wall/front-door/window mode) */}
+        {!frontDoorMode && !windowMode && (
         <g className="cell-hit" transform={`translate(${labelGap}, ${labelGap})`}>
           {Array.from({ length: rows }, (_, r) =>
             Array.from({ length: cols }, (__, c) => (
@@ -649,7 +711,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
         )}
 
         {/* Edge hit-zones (wall + door drawing) */}
-        {inWallMode && !frontDoorMode && (
+        {inWallMode && !frontDoorMode && !windowMode && (
           <g className="edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
             {Array.from({ length: rows + 1 }, (_, r) =>
               Array.from({ length: cols }, (__, c) => (

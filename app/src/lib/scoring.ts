@@ -80,6 +80,7 @@ function pieceOpenSpaceCells(p: PlacedPiece): Array<[number, number]> {
 export interface EvaluatorContext {
   walls: Record<string, true>;
   doors: Record<string, RoomSlot>;
+  windows?: Record<string, true>;
 }
 
 export function evaluateBonusCondition(
@@ -238,8 +239,62 @@ export function evaluateBonusCondition(
     }
 
     case 'room_has_window_facing': {
-      // Window-drawing UI is not implemented yet. Always not-earned.
-      return { earned: false, evaluator: key, note: 'window system not implemented' };
+      // A window on an exterior wall of the target room's region, where the
+      // exterior side faces the requested compass direction. For a horizontal
+      // edge `h:r:c`: cells (r-1,c) above and (r,c) below.
+      //   direction = N → exterior (outdoor) is ABOVE, indoor BELOW → room cell (r,c)
+      //   direction = S → exterior BELOW, indoor ABOVE → room cell (r-1,c)
+      //   direction = W → exterior LEFT, indoor RIGHT → room cell (r,c) for v:r:c
+      //   direction = E → exterior RIGHT, indoor LEFT → room cell (r,c-1) for v:r:c
+      if (!ctx) return { earned: false, evaluator: key, note: 'walls context missing' };
+      const wins = ctx.windows ?? {};
+      if (Object.keys(wins).length === 0) {
+        return { earned: false, evaluator: key, note: 'no windows drawn' };
+      }
+      const slot = arg.room_slot as RoomSlot;
+      const direction = (arg.direction as string)?.toUpperCase();
+      // Determine which cells belong to the target room region.
+      const access = analyseAccessibility(scenario, placedPieces, ctx.walls, ctx.doors, null);
+      const regId = access.roomToRegion.get(slot);
+      if (regId === undefined) {
+        return { earned: false, evaluator: key, note: 'room has no placed pieces' };
+      }
+      const roomCells = new Set(access.regionMap.cellsByRegion.get(regId) ?? []);
+      const grid = scenario.grid;
+      const rows = grid.ascii.replace(/\n+$/, '').split('\n');
+      const isIndoor = (r: number, c: number) =>
+        r >= 0 && c >= 0 && r < rows.length && c < (rows[r]?.length ?? 0) &&
+        grid.legend[rows[r][c]]?.terrain === 'indoor';
+      for (const edgeKey of Object.keys(wins)) {
+        const [type, rStr, cStr] = edgeKey.split(':');
+        const r = parseInt(rStr, 10);
+        const c = parseInt(cStr, 10);
+        let indoorCell: [number, number] | null = null;
+        let dir: string | null = null;
+        if (type === 'h') {
+          // window faces N if outdoor is above (r-1,c) and indoor is below (r,c)
+          if (!isIndoor(r - 1, c) && isIndoor(r, c)) {
+            indoorCell = [r, c]; dir = 'N';
+          } else if (isIndoor(r - 1, c) && !isIndoor(r, c)) {
+            indoorCell = [r - 1, c]; dir = 'S';
+          }
+        } else {
+          if (!isIndoor(r, c - 1) && isIndoor(r, c)) {
+            indoorCell = [r, c]; dir = 'W';
+          } else if (isIndoor(r, c - 1) && !isIndoor(r, c)) {
+            indoorCell = [r, c - 1]; dir = 'E';
+          }
+        }
+        if (!indoorCell || !dir) continue;
+        if (dir !== direction) continue;
+        if (!roomCells.has(`${indoorCell[0]},${indoorCell[1]}`)) continue;
+        return { earned: true, evaluator: key, note: `window facing ${dir} found` };
+      }
+      return {
+        earned: false,
+        evaluator: key,
+        note: `no ${direction}-facing window in this room`,
+      };
     }
 
     case 'covers_marker': {
@@ -259,6 +314,7 @@ export function computeScore(
   walls: Record<string, true>,
   doors: Record<string, RoomSlot>,
   frontDoorEdge: string | null,
+  windows: Record<string, true> = {},
 ): ScoreBreakdown {
   const access = analyseAccessibility(scenario, placedPieces, walls, doors, frontDoorEdge);
   const pieceAccess = analyseOpenSpaceAccessibility(scenario, placedPieces, walls, doors, access);
@@ -305,7 +361,7 @@ export function computeScore(
   const inaccessibleRooms = rooms.filter((r) => !r.empty && !r.accessible).map((r) => r.slot);
 
   const bonuses: BonusEvaluation[] = scenario.bonus_points.map((bp) => {
-    const { earned, evaluator } = evaluateBonusCondition(bp, scenario, placedPieces, { walls, doors });
+    const { earned, evaluator } = evaluateBonusCondition(bp, scenario, placedPieces, { walls, doors, windows });
     return {
       text_zh: bp.text_zh,
       text_en: bp.text_en,
