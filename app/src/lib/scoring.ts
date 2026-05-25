@@ -70,16 +70,29 @@ const FEATURE_FOR_NUMBER: Record<number, string> = {
   19: 'plant',
 };
 
+/** Substring of the option's name_zh that flags a composite as carrying
+ *  one of `target`'s functionality. Per the rulebook, "any card whose
+ *  title contains 置物架 counts as a shelf for the 置物架(3) bonus". This
+ *  is the simple, robust check — no per-cell tagging needed for new
+ *  composite cards as long as the name is honest. */
+const NAME_SUBSTRING_FOR_NUMBER: Record<number, string> = {
+  3: '置物架',
+};
+
 /** True iff this placed piece should count toward "furniture #N" bonuses —
  *  either because its card IS #N, or because it's a composite carrying the
- *  feature equivalent of #N (via cell_features). */
+ *  feature equivalent of #N (via cell_features tag, OR by name substring
+ *  match — whichever is simpler for the rule in question). */
 function pieceCountsAsFurniture(p: PlacedPiece, target: number): boolean {
   if (p.number === target) return true;
-  const feature = FEATURE_FOR_NUMBER[target];
-  if (!feature) return false;
   const card = cardByNumberVariant(p.number, p.variant);
   const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-  return !!opt?.cell_features?.some(([, , t]) => t === feature);
+  if (!opt) return false;
+  const feature = FEATURE_FOR_NUMBER[target];
+  if (feature && opt.cell_features?.some(([, , t]) => t === feature)) return true;
+  const sub = NAME_SUBSTRING_FOR_NUMBER[target];
+  if (sub && opt.name_zh.includes(sub)) return true;
+  return false;
 }
 
 /** All world-cell occupancy from shape cells of a placed piece. */
