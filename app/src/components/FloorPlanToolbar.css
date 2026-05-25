@@ -7,6 +7,8 @@
 
 .fp-front-door-btn,
 .fp-window-btn,
+.fp-save-btn,
+.fp-load-btn,
 .fp-reset-btn,
 .fp-undo-btn {
   background: transparent;
@@ -21,10 +23,27 @@
 
 .fp-front-door-btn:hover,
 .fp-window-btn:hover,
+.fp-save-btn:hover:not(:disabled),
+.fp-load-btn:hover:not(:disabled),
 .fp-reset-btn:hover,
 .fp-undo-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--pen);
+}
+
+.fp-save-btn,
+.fp-load-btn {
+  border-color: rgba(120, 220, 120, 0.55);
+  color: rgba(180, 240, 180, 0.95);
+}
+.fp-save-btn.just-saved {
+  background: rgba(120, 220, 120, 0.20);
+  border-style: solid;
+}
+.fp-save-btn:disabled,
+.fp-load-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .fp-reset-btn {

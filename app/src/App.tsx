@@ -12,7 +12,7 @@ import { BonusPanel } from './components/BonusPanel';
 import { FloorPlanToolbar } from './components/FloorPlanToolbar';
 import { Toolbar } from './components/Toolbar';
 import { useGameStore } from './store/game';
-import { saveState, loadSavedState, type PersistedState } from './lib/persistence';
+import { loadSavedState } from './lib/persistence';
 
 const AVAILABLE_SCENARIO_IDS = [
   'training',
@@ -65,41 +65,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem(SCENARIO_STORAGE_KEY, scenarioId);
   }, [scenarioId]);
-
-  // Auto-save: on every store mutation, debounce ~250ms and write the
-  // current state to per-scenario localStorage. Each scenario has its own
-  // save slot — switching never destroys the others.
-  useEffect(() => {
-    let timer: number | null = null;
-    const unsub = useGameStore.subscribe((state) => {
-      if (!state.scenario) return;
-      if (timer !== null) window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        const snapshot: PersistedState = {
-          v: 1,
-          ts: Date.now(),
-          chosenVariants: state.chosenVariants,
-          activeRoomSlot: state.activeRoomSlot,
-          completedRoomSlots: Array.from(state.completedRoomSlots),
-          revealedCardKeys: Array.from(state.revealedCardKeys),
-          placedCardKeys: Array.from(state.placedCardKeys),
-          skippedCardKeys: Array.from(state.skippedCardKeys),
-          placedPieces: state.placedPieces,
-          walls: state.walls,
-          doors: state.doors,
-          windows: state.windows,
-          jokerUsed: state.jokerUsed,
-          frontDoorEdge: state.frontDoorEdge,
-          gameFinished: state.gameFinished,
-        };
-        saveState(state.scenario.id, snapshot);
-      }, 250);
-    });
-    return () => {
-      if (timer !== null) window.clearTimeout(timer);
-      unsub();
-    };
-  }, []);
 
   const changeScenario = (next: string) => {
     if (next === scenarioId) return;

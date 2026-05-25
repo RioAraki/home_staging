@@ -26,6 +26,42 @@ export interface PersistedState {
   gameFinished: boolean;
 }
 
+/** Build a PersistedState snapshot from current store state. Centralised so
+ *  the "what fields are saved" decision lives in one place. */
+export function makePersistedSnapshot(s: {
+  chosenVariants: Record<number, Variant>;
+  activeRoomSlot: RoomSlot | null;
+  completedRoomSlots: Set<RoomSlot>;
+  revealedCardKeys: Set<string>;
+  placedCardKeys: Set<string>;
+  skippedCardKeys: Set<string>;
+  placedPieces: PlacedPiece[];
+  walls: Record<string, true>;
+  doors: Record<string, RoomSlot>;
+  windows: Record<string, true>;
+  jokerUsed: boolean;
+  frontDoorEdge: string | null;
+  gameFinished: boolean;
+}): PersistedState {
+  return {
+    v: 1,
+    ts: Date.now(),
+    chosenVariants: s.chosenVariants,
+    activeRoomSlot: s.activeRoomSlot,
+    completedRoomSlots: Array.from(s.completedRoomSlots),
+    revealedCardKeys: Array.from(s.revealedCardKeys),
+    placedCardKeys: Array.from(s.placedCardKeys),
+    skippedCardKeys: Array.from(s.skippedCardKeys),
+    placedPieces: s.placedPieces,
+    walls: s.walls,
+    doors: s.doors,
+    windows: s.windows,
+    jokerUsed: s.jokerUsed,
+    frontDoorEdge: s.frontDoorEdge,
+    gameFinished: s.gameFinished,
+  };
+}
+
 export async function loadSavedState(scenarioId: string): Promise<PersistedState | null> {
   try {
     const res = await fetch(`/__game/load?scenarioId=${encodeURIComponent(scenarioId)}`);
