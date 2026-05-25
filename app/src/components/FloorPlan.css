@@ -52,14 +52,18 @@
   stroke-dasharray: 5 3;
 }
 
-/* Window symbol — small box protruding outward from the exterior wall. */
-.floor-plan .window-symbol .window-frame {
+/* Window symbol — two casement leaves hinged at each end of the opening,
+   swung outward 45°, with quarter-circle arcs showing swing path. */
+.floor-plan .window-symbol .window-leaf {
   stroke: #a8d8ee;
-  stroke-width: 1.6;
-  stroke-linejoin: round;
+  stroke-width: 2.2;
+  stroke-linecap: round;
 }
-.floor-plan .window-symbol .window-glass {
-  opacity: 0.7;
+.floor-plan .window-symbol .window-arc {
+  stroke: #a8d8ee;
+  stroke-width: 1.1;
+  stroke-dasharray: 2 2;
+  opacity: 0.75;
 }
 
 /* Placed-piece artwork — invert the white-paper sketch and lighten-blend it

@@ -160,49 +160,74 @@ function deriveExteriorWalls(cells: string[][], legend: Scenario['grid']['legend
 }
 
 /**
- * Architectural window symbol — a small rectangle that protrudes outward
- * from the wall on the outdoor side, with diagonal-hatch "glass" fill.
- * Mirrors the rulebook's window iconography.
+ * Architectural casement window symbol — two leaves hinged at each end of
+ * the wall opening, swung outward 45°, with quarter-circle arcs showing
+ * the swing path. Matches the visual the user requested ("从左右向外斜
+ * 45 度打开").
  */
 function renderWindowSymbol(
   edge: ExteriorEdge,
   cellSize: number,
-  patternId: string,
 ): React.ReactElement {
-  const margin = cellSize * 0.10;     // inset from edge endpoints
-  const depth = cellSize * 0.18;      // how far the box protrudes outward
+  const margin = cellSize * 0.06;
   const isHorizontal = edge.y1 === edge.y2;
+  // Each leaf is half the opening, so when fully closed they meet in the
+  // middle. At 45° open they tilt outward by sin(45°) and shorten on the
+  // wall axis by cos(45°).
+  const span = (isHorizontal
+    ? (edge.x2 - edge.x1) * cellSize
+    : (edge.y2 - edge.y1) * cellSize) - 2 * margin;
+  const leafLen = span / 2;
+  const off = leafLen / Math.SQRT2;   // = leafLen * cos(45°) = leafLen * sin(45°)
 
-  // Endpoints of the section of the wall the window sits on (after margin).
-  let inA: [number, number], inB: [number, number];
-  // Outer corners (on the outdoor side) of the window box.
-  let outA: [number, number], outB: [number, number];
+  let leftHinge: [number, number], rightHinge: [number, number];
+  let leftOpen: [number, number], rightOpen: [number, number];
+  let leftClosed: [number, number], rightClosed: [number, number];
+  let leftSweep: 0 | 1, rightSweep: 0 | 1;
 
   if (isHorizontal) {
     const y = edge.y1 * cellSize;
-    const x1 = edge.x1 * cellSize + margin;
-    const x2 = edge.x2 * cellSize - margin;
-    const dy = edge.outward === 'N' ? -depth : depth;
-    inA = [x1, y]; inB = [x2, y];
-    outA = [x1, y + dy]; outB = [x2, y + dy];
+    const xL = edge.x1 * cellSize + margin;
+    const xR = edge.x2 * cellSize - margin;
+    const sign = edge.outward === 'N' ? -1 : 1;   // outward dy sign
+    leftHinge = [xL, y];
+    rightHinge = [xR, y];
+    leftOpen = [xL + off, y + sign * off];
+    rightOpen = [xR - off, y + sign * off];
+    leftClosed = [xL + leafLen, y];               // closed = along wall to middle
+    rightClosed = [xR - leafLen, y];
+    // Arc sweep direction: leaf rotates from closed → open
+    // For outward=N (sign=-1): left leaf swings counter-clockwise (sweep=0 in SVG)
+    leftSweep = sign === -1 ? 0 : 1;
+    rightSweep = sign === -1 ? 1 : 0;
   } else {
     const x = edge.x1 * cellSize;
-    const y1 = edge.y1 * cellSize + margin;
-    const y2 = edge.y2 * cellSize - margin;
-    const dx = edge.outward === 'W' ? -depth : depth;
-    inA = [x, y1]; inB = [x, y2];
-    outA = [x + dx, y1]; outB = [x + dx, y2];
+    const yT = edge.y1 * cellSize + margin;
+    const yB = edge.y2 * cellSize - margin;
+    const sign = edge.outward === 'W' ? -1 : 1;
+    leftHinge = [x, yT];
+    rightHinge = [x, yB];
+    leftOpen = [x + sign * off, yT + off];
+    rightOpen = [x + sign * off, yB - off];
+    leftClosed = [x, yT + leafLen];
+    rightClosed = [x, yB - leafLen];
+    leftSweep = sign === -1 ? 1 : 0;
+    rightSweep = sign === -1 ? 0 : 1;
   }
 
-  const boxPath = `M ${inA[0]} ${inA[1]} L ${outA[0]} ${outA[1]} L ${outB[0]} ${outB[1]} L ${inB[0]} ${inB[1]}`;
+  const arcRadius = leafLen;
+  // SVG arc: M start A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+  const leftArc = `M ${leftClosed[0]} ${leftClosed[1]} A ${arcRadius} ${arcRadius} 0 0 ${leftSweep} ${leftOpen[0]} ${leftOpen[1]}`;
+  const rightArc = `M ${rightClosed[0]} ${rightClosed[1]} A ${arcRadius} ${arcRadius} 0 0 ${rightSweep} ${rightOpen[0]} ${rightOpen[1]}`;
 
   return (
     <g key={`window-${edge.key}`} className="window-symbol">
-      {/* glass — semitransparent diagonal hatch fill inside the protrusion */}
-      <path d={`${boxPath} Z`} className="window-glass" fill={`url(#${patternId})`} />
-      {/* frame — three lines forming the protrusion box (the wall side is left
-          open so the wall line shows through as the inner edge) */}
-      <path d={boxPath} className="window-frame" fill="none" />
+      {/* Left leaf panel + swing arc */}
+      <line x1={leftHinge[0]} y1={leftHinge[1]} x2={leftOpen[0]} y2={leftOpen[1]} className="window-leaf" />
+      <path d={leftArc} className="window-arc" fill="none" />
+      {/* Right leaf panel + swing arc */}
+      <line x1={rightHinge[0]} y1={rightHinge[1]} x2={rightOpen[0]} y2={rightOpen[1]} className="window-leaf" />
+      <path d={rightArc} className="window-arc" fill="none" />
     </g>
   );
 }
@@ -372,9 +397,6 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           <pattern id="ghost-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
             <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
           </pattern>
-          <pattern id="window-glass-hatch" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="5" stroke="#a8d8ee" strokeWidth="0.9" />
-          </pattern>
         </defs>
 
         <rect x={labelGap} y={labelGap} width={gridW} height={gridH} className="paper-bg" />
@@ -448,7 +470,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
         <g className="windows-layer" transform={`translate(${labelGap}, ${labelGap})`}>
           {exteriorWalls
             .filter((e) => windows[e.key])
-            .map((e) => renderWindowSymbol(e, cellSize, 'window-glass-hatch'))}
+            .map((e) => renderWindowSymbol(e, cellSize))}
         </g>
 
         {/* Hit-zones along the exterior wall — for window-mode (toggle) */}
