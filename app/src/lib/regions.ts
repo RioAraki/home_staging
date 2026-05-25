@@ -184,6 +184,13 @@ export function analyseAccessibility(
 
   const doorIssues: AccessibilityResult['doorIssues'] = [];
 
+  // Reverse map: region → which room owns it. Used to detect doors that
+  // open directly into another room (illegal unless the scenario waives
+  // the hallway requirement).
+  const regionToRoom = new Map<RegionId, RoomSlot>();
+  for (const [s, r] of roomToRegion) regionToRoom.set(r, s);
+  const hallwayRequired = scenario.rules?.hallway?.required !== false;
+
   for (const [edgeKey, owner] of Object.entries(doors)) {
     const sides = edgeSides(edgeKey);
     const sideRegions = sides.map(([r, c]) => {
@@ -212,6 +219,19 @@ export function analyseAccessibility(
         edgeKey, roomSlot: owner,
         reason: `Room ${owner}'s door has the same region on both sides (not separating anything).`,
       });
+    } else if (hallwayRequired) {
+      // Hallway rule: when required, the non-owner side of each room
+      // door must be a hallway region (or OUTSIDE for the special case
+      // of a room-door coinciding with the front door — rare). Opening
+      // straight into another room's region is forbidden.
+      const otherSide = a === ownerReg ? b : a;
+      const otherRoom = otherSide === OUTSIDE ? undefined : regionToRoom.get(otherSide);
+      if (otherRoom !== undefined && otherRoom !== owner) {
+        doorIssues.push({
+          edgeKey, roomSlot: owner,
+          reason: `Room ${owner}'s door opens directly into Room ${otherRoom} — this scenario requires every room door to face a hallway, not another room.`,
+        });
+      }
     }
   }
 

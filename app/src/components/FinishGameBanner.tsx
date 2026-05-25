@@ -27,14 +27,21 @@ export function FinishGameBanner({ scenario }: Props) {
   // being built, walled-off pockets are allowed (they may become future
   // rooms — e.g. Castle Café's no-hallway rule).
   const allRoomsSealed = completedRoomSlots.size === scenario.rooms.length;
-  const { orphanCount, unreachableRooms } = useMemo(() => {
-    if (!frontDoorEdge) return { orphanCount: 0, unreachableRooms: [] };
+  const { orphanCount, unreachableRooms, doorIssueCount, doorIssueSummary } = useMemo(() => {
+    if (!frontDoorEdge) {
+      return { orphanCount: 0, unreachableRooms: [], doorIssueCount: 0, doorIssueSummary: '' };
+    }
     const access = analyseAccessibility(scenario, placedPieces, walls, doors, frontDoorEdge);
     const orphans = allRoomsSealed ? findOrphanRegions(access, true).regionIds.length : 0;
     const bad = scenario.rooms
       .filter((r) => completedRoomSlots.has(r.slot) && !isRoomAccessible(access, r.slot))
       .map((r) => r.slot);
-    return { orphanCount: orphans, unreachableRooms: bad };
+    return {
+      orphanCount: orphans,
+      unreachableRooms: bad,
+      doorIssueCount: access.doorIssues.length,
+      doorIssueSummary: access.doorIssues.map((d) => d.reason).join(' · '),
+    };
   }, [scenario, placedPieces, walls, doors, frontDoorEdge, completedRoomSlots, allRoomsSealed]);
 
   // Don't show the banner once the game is over — the score overlay handles it.
@@ -44,14 +51,16 @@ export function FinishGameBanner({ scenario }: Props) {
   const frontDoorOk = !!frontDoorEdge;
   const noOrphans = orphanCount === 0;
   const allRoomsReachable = unreachableRooms.length === 0;
+  const noDoorIssues = doorIssueCount === 0;
   const allDone =
-    missingRooms.length === 0 && frontDoorOk && noOrphans && allRoomsReachable;
+    missingRooms.length === 0 && frontDoorOk && noOrphans && allRoomsReachable && noDoorIssues;
 
   const missingBits: string[] = [];
   if (missingRooms.length > 0) missingBits.push(...missingRooms.map((r) => `Room ${r.slot}`));
   if (!frontDoorOk) missingBits.push('Front door');
   if (!noOrphans) missingBits.push(`${orphanCount} isolated region(s)`);
   if (!allRoomsReachable) missingBits.push(`Rooms unreachable: ${unreachableRooms.join(', ')}`);
+  if (!noDoorIssues) missingBits.push(`${doorIssueCount} door issue(s)`);
 
   return (
     <div className={`finish-banner ${allDone ? 'ready' : 'pending'}`}>
@@ -77,6 +86,11 @@ export function FinishGameBanner({ scenario }: Props) {
           <span className={`check-item ${allRoomsReachable ? 'ok' : 'pending'}`}>
             {allRoomsReachable ? '✓' : '✗'} All rooms reachable from front door
             {!allRoomsReachable && ` (missing: ${unreachableRooms.join(',')})`}
+          </span>
+        )}
+        {doorIssueCount > 0 && (
+          <span className="check-item pending" title={doorIssueSummary}>
+            ✗ Door issues ({doorIssueCount})
           </span>
         )}
       </div>
