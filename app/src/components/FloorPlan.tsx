@@ -15,7 +15,7 @@ import {
   type TransformedShape,
 } from '../lib/geometry';
 import { validatePlacement } from '../lib/validation';
-import { validateWallTopology, checkWallEdgeCompliance } from '../lib/walls';
+import { validateWallTopology, checkWallEdgeCompliance, requiredWallEdgesForPiece } from '../lib/walls';
 import {
   computeRegions,
   analyseAccessibility,
@@ -416,6 +416,19 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
   const ghostOpenCells: Cell[] = useMemo(() => {
     if (!transformedSel || !hover) return [];
     return absoluteCells(transformedSel.open_spaces, hover);
+  }, [transformedSel, hover]);
+
+  // World-grid edges that the ghost piece would require to be walls. Used
+  // to overlay a "you'll need walls here" preview at the hover position.
+  const ghostWallEdges = useMemo(() => {
+    if (!transformedSel || !hover) return [] as { edgeKey: string; side: 'top' | 'right' | 'bottom' | 'left' }[];
+    return requiredWallEdgesForPiece(
+      transformedSel.shape,
+      transformedSel.open_spaces,
+      transformedSel.bbox,
+      transformedSel.wall_edges,
+      hover,
+    );
   }, [transformedSel, hover]);
 
   const handleCellClick = useCallback(
@@ -893,6 +906,35 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
                       width={cellSize - 2} height={cellSize - 2}
                       fill={fill} stroke={stroke} strokeWidth="1.5"
                       style={{ pointerEvents: 'none' }} />
+              );
+            })}
+            {/* Required wall_edges of the ghost piece — preview where walls
+                need to be so the player can position the piece accordingly.
+                Edges already covered by an existing wall / door render in
+                a softer tone; edges still missing in amber. */}
+            {ghostWallEdges.map(({ edgeKey, side }, i) => {
+              const [type, rStr, cStr] = edgeKey.split(':');
+              const r = parseInt(rStr, 10);
+              const c = parseInt(cStr, 10);
+              const satisfied = !!playerWalls[edgeKey] || !!playerDoors[edgeKey];
+              const stroke = satisfied
+                ? 'rgba(255, 225, 105, 0.45)'   // already a wall here — softer
+                : 'var(--accent)';              // still needs a wall — bright amber
+              const sw = satisfied ? 3 : 5;
+              const x1 = type === 'h' ? c * cellSize : c * cellSize;
+              const y1 = type === 'h' ? r * cellSize : r * cellSize;
+              const x2 = type === 'h' ? (c + 1) * cellSize : c * cellSize;
+              const y2 = type === 'h' ? r * cellSize : (r + 1) * cellSize;
+              return (
+                <line
+                  key={`gw${i}-${side}`}
+                  x1={x1} y1={y1} x2={x2} y2={y2}
+                  stroke={stroke}
+                  strokeWidth={sw}
+                  strokeDasharray={satisfied ? undefined : '4 3'}
+                  strokeLinecap="round"
+                  style={{ pointerEvents: 'none' }}
+                />
               );
             })}
           </g>
