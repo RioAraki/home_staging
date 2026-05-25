@@ -94,6 +94,18 @@
   fill: rgba(255, 225, 105, 0.85);
 }
 
+/* Wall-edge marker continuing through an OPEN cell — matches the bold
+   black border that the printed card draws on each cell touched by a
+   wall_edge. Solid white thick stroke inset from the cell side so it
+   reads as "this side of the piece bumps a wall" without being
+   confused with an actual wall (which sits on the cell boundary). */
+.floor-plan .open-wall-marker {
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 3;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
 /* Player-drawn walls (during wall-drawing mode) */
 .floor-plan .player-walls line.wall {
   stroke: var(--pen);

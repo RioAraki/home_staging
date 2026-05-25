@@ -689,6 +689,33 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
                     </clipPath>
                   </defs>
                 )}
+                {/* Wall-edge bold marker on OPEN cells. The source card crop
+                    is clipped to shape cells only, so any wall_edge that
+                    covers an open cell wouldn't show up otherwise. The
+                    rulebook draws these as the bold border continuing
+                    across the open cell — we mimic that with a thick stroke
+                    along the relevant cell side, inset slightly so it stays
+                    visually distinct from actual room walls. */}
+                {t.wall_edges.length > 0 && absOpen.map(([ar, ac], i) => {
+                  const lr = ar - p.origin[0];
+                  const lc = ac - p.origin[1];
+                  const inset = Math.max(2, cellSize * 0.07);
+                  const elems: React.ReactElement[] = [];
+                  const x = ac * cellSize;
+                  const y = ar * cellSize;
+                  for (const side of t.wall_edges) {
+                    if (side === 'top' && lr === 0) {
+                      elems.push(<line key={`wm${i}t`} x1={x + inset} y1={y + inset} x2={x + cellSize - inset} y2={y + inset} className="open-wall-marker" />);
+                    } else if (side === 'bottom' && lr === tH - 1) {
+                      elems.push(<line key={`wm${i}b`} x1={x + inset} y1={y + cellSize - inset} x2={x + cellSize - inset} y2={y + cellSize - inset} className="open-wall-marker" />);
+                    } else if (side === 'left' && lc === 0) {
+                      elems.push(<line key={`wm${i}l`} x1={x + inset} y1={y + inset} x2={x + inset} y2={y + cellSize - inset} className="open-wall-marker" />);
+                    } else if (side === 'right' && lc === tW - 1) {
+                      elems.push(<line key={`wm${i}r`} x1={x + cellSize - inset} y1={y + inset} x2={x + cellSize - inset} y2={y + cellSize - inset} className="open-wall-marker" />);
+                    }
+                  }
+                  return elems;
+                })}
                 {/* Open-space marker — a single dot at each open-space cell centre. */}
                 {absOpen.map(([r, c], i) => (
                   <circle
