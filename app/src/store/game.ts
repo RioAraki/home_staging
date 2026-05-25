@@ -177,6 +177,49 @@ function doorEdgeKey(cell: [number, number], edge: 'N' | 'S' | 'E' | 'W'): strin
   }
 }
 
+/** The two cells separated by an edge key ("h:r:c" = horizontal edge between
+ *  rows r-1 and r at column c; "v:r:c" = vertical edge between columns c-1
+ *  and c at row r). Used to derive which room "owns" a wall / window. */
+function edgeAdjacentCells(edgeKey: string): [[number, number], [number, number]] {
+  const [type, rStr, cStr] = edgeKey.split(':');
+  const r = parseInt(rStr, 10);
+  const c = parseInt(cStr, 10);
+  return type === 'h'
+    ? [[r - 1, c], [r, c]]
+    : [[r, c - 1], [r, c]];
+}
+
+/** Which rooms' placed pieces touch either side of this edge. Empty set ⇒
+ *  "orphan" edge with no piece nearby (e.g. a wall drawn in empty corridor).
+ *  Used by demolish to scope wall / window removal to the active room. */
+function edgeRoomAffinity(edgeKey: string, placed: PlacedPiece[]): Set<RoomSlot> {
+  const [a, b] = edgeAdjacentCells(edgeKey);
+  const rooms = new Set<RoomSlot>();
+  for (const p of placed) {
+    if (rooms.has(p.roomSlot)) continue;
+    const card = cardByNumberVariant(p.number, p.variant);
+    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+    if (!opt) continue;
+    const [bRows, bCols] = opt.bbox;
+    for (const [sr, sc] of [...opt.shape, ...opt.open_spaces]) {
+      let rr = sr, cc = sc;
+      if (p.mirrored) cc = bCols - 1 - cc;
+      for (let i = 0; i < p.rotation; i++) {
+        const nr = cc;
+        const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
+        rr = nr; cc = nc;
+      }
+      const ar = p.origin[0] + rr;
+      const ac = p.origin[1] + cc;
+      if ((ar === a[0] && ac === a[1]) || (ar === b[0] && ac === b[1])) {
+        rooms.add(p.roomSlot);
+        break;
+      }
+    }
+  }
+  return rooms;
+}
+
 /** If a scenario has exactly one pre_drawn front door, return its edge so
  *  initRun can lock the front door automatically. Multi-position scenarios
  *  (e.g. barn with 2 choices) still require player interaction. */
@@ -553,18 +596,43 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     demolishAtEdge: (edgeKey) => {
-      const { walls, doors, windows, frontDoorEdge, scenario, completedRoomSlots } = get();
-      // Determine what's on this edge (in priority order).
+      const {
+        walls, doors, windows, frontDoorEdge, scenario,
+        completedRoomSlots, activeRoomSlot, placedPieces,
+      } = get();
+      // Scope: while a room is actively being built (selected + not sealed),
+      // only that room's walls / doors / windows are demolishable. The
+      // front door is building-wide and must be removed outside edit mode.
+      const buildingRoom =
+        activeRoomSlot && !completedRoomSlots.has(activeRoomSlot) ? activeRoomSlot : null;
+      const scopeMsg = `Currently building Room ${buildingRoom} — can only demolish that room's walls / doors / windows.`;
+
+      // Front door: building-wide; blocked entirely while editing a room.
       if (frontDoorEdge === edgeKey) {
-        // Don't allow demolishing scenario-locked front doors.
         if (scenario && autoFrontDoor(scenario)) {
           set({ lastError: "This scenario fixes the front door — can't demolish." });
+          return;
+        }
+        if (buildingRoom) {
+          set({
+            lastError: `Currently building Room ${buildingRoom} — exit room edit mode to demolish the front door.`,
+          });
           return;
         }
         mutate(() => set({ frontDoorEdge: null, gameFinished: false, lastError: null }));
         return;
       }
+
+      // Window: scope by adjacent-piece room. An exterior window touching
+      // only another room's pieces is off-limits while building the active.
       if (windows[edgeKey]) {
+        if (buildingRoom) {
+          const aff = edgeRoomAffinity(edgeKey, placedPieces);
+          if (aff.size > 0 && !aff.has(buildingRoom)) {
+            set({ lastError: scopeMsg });
+            return;
+          }
+        }
         mutate(() => {
           const next = { ...windows };
           delete next[edgeKey];
@@ -572,7 +640,25 @@ export const useGameStore = create<GameState>((set, get) => {
         });
         return;
       }
+
+      // Wall or door.
       if (walls[edgeKey] || doors[edgeKey]) {
+        const doorOwner = doors[edgeKey];
+        if (buildingRoom) {
+          // Doors carry an explicit owner; walls inherit ownership from any
+          // adjacent piece. Orphan walls (no adjacent piece — typically
+          // drawn moments ago in this same wall phase) are always allowed.
+          const belongs = doorOwner
+            ? doorOwner === buildingRoom
+            : (() => {
+                const aff = edgeRoomAffinity(edgeKey, placedPieces);
+                return aff.size === 0 || aff.has(buildingRoom);
+              })();
+          if (!belongs) {
+            set({ lastError: scopeMsg });
+            return;
+          }
+        }
         mutate(() => {
           const nextWalls = { ...walls };
           delete nextWalls[edgeKey];
