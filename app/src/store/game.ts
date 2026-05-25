@@ -487,38 +487,48 @@ export const useGameStore = create<GameState>((set, get) => {
       }),
 
     demolishAtCell: ([targetR, targetC]) => {
-      const { placedPieces, placedCardKeys, completedRoomSlots } = get();
+      const { placedPieces, placedCardKeys, completedRoomSlots, activeRoomSlot } = get();
       // Find pieces whose SHAPE contains this cell. Open-space cells don't
       // count — clicking those is a no-op (per user rule).
-      const toRemove: number[] = [];
+      const hits: number[] = [];
       placedPieces.forEach((p, idx) => {
         const card = cardByNumberVariant(p.number, p.variant);
         const opt = card?.options.find((o) => o.option_index === p.optionIndex);
         if (!opt) return;
         // Inline transform — we don't want to drag the geometry import into
         // the store; reuse the shape cells stored by the piece's data.
-        const cells: Array<[number, number]> = [];
-        for (const [sr, sc] of opt.shape) cells.push([sr, sc]);
         // Apply rotation + mirror, same as transformOption.
         const [bRows, bCols] = opt.bbox;
-        const rotated = cells.map(([r, c]) => {
-          let rr = r, cc = c;
+        for (const [sr, sc] of opt.shape) {
+          let rr = sr, cc = sc;
           if (p.mirrored) cc = bCols - 1 - cc;
           for (let i = 0; i < p.rotation; i++) {
             const nr = cc;
             const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
             rr = nr; cc = nc;
           }
-          return [rr, cc] as [number, number];
-        });
-        for (const [r, c] of rotated) {
-          if (p.origin[0] + r === targetR && p.origin[1] + c === targetC) {
-            toRemove.push(idx);
+          if (p.origin[0] + rr === targetR && p.origin[1] + cc === targetC) {
+            hits.push(idx);
             break;
           }
         }
       });
-      if (toRemove.length === 0) return;
+      if (hits.length === 0) return;
+
+      // Demolish scope: while actively building a room (active room not yet
+      // sealed), only that room's furniture is demolishable. Once the room
+      // is sealed (or no active room), any room's furniture can be removed.
+      const buildingRoom =
+        activeRoomSlot && !completedRoomSlots.has(activeRoomSlot) ? activeRoomSlot : null;
+      const toRemove = buildingRoom
+        ? hits.filter((idx) => placedPieces[idx].roomSlot === buildingRoom)
+        : hits;
+      if (toRemove.length === 0) {
+        set({
+          lastError: `Currently building Room ${buildingRoom} — can only demolish that room's furniture. Seal or finish it first.`,
+        });
+        return;
+      }
       mutate(() => {
         const removeSet = new Set(toRemove);
         const newPieces = placedPieces.filter((_, idx) => !removeSet.has(idx));

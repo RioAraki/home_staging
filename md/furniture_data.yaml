@@ -1537,12 +1537,12 @@ cards:
       - option_index: 1
         name_zh: "瓷砖壁炉"
         name_en: "Tile fireplace"
-        bbox: [2, 3]
+        bbox: [2, 2]
         shape: [[1,0]]
-        open_spaces: [[0,0],[0,1],[0,2],[1,1],[1,2]]
+        open_spaces: [[0,0],[0,1],[1,1]]
         wall_edges: [bottom, left]
         printed_markers: 0
-        notes: "Single-cell fireplace in the bottom-left corner."
+        notes: "Single-cell fireplace in the bottom-left corner. Wall extends one cell outward along bottom and left (printed card shows walls only on the corner + one adjacent cell)."
       - option_index: 2
         name_zh: "欧式壁炉"
         name_en: "European fireplace"
