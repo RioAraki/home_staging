@@ -10,6 +10,7 @@ export interface TransformedShape {
   shape: Cell[];                                // cells the furniture occupies
   open_spaces: Cell[];                          // cells that must stay walkable
   wall_edges: WallEdgeSpec[];                   // exterior edges requiring a wall
+  cell_features: Array<[number, number, string]>;  // semantic tags per cell
 }
 
 /**
@@ -56,6 +57,12 @@ export function transformOption(
     bbox: [H2, W2],
     shape: option.shape.map(([r, c]) => transformCell(r, c)),
     open_spaces: option.open_spaces.map(([r, c]) => transformCell(r, c)),
+    cell_features: (option.cell_features ?? []).map((entry): [number, number, string] => {
+      const [r, c, type] = entry;
+      const [rm, cm] = applyMirror(r, c);
+      const [rr, cc] = rotateCell(rm, cm, H, W, rotation);
+      return [rr, cc, type];
+    }),
     wall_edges: (option.wall_edges ?? []).map((entry): WallEdgeSpec => {
       const mirrorSide = (s: WallEdge): WallEdge =>
         mirrored && (s === 'left' || s === 'right')

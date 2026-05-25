@@ -23,6 +23,14 @@ export interface FurnitureOption {
   open_spaces: Array<[number, number]>;
   wall_edges: WallEdgeSpec[];
   printed_markers: number;
+  /** Optional per-cell semantic tags inside the bbox. Each entry is
+   *  `[row, col, type]` where `type` is a string like 'plant' or 'table'.
+   *  Used by bonus evaluators to recognise composite pieces that bundle
+   *  multiple semantic items (e.g. #5A "small table with plant" tags
+   *  [1,1,plant] so the plant-adjacency bonus credits both the piece
+   *  itself and any neighbouring table). Coords are bbox-local and get
+   *  rotated / mirrored alongside shape cells. */
+  cell_features?: Array<[number, number, string]>;
   notes?: string;
   verify?: boolean;
 }

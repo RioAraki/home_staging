@@ -35,10 +35,13 @@ export function BonusPanel({ scenario }: Props) {
     );
   }
 
-  const earnedTotal = evaluated.reduce(
-    (sum, e) => (e.earned ? sum + e.bp.points : sum),
-    0,
-  );
+  // Per-match bonuses (count defined) scale points by match count. The
+  // YAML's bp.points is the per-match value; total earned is points × count.
+  const pointsEarned = (e: typeof evaluated[number]): number => {
+    if (e.count !== undefined) return e.bp.points * e.count;
+    return e.earned ? e.bp.points : 0;
+  };
+  const earnedTotal = evaluated.reduce((sum, e) => sum + pointsEarned(e), 0);
   const maxTotal = evaluated.reduce((sum, e) => sum + e.bp.points, 0);
 
   // Gather every special-rule reminder (anything non-default in scenario.rules).
@@ -100,7 +103,11 @@ export function BonusPanel({ scenario }: Props) {
                 <span className="bonus-note">— {e.note}</span>
               )}
             </span>
-            <span className="bonus-pts">+{e.bp.points}</span>
+            <span className="bonus-pts">
+              {e.count !== undefined && e.count > 0
+                ? `+${e.bp.points * e.count} (${e.bp.points}×${e.count})`
+                : `+${e.bp.points}`}
+            </span>
           </li>
         ))}
       </ul>

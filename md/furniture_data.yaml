@@ -238,7 +238,9 @@ cards:
         open_spaces: [[1,0],[1,2]]
         wall_edges: []
         printed_markers: 0
-        notes: "Top row has 2 chairs + 1 table with plant below; bottom row open at flanks."
+        cell_features:
+          - [1, 1, plant]
+        notes: "Top row = 2 chairs + 1 small table; (1,1) is the plant attached to the table. The plant cell is tagged so the 'per table adjacent to plant' bonus credits this piece on its own AND lets other tables that touch (1,1) score the bonus too."
       - option_index: 2
         name_zh: "转角小桌子"
         name_en: "Corner small table"

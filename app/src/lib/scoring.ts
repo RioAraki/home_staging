@@ -77,6 +77,20 @@ function pieceOpenSpaceCells(p: PlacedPiece): Array<[number, number]> {
   return absoluteCellsFn(t.open_spaces, p.origin);
 }
 
+/** World-cell coordinates of cell_features on a placed piece whose type
+ *  matches `featureType` (e.g. 'plant', 'table'). cell_features are
+ *  bbox-local and already rotated / mirrored by transformOption. */
+function pieceFeatureCells(p: PlacedPiece, featureType: string): Array<[number, number]> {
+  const card = cardByNumberVariant(p.number, p.variant);
+  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+  if (!opt) return [];
+  const t = transformOptionFn(opt, p.rotation, p.mirrored);
+  const [or, oc] = p.origin;
+  return t.cell_features
+    .filter(([, , type]) => type === featureType)
+    .map(([r, c]) => [r + or, c + oc] as [number, number]);
+}
+
 export interface EvaluatorContext {
   walls: Record<string, true>;
   doors: Record<string, RoomSlot>;
@@ -88,7 +102,7 @@ export function evaluateBonusCondition(
   scenario: Scenario,
   placedPieces: PlacedPiece[],
   ctx?: EvaluatorContext,
-): { earned: boolean; evaluator: string; note?: string } {
+): { earned: boolean; evaluator: string; note?: string; count?: number } {
   const cond = bp.condition ?? {};
   const keys = Object.keys(cond);
   if (keys.length === 0) return { earned: false, evaluator: '(no condition)' };
@@ -152,17 +166,24 @@ export function evaluateBonusCondition(
     }
 
     case 'per_table_adjacent_to_plant': {
-      // +1 per table piece (#4 / #5) that has a plant (#19) in a cell
-      // 4-adjacent to any of its shape cells. We DON'T currently feed the
-      // earned count back as variable points — the bonus_points record uses a
-      // fixed `points` value. For this scenario the rulebook awards +1 per
-      // matched table; we approximate by treating earned = "at least one
-      // matched table" (bonus is 1 point fixed in the YAML so it lines up).
+      // +1 per table piece (#4 / #5) that has a plant cell 4-adjacent to
+      // any of its shape cells. Plant cells come from two sources:
+      //   - shape cells of standalone plant pieces (#19), and
+      //   - cells tagged `plant` via cell_features on composite pieces
+      //     (e.g. #5A opt1 "small table with plant" — the plant cell is at
+      //     bbox-local [1,1]).
+      // A composite piece naturally credits itself (one of its table-side
+      // shape cells touches its own plant cell) AND lets neighbouring
+      // tables score off the same plant cell.
+      // Per-match scoring: caller multiplies bp.points by `count`.
       const tables = placedPieces.filter((p) => TABLE_NUMBERS.has(p.number));
       const plantCells = new Set<string>();
       for (const p of placedPieces) {
         if (PLANT_NUMBERS.has(p.number)) {
           for (const [r, c] of pieceShapeCells(p)) plantCells.add(`${r},${c}`);
+        }
+        for (const [wr, wc] of pieceFeatureCells(p, 'plant')) {
+          plantCells.add(`${wr},${wc}`);
         }
       }
       let matched = 0;
@@ -174,6 +195,7 @@ export function evaluateBonusCondition(
       }
       return {
         earned: matched > 0,
+        count: matched,
         evaluator: key,
         note: `${matched} table(s) adjacent to a plant`,
       };
@@ -416,11 +438,16 @@ export function computeScore(
   const inaccessibleRooms = rooms.filter((r) => !r.empty && !r.accessible).map((r) => r.slot);
 
   const bonuses: BonusEvaluation[] = scenario.bonus_points.map((bp) => {
-    const { earned, evaluator } = evaluateBonusCondition(bp, scenario, placedPieces, { walls, doors, windows });
+    const { earned, evaluator, count } = evaluateBonusCondition(bp, scenario, placedPieces, { walls, doors, windows });
+    // Per-match scoring: when an evaluator returns `count` (e.g.
+    // per_table_adjacent_to_plant returning how many tables matched),
+    // multiply the YAML's points value by that count. Otherwise fall back
+    // to the boolean earned check.
+    const points = count !== undefined ? bp.points * count : earned ? bp.points : 0;
     return {
       text_zh: bp.text_zh,
       text_en: bp.text_en,
-      points: earned ? bp.points : 0,
+      points,
       earned,
       evaluator,
     };
