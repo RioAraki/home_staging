@@ -491,10 +491,13 @@ export const useGameStore = create<GameState>((set, get) => {
     unplaceCard: (slot, slotIdx) => {
       // Withdraw a placed piece for this card instance from the floor plan,
       // same effect as demolishing it via the canvas but triggered from the
-      // sidebar card. Drops the piece, frees the instance key, and un-seals
-      // its room so the player can re-edit walls if they want.
+      // sidebar card. Drops the piece, frees the instance key, un-seals its
+      // room AND un-skips every other skipped card in that room — see the
+      // user-stated invariant: "removing furniture from a room reverts the
+      // room to editing state, every card in the room becomes editable
+      // until the room is finished again".
       const key = instanceKey(slot, slotIdx);
-      const { placedPieces, placedCardKeys, completedRoomSlots } = get();
+      const { placedPieces, placedCardKeys, completedRoomSlots, skippedCardKeys } = get();
       if (!placedCardKeys.has(key)) return;
       const newPieces = placedPieces.filter(
         (p) => !(p.slot === slot && p.slotIdx === slotIdx),
@@ -505,10 +508,16 @@ export const useGameStore = create<GameState>((set, get) => {
         newPlacedKeys.delete(key);
         const newCompleted = new Set(completedRoomSlots);
         newCompleted.delete(slot);
+        const newSkipped = new Set(skippedCardKeys);
+        for (const k of Array.from(newSkipped)) {
+          const [s] = k.split(':');
+          if (s === slot) newSkipped.delete(k);
+        }
         set({
           placedPieces: newPieces,
           placedCardKeys: newPlacedKeys,
           completedRoomSlots: newCompleted,
+          skippedCardKeys: newSkipped,
           gameFinished: false,
           lastError: null,
         });
@@ -643,6 +652,7 @@ export const useGameStore = create<GameState>((set, get) => {
         });
         return;
       }
+      const skippedCardKeys = get().skippedCardKeys;
       mutate(() => {
         const removeSet = new Set(toRemove);
         const newPieces = placedPieces.filter((_, idx) => !removeSet.has(idx));
@@ -656,10 +666,21 @@ export const useGameStore = create<GameState>((set, get) => {
         );
         const newCompleted = new Set(completedRoomSlots);
         for (const s of affectedRooms) newCompleted.delete(s);
+        // Invariant (user-stated): removing furniture from a room reverts
+        // that room to its editing state — every card in the room becomes
+        // re-editable, INCLUDING ones previously marked SKIPPED. Without
+        // this, demolishing a single piece left the player stuck: their
+        // skipped cards never came back so they couldn't re-fill the room.
+        const newSkipped = new Set(skippedCardKeys);
+        for (const k of Array.from(newSkipped)) {
+          const [s] = k.split(':');
+          if (affectedRooms.has(s as RoomSlot)) newSkipped.delete(k);
+        }
         set({
           placedPieces: newPieces,
           placedCardKeys: newPlacedKeys,
           completedRoomSlots: newCompleted,
+          skippedCardKeys: newSkipped,
           gameFinished: false,
           lastError: null,
         });
