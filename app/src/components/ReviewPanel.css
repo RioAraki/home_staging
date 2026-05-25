@@ -564,6 +564,45 @@
   color: var(--pen);
 }
 
+.chair-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.chair-counter.heuristic code {
+  background: rgba(255, 225, 105, 0.10);
+  color: rgba(255, 225, 105, 0.85);
+}
+.chair-counter.set code {
+  background: rgba(120, 220, 120, 0.18);
+  color: rgba(180, 240, 180, 0.95);
+}
+.chair-bump {
+  background: transparent;
+  border: 1px solid var(--pen-soft);
+  color: var(--pen);
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  padding: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+.chair-bump:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--pen);
+}
+.chair-bump:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.chair-heuristic-tag {
+  color: rgba(255, 225, 105, 0.6);
+  font-size: 0.9em;
+  margin-left: 2px;
+}
+
 .option-compare {
   display: grid;
   grid-template-columns: 1fr 1fr 2fr;

@@ -31,6 +31,14 @@ export interface FurnitureOption {
    *  itself and any neighbouring table). Coords are bbox-local and get
    *  rotated / mirrored alongside shape cells. */
   cell_features?: Array<[number, number, string]>;
+  /** Explicit number of chairs this piece contributes to "chairs in room"
+   *  bonuses (e.g. Castle Café's ≥16 chairs in the dining hall). When
+   *  unset, the evaluator falls back to a per-piece heuristic of
+   *  `open_spaces.length`. Use the review UI to set the real value when
+   *  the heuristic is wrong (composite pieces like #5A "small table with
+   *  plant" have 2 actual chairs but only 2 open_spaces, which happens to
+   *  match — but #4 dining tables and others can diverge). */
+  chair_count?: number;
   notes?: string;
   verify?: boolean;
 }

@@ -49,6 +49,11 @@ interface ProposedEdit {
    *  from yaml (the visual cell editor only edits bbox-side strings; any
    *  per-cell tuples are preserved verbatim on save). */
   wall_edges?: WallEdgeSpec[];
+  /** Explicit chair count for "chairs in room" bonuses. Overrides the
+   *  default open_spaces.length heuristic. -1 means "no override", which
+   *  is the same as omitting the field — kept as a discrete value so the
+   *  inline editor can move between 0 and "not set" cleanly. */
+  chair_count?: number;
   ts: number;
 }
 
@@ -576,6 +581,7 @@ function CardRow({
                 shape: payload.shape,
                 open_spaces: payload.open_spaces,
                 wall_edges: payload.wall_edges,
+                chair_count: payload.chair_count,
                 ts: Date.now(),
               })
             }
@@ -598,13 +604,33 @@ interface OptionBlockProps {
   onUpdate: (id: string, text: string) => void;
   onRemove: (id: string) => void;
   onToggleReview: () => void;
-  onSaveEdit: (payload: Pick<ProposedEdit, 'bbox' | 'shape' | 'open_spaces' | 'wall_edges'>) => void;
+  onSaveEdit: (payload: Pick<ProposedEdit, 'bbox' | 'shape' | 'open_spaces' | 'wall_edges' | 'chair_count'>) => void;
   onRemoveEdit: () => void;
 }
 
 function OptionBlock({ number, variant, opt, reviewed, edit, comments, onFlag, onUpdate, onRemove, onToggleReview, onSaveEdit, onRemoveEdit }: OptionBlockProps) {
   const [rows, cols] = opt.bbox;
   const [editing, setEditing] = useState(false);
+
+  // Effective chair count: explicit override (from edit, or yaml) wins
+  // over the open_spaces.length heuristic. `hasOverride` lets the UI
+  // distinguish a confirmed value from the auto-derived fallback.
+  const heuristic = opt.open_spaces.length;
+  const override = edit?.chair_count ?? opt.chair_count;
+  const hasOverride = override !== undefined;
+  const chairCount = hasOverride ? override! : heuristic;
+
+  const bumpChairs = (delta: number) => {
+    const next = Math.max(0, chairCount + delta);
+    onSaveEdit({
+      bbox: edit?.bbox ?? opt.bbox,
+      shape: edit?.shape ?? opt.shape,
+      open_spaces: edit?.open_spaces ?? opt.open_spaces,
+      wall_edges: edit?.wall_edges ?? opt.wall_edges ?? [],
+      chair_count: next,
+    });
+  };
+
   return (
     <div
       className={`option-block ${comments.length > 0 ? 'has-comments' : ''} ${reviewed ? 'reviewed' : ''} ${edit ? 'has-edit' : ''}`}
@@ -637,6 +663,31 @@ function OptionBlock({ number, variant, opt, reviewed, edit, comments, onFlag, o
           {opt.printed_markers && opt.printed_markers > 1 && (
             <> · markers <code>{opt.printed_markers}</code></>
           )}
+          <span
+            className={`chair-counter ${hasOverride ? 'set' : 'heuristic'}`}
+            title={
+              hasOverride
+                ? 'Explicit chair_count override saved as a ProposedEdit.'
+                : 'Auto-derived heuristic: open_spaces.length. Click +/− to set an explicit chair_count override.'
+            }
+          >
+            {' · '}chairs
+            <button
+              type="button"
+              className="chair-bump"
+              onClick={() => bumpChairs(-1)}
+              disabled={chairCount === 0}
+              aria-label="Decrease chair count"
+            >−</button>
+            <code>{chairCount}</code>
+            <button
+              type="button"
+              className="chair-bump"
+              onClick={() => bumpChairs(+1)}
+              aria-label="Increase chair count"
+            >+</button>
+            {!hasOverride && <span className="chair-heuristic-tag" title="heuristic from open_spaces.length">≈</span>}
+          </span>
         </div>
       </div>
 
@@ -724,7 +775,7 @@ interface CellEditorProps {
   variant: 'A' | 'B';
   opt: FurnitureOption;
   initial: ProposedEdit | null;
-  onSave: (payload: Pick<ProposedEdit, 'bbox' | 'shape' | 'open_spaces' | 'wall_edges'>) => void;
+  onSave: (payload: Pick<ProposedEdit, 'bbox' | 'shape' | 'open_spaces' | 'wall_edges' | 'chair_count'>) => void;
   onCancel: () => void;
 }
 
@@ -784,7 +835,11 @@ function CellEditor({ number, variant, opt, initial, onSave, onCancel }: CellEdi
       ...ALL_SIDES.filter((s) => wallSides.has(s)),
       ...preservedTuples,
     ];
-    onSave({ bbox: [rows, cols], shape, open_spaces: open, wall_edges });
+    // Preserve chair_count from prior edit if any — the visual cell
+    // editor doesn't tweak it directly (see the +/− chair counter in the
+    // option header). Round-tripping through CellEditor must not wipe it.
+    const chair_count = initial?.chair_count ?? opt.chair_count;
+    onSave({ bbox: [rows, cols], shape, open_spaces: open, wall_edges, chair_count });
   };
 
   const cellSize = 56;

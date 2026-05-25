@@ -152,15 +152,20 @@ export function evaluateBonusCondition(
     // ────────── Castle cafe / 城堡咖啡 ──────────
     case 'chairs_in_room_min': {
       // Count "chair" cells = open_space cells of all pieces in that room.
-      // Convention: every open_space cell in dining furniture (#4 #5)
-      // represents a seat. This counts open spaces of any placed piece in
-      // the room — for dining rooms this is overwhelmingly chairs.
+      // Prefer the option's explicit `chair_count` field when set (review
+      // UI can override / correct it). Falls back to the original
+      // heuristic of `open_spaces.length` per piece, which is right for
+      // most dining furniture but wrong for any piece with non-seat
+      // open spaces. Set chair_count on cards in the review UI to fix
+      // discrepancies.
       const slot = arg.room_slot as RoomSlot;
       const min = (arg.min as number) ?? 1;
       let chairs = 0;
       for (const p of placedPieces) {
         if (p.roomSlot !== slot) continue;
-        chairs += pieceOpenSpaceCells(p).length;
+        const card = cardByNumberVariant(p.number, p.variant);
+        const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+        chairs += opt?.chair_count ?? pieceOpenSpaceCells(p).length;
       }
       return { earned: chairs >= min, evaluator: key, note: `${chairs} chairs counted` };
     }
