@@ -103,8 +103,7 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
           type="button"
           className="unskip-card-btn"
           onClick={() => unskipCard(slot, slotIdx)}
-          disabled={disabled}
-          title="Bring this skipped card back so you can place it"
+          title="Bring this skipped card back so you can place it. Available even when this room isn't the active one — un-skip and withdraw are card-state edits, not placement, so they don't require the room to be active."
         >
           ↺ Un-skip
         </button>
@@ -114,8 +113,7 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
           type="button"
           className="unplace-card-btn"
           onClick={() => unplaceCard(slot, slotIdx)}
-          disabled={disabled}
-          title="Remove this piece from the floor plan and free the card for another placement"
+          title="Remove this piece from the floor plan and free the card for another placement. Available regardless of which room is active."
         >
           ↺ Withdraw piece
         </button>
