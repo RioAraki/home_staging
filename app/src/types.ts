@@ -124,6 +124,12 @@ export interface ScenarioRules {
     on_exterior_wall_anywhere: boolean;
     forced_edges?: WallEdge[];
     forced_cells?: Array<[number, number]>;
+    /** Width in cells of the front-door opening. Defaults to 1 (a normal
+     *  single-leaf door). Set to 2 for scenarios with a double-leaf
+     *  entrance (e.g. Rehearsal Barn — the barn doors are clearly wide).
+     *  Currently affects rendering only; the player still picks a single
+     *  edge as the front door. */
+    width?: number;
     notes?: string;
   };
   drawing: DrawingRule[];

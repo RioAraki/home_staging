@@ -124,6 +124,97 @@ function renderDoorSymbol(
   );
 }
 
+/**
+ * Double-leaf (2-cell wide) front door — both leaves hinged at the ends of
+ * the opening and swinging outward 45°, like the architectural casement
+ * window but with door-weight strokes. Used for scenarios that declare
+ * front_door.width === 2 (e.g. the barn doors in Rehearsal Barn).
+ *
+ * The model still tracks a single edge as frontDoorEdge; this renderer
+ * just paints two leaves centred on that edge, each occupying half the
+ * opening so the combined visual reads as one wide door. The opening is
+ * inset slightly from the cell ends so the leaves don't overrun walls.
+ */
+function renderDoubleDoorSymbol(
+  edgeKey: string,
+  outwardSideCell: [number, number] | null,
+  cellSize: number,
+  groupClassName: string,
+): React.ReactElement {
+  const [type, rStr, cStr] = edgeKey.split(':');
+  const r = parseInt(rStr, 10);
+  const c = parseInt(cStr, 10);
+  const L = cellSize;
+  const margin = L * 0.06;
+
+  // The two cells the edge separates. `outwardSideCell` (if known) is the
+  // outdoor side — leaves swing in that direction.
+  const sideA: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
+  const sideB: [number, number] = type === 'h' ? [r, c] : [r, c];
+  let sign: -1 | 1 = 1;
+  if (outwardSideCell) {
+    if (outwardSideCell[0] === sideA[0] && outwardSideCell[1] === sideA[1]) sign = -1;
+    else if (outwardSideCell[0] === sideB[0] && outwardSideCell[1] === sideB[1]) sign = 1;
+  }
+
+  // Each leaf occupies half the opening; at 45° open the leaf endpoint
+  // sits leafLen * cos(45°) = leafLen / √2 away from the hinge along both
+  // axes.
+  const span = L - 2 * margin;
+  const leafLen = span / 2;
+  const off = leafLen / Math.SQRT2;
+
+  let leftHinge: [number, number];
+  let rightHinge: [number, number];
+  let leftClosed: [number, number];
+  let rightClosed: [number, number];
+  let leftOpen: [number, number];
+  let rightOpen: [number, number];
+  let leftSweep: 0 | 1;
+  let rightSweep: 0 | 1;
+
+  if (type === 'h') {
+    // Horizontal edge: leaves swing up (sign=-1) or down (sign=+1).
+    const y = r * L;
+    const xL = c * L + margin;
+    const xR = (c + 1) * L - margin;
+    leftHinge = [xL, y];
+    rightHinge = [xR, y];
+    leftClosed = [xL + leafLen, y];           // closed = horizontal toward middle
+    rightClosed = [xR - leafLen, y];
+    leftOpen = [xL + off, y + sign * off];
+    rightOpen = [xR - off, y + sign * off];
+    leftSweep = sign === -1 ? 0 : 1;
+    rightSweep = sign === -1 ? 1 : 0;
+  } else {
+    // Vertical edge: leaves swing left (sign=-1) or right (sign=+1).
+    const x = c * L;
+    const yT = r * L + margin;
+    const yB = (r + 1) * L - margin;
+    leftHinge = [x, yT];
+    rightHinge = [x, yB];
+    leftClosed = [x, yT + leafLen];
+    rightClosed = [x, yB - leafLen];
+    leftOpen = [x + sign * off, yT + off];
+    rightOpen = [x + sign * off, yB - off];
+    leftSweep = sign === -1 ? 1 : 0;
+    rightSweep = sign === -1 ? 0 : 1;
+  }
+
+  const arcRadius = leafLen;
+  const leftArc = `M ${leftClosed[0]} ${leftClosed[1]} A ${arcRadius} ${arcRadius} 0 0 ${leftSweep} ${leftOpen[0]} ${leftOpen[1]}`;
+  const rightArc = `M ${rightClosed[0]} ${rightClosed[1]} A ${arcRadius} ${arcRadius} 0 0 ${rightSweep} ${rightOpen[0]} ${rightOpen[1]}`;
+
+  return (
+    <g key={`door-${edgeKey}`} className={`door-symbol double-door ${groupClassName}`}>
+      <line x1={leftHinge[0]} y1={leftHinge[1]} x2={leftOpen[0]} y2={leftOpen[1]} className="door-panel" />
+      <path d={leftArc} className="door-arc" fill="none" />
+      <line x1={rightHinge[0]} y1={rightHinge[1]} x2={rightOpen[0]} y2={rightOpen[1]} className="door-panel" />
+      <path d={rightArc} className="door-arc" fill="none" />
+    </g>
+  );
+}
+
 function ownerCellOfDoor(
   edgeKey: string,
   isOwnerCell: (cellKey: string) => boolean,
@@ -622,20 +713,41 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
 
         {/* Front door symbol — drawn separately so it doesn't carry the sketch
             wobble filter (which would distort the clean arc). Owner side =
-            any indoor cell (front door always swings out into the outdoors). */}
-        {frontDoorEdge && (
-          <g className="front-door-symbol-layer" transform={`translate(${labelGap}, ${labelGap})`}>
-            {renderDoorSymbol(
-              frontDoorEdge,
-              ownerCellOfDoor(
-                frontDoorEdge,
-                (k) => regionMap.cellToRegion.has(k),
-              ),
-              cellSize,
-              'front-door-symbol',
-            )}
-          </g>
-        )}
+            any indoor cell (front door always swings out into the outdoors).
+            Scenarios that mark front_door.width === 2 (e.g. Rehearsal Barn)
+            get a double-leaf casement-style render instead of the single-
+            leaf swing — visually wider, matches the printed barn doors. */}
+        {frontDoorEdge && (() => {
+          const indoorOwner = ownerCellOfDoor(
+            frontDoorEdge,
+            (k) => regionMap.cellToRegion.has(k),
+          );
+          const isDouble = (scenario.rules?.front_door?.width ?? 1) >= 2;
+          if (isDouble) {
+            // Double-leaf renderer wants the OUTDOOR side cell (leaves
+            // swing toward it). Flip the indoor-side back to its sibling.
+            const outdoorSide: [number, number] | null = indoorOwner
+              ? (() => {
+                  const [type, rStr, cStr] = frontDoorEdge.split(':');
+                  const r = parseInt(rStr, 10);
+                  const c = parseInt(cStr, 10);
+                  const a: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
+                  const b: [number, number] = type === 'h' ? [r, c] : [r, c];
+                  return indoorOwner[0] === a[0] && indoorOwner[1] === a[1] ? b : a;
+                })()
+              : null;
+            return (
+              <g className="front-door-symbol-layer" transform={`translate(${labelGap}, ${labelGap})`}>
+                {renderDoubleDoorSymbol(frontDoorEdge, outdoorSide, cellSize, 'front-door-symbol')}
+              </g>
+            );
+          }
+          return (
+            <g className="front-door-symbol-layer" transform={`translate(${labelGap}, ${labelGap})`}>
+              {renderDoorSymbol(frontDoorEdge, indoorOwner, cellSize, 'front-door-symbol')}
+            </g>
+          );
+        })()}
 
         {/* Windows — architectural symbol: small rectangle protruding from the
             wall on the outdoor side, with diagonal-hatch glass fill. */}

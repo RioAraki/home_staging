@@ -522,23 +522,7 @@ scenarios:
     verify: true
   zones: {}
   pre_drawn:
-    doors:
-    - cell:
-      - 11
-      - 9
-      edge: S
-      target: front_door
-      verify: true
-      notes_zh: 2 格宽门带（左半）
-      notes_en: 2-cell door zone (left half)
-    - cell:
-      - 11
-      - 10
-      edge: S
-      target: front_door
-      verify: true
-      notes_zh: 2 格宽门带（右半）
-      notes_en: 2-cell door zone (right half)
+    doors: []
     windows: []
     walls_interior: []
   rules:
@@ -546,11 +530,20 @@ scenarios:
       required: true
     front_door:
       on_exterior_wall_anywhere: false
+      # Front door is a 2-cell-wide double door. Picking any of these
+      # outdoor cells designates the adjacent exterior-wall edge as the
+      # front door. They line up along the L-shape concave corner:
+      # rows 7 cols E..H (south wall of the wide top), then col H rows
+      # 9..11 (west wall of the narrow bottom).
       forced_cells:
-      - - 11
-        - 9
-      - - 11
-        - 10
+      - [7, 4]   # 8E
+      - [7, 5]   # 8F
+      - [7, 6]   # 8G
+      - [7, 7]   # 8H
+      - [8, 7]   # 9H
+      - [9, 7]   # 10H
+      - [10, 7]  # 11H
+      width: 2
     drawing:
     - id: door_zone_clear
       kind: drawing_constraint
