@@ -191,6 +191,21 @@ export function analyseAccessibility(
   for (const [s, r] of roomToRegion) regionToRoom.set(r, s);
   const hallwayRequired = scenario.rules?.hallway?.required !== false;
 
+  // The "lobby" region — the indoor region the front door opens directly
+  // into. A room's door is allowed to open into this region even if it's
+  // already claimed by a room (the room acts as the entrance hall), the
+  // same way Castle Café's dining area legitimately doubles as the lobby.
+  // Without this exception, scenarios like the Training map (where the
+  // living room is small enough that the front door must open straight
+  // into it) would always flag every other room's door as illegal.
+  let frontDoorInteriorRegion: RegionId | null = null;
+  if (frontDoorEdge) {
+    for (const [r, c] of edgeSides(frontDoorEdge)) {
+      const reg = regionMap.cellToRegion.get(`${r},${c}`);
+      if (reg !== undefined) { frontDoorInteriorRegion = reg; break; }
+    }
+  }
+
   for (const [edgeKey, owner] of Object.entries(doors)) {
     const sides = edgeSides(edgeKey);
     const sideRegions = sides.map(([r, c]) => {
@@ -221,15 +236,22 @@ export function analyseAccessibility(
       });
     } else if (hallwayRequired) {
       // Hallway rule: when required, the non-owner side of each room
-      // door must be a hallway region (or OUTSIDE for the special case
-      // of a room-door coinciding with the front door — rare). Opening
-      // straight into another room's region is forbidden.
+      // door must be one of:
+      //   - OUTSIDE (door coincides with the front door — rare).
+      //   - A hallway region (no placed pieces).
+      //   - The lobby (region the front door opens into) — a designated
+      //     room may legitimately double as the entrance, so doors that
+      //     open into it are OK even when that region is claimed by a
+      //     room. The Training scenario relies on this: living room is
+      //     the front-door region; kitchen / bathroom doors open into it.
+      // Opening into ANY OTHER room's region is forbidden.
       const otherSide = a === ownerReg ? b : a;
       const otherRoom = otherSide === OUTSIDE ? undefined : regionToRoom.get(otherSide);
-      if (otherRoom !== undefined && otherRoom !== owner) {
+      const isLobby = otherSide === frontDoorInteriorRegion;
+      if (otherRoom !== undefined && otherRoom !== owner && !isLobby) {
         doorIssues.push({
           edgeKey, roomSlot: owner,
-          reason: `Room ${owner}'s door opens directly into Room ${otherRoom} — this scenario requires every room door to face a hallway, not another room.`,
+          reason: `Room ${owner}'s door opens directly into Room ${otherRoom} — this scenario requires every room door to face the hallway / lobby, not another non-lobby room.`,
         });
       }
     }
