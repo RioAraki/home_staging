@@ -346,15 +346,19 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
 
   // Orphan regions — indoor cells that the player walled off into a dead
   // pocket (no furniture inside AND unreachable from the front door via the
-  // door graph). Highlighted in red so the player notices.
+  // door graph). Only flagged once EVERY room is sealed: until then, any
+  // walled-off pocket is allowed to be a future room (Castle Café's no-
+  // hallway rule means rooms I and II will become what would otherwise look
+  // like orphan pockets after the dining room is built first).
   const orphanCellSet = useMemo(() => {
     if (!frontDoorEdge) return new Set<string>();
+    if (completedRoomSlots.size < scenario.rooms.length) return new Set<string>();
     const access = analyseAccessibility(
       scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge,
     );
     const { cells } = findOrphanRegions(access, !!frontDoorEdge);
     return new Set(cells);
-  }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge]);
+  }, [scenario, placedPieces, playerWalls, playerDoors, frontDoorEdge, completedRoomSlots]);
 
   const [hover, setHover] = useState<Cell | null>(null);
   const [hoverEdge, setHoverEdge] = useState<string | null>(null);

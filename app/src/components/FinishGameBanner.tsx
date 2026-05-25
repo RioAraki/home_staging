@@ -22,16 +22,20 @@ export function FinishGameBanner({ scenario }: Props) {
   const walls = useGameStore((s) => s.walls);
   const doors = useGameStore((s) => s.doors);
 
-  // Building-level checks (only meaningful once front door is set).
+  // Building-level checks: front door must be set, AND all rooms must be
+  // sealed before orphan detection is meaningful. While rooms are still
+  // being built, walled-off pockets are allowed (they may become future
+  // rooms — e.g. Castle Café's no-hallway rule).
+  const allRoomsSealed = completedRoomSlots.size === scenario.rooms.length;
   const { orphanCount, unreachableRooms } = useMemo(() => {
     if (!frontDoorEdge) return { orphanCount: 0, unreachableRooms: [] };
     const access = analyseAccessibility(scenario, placedPieces, walls, doors, frontDoorEdge);
-    const orphans = findOrphanRegions(access, true).regionIds.length;
+    const orphans = allRoomsSealed ? findOrphanRegions(access, true).regionIds.length : 0;
     const bad = scenario.rooms
       .filter((r) => completedRoomSlots.has(r.slot) && !isRoomAccessible(access, r.slot))
       .map((r) => r.slot);
     return { orphanCount: orphans, unreachableRooms: bad };
-  }, [scenario, placedPieces, walls, doors, frontDoorEdge, completedRoomSlots]);
+  }, [scenario, placedPieces, walls, doors, frontDoorEdge, completedRoomSlots, allRoomsSealed]);
 
   // Don't show the banner once the game is over — the score overlay handles it.
   if (gameFinished) return null;
@@ -63,7 +67,7 @@ export function FinishGameBanner({ scenario }: Props) {
         <span className={`check-item ${frontDoorOk ? 'ok' : 'pending'}`}>
           {frontDoorOk ? '✓' : '○'} Front door
         </span>
-        {frontDoorOk && (
+        {frontDoorOk && allRoomsSealed && (
           <span className={`check-item ${noOrphans ? 'ok' : 'pending'}`}>
             {noOrphans ? '✓' : '✗'} No isolated regions
             {!noOrphans && ` (${orphanCount})`}
