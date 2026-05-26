@@ -95,10 +95,23 @@ export interface PreDrawnWindow {
   verify?: boolean;
 }
 
+/** A scenario-defined point of interest on a grid cell — e.g. the network
+ *  socket in the Game Store scenario (covered by #30 for a bonus). Pure
+ *  data; the floor plan paints a marker and bonuses use it via
+ *  covers_marker. */
+export interface PreDrawnMarker {
+  cell: [number, number];
+  id: string;                // referenced by bonus conditions (covers_marker.marker)
+  symbol?: string;           // 1-char glyph to draw, defaults per id
+  notes_zh?: string;
+  notes_en?: string;
+}
+
 export interface PreDrawn {
   doors: PreDrawnDoor[];
   windows: PreDrawnWindow[];
   walls_interior: Array<[number, number, number, number]>;
+  markers?: PreDrawnMarker[];
 }
 
 export interface BonusPoint {
@@ -115,6 +128,11 @@ export interface DrawingRule {
   text_en: string;
   adds_cell_feature?: string;
   adds_zone?: Record<string, unknown>;
+  /** Cells this rule binds to — when present, the floor plan paints
+   *  them with a per-rule visual tint and validation can use them to
+   *  enforce the rule. E.g. window_area_no_cover lists the cells the
+   *  player must keep walkable. */
+  cells?: Array<[number, number]>;
   [k: string]: unknown;
 }
 

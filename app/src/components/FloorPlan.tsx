@@ -769,6 +769,73 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           </g>
         )}
 
+        {/* Drawing-rule cell overlays — scenario rules with a `cells`
+            list (e.g. Game Store's window-area-no-cover) paint a soft
+            warning tint over those cells so the player can see at a
+            glance which squares the rule covers. */}
+        {(scenario.rules?.drawing ?? []).flatMap((rule, ri) => {
+          if (!rule.cells || rule.cells.length === 0) return [];
+          return (
+            <g
+              key={`drule-${ri}`}
+              className={`drawing-rule-cells drule-${rule.id}`}
+              transform={`translate(${labelGap}, ${labelGap})`}
+            >
+              {rule.cells.map(([r, c], i) => (
+                <rect
+                  key={`drc-${ri}-${i}`}
+                  x={c * cellSize}
+                  y={r * cellSize}
+                  width={cellSize}
+                  height={cellSize}
+                  fill="rgba(255, 195, 105, 0.18)"
+                  stroke="rgba(255, 195, 105, 0.6)"
+                  strokeWidth="1"
+                  strokeDasharray="4 3"
+                  pointerEvents="none"
+                >
+                  <title>{rule.text_zh}</title>
+                </rect>
+              ))}
+            </g>
+          );
+        })}
+
+        {/* Pre-drawn scenario markers — small labelled circle at the
+            cell centre. Used by the Game Store socket etc. */}
+        {(scenario.pre_drawn?.markers ?? []).length > 0 && (
+          <g className="pre-drawn-markers" transform={`translate(${labelGap}, ${labelGap})`}>
+            {(scenario.pre_drawn?.markers ?? []).map((m, i) => {
+              const cx = m.cell[1] * cellSize + cellSize / 2;
+              const cy = m.cell[0] * cellSize + cellSize / 2;
+              const r = Math.min(cellSize * 0.32, 16);
+              return (
+                <g key={`marker-${i}`}>
+                  <circle
+                    cx={cx} cy={cy} r={r}
+                    fill="rgba(20, 30, 50, 0.85)"
+                    stroke="var(--pen)"
+                    strokeWidth="1.5"
+                  >
+                    <title>{m.notes_zh ?? m.id}</title>
+                  </circle>
+                  <text
+                    x={cx} y={cy}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fill="var(--pen)"
+                    fontSize={Math.max(11, cellSize * 0.36)}
+                    fontFamily="'Patrick Hand', sans-serif"
+                    pointerEvents="none"
+                  >
+                    {m.symbol ?? m.id[0]?.toUpperCase() ?? '·'}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        )}
+
         {/* Edges erased by the front door — the picked edge plus, for a
             2-cell-wide door, the adjacent edge along the same wall (chosen
             by frontDoorSpan to be a real exterior edge in either

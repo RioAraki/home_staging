@@ -116,6 +116,17 @@ export function validatePlacement(
   const strict = noFurnitureOnCarpet(scenario);
   const newIsCarpet = newPieceNumber === CARPET_NUMBER;
 
+  // Drawing-rule "must stay walkable" cells — scenarios that declare a
+  // rules.drawing entry with a `cells` list (e.g. Game Store's
+  // window_area_no_cover row at 14E–14J) treat those cells as forbidden
+  // for furniture shape. Open spaces on top of them are fine — they're
+  // walkable by definition.
+  const noCoverCells = new Set<string>();
+  for (const rule of scenario.rules?.drawing ?? []) {
+    if (!rule.cells) continue;
+    for (const [r, c] of rule.cells) noCoverCells.add(`${r},${c}`);
+  }
+
   // Cells on either side of a door (room door or front door) must stay
   // walkable — a furniture shape on one side would jam the door shut.
   // For a multi-cell-wide front door (e.g. Rehearsal Barn's barn doors)
@@ -208,6 +219,11 @@ export function validatePlacement(
       badShape.push([r, c]);
       continue;
     }
+    // Scenario "must stay walkable" zones (e.g. window strip).
+    if (noCoverCells.has(key) && !newIsCarpet) {
+      badShape.push([r, c]);
+      continue;
+    }
   }
   if (badShape.length) {
     // Build a friendlier message
@@ -228,6 +244,8 @@ export function validatePlacement(
       reason = "Cannot cover another piece's open space";
     else if (doorAdjacentCells.has(key))
       reason = 'Cell flanks a door — both sides of every door must stay walkable';
+    else if (noCoverCells.has(key))
+      reason = 'Scenario rule forbids covering this cell with furniture (must stay walkable)';
     return { valid: false, reason, badCells: badShape };
   }
 

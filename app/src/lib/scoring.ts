@@ -440,9 +440,32 @@ export function evaluateBonusCondition(
     }
 
     case 'covers_marker': {
-      // Scenario marker cells (e.g. socket markers) are not yet authored
-      // into scenario data. Always not-earned for now.
-      return { earned: false, evaluator: key, note: 'marker cells not in data' };
+      // Bonus: a placed piece of `furniture` (e.g. counter #30) must have
+      // at least one shape cell overlapping the marker cell identified by
+      // `marker` (id from scenario.pre_drawn.markers). Used by Game Store
+      // for the "counter covers the socket" bonus.
+      const furnitureNum = arg.furniture as number;
+      const markerId = arg.marker as string;
+      const markers = scenario.pre_drawn?.markers ?? [];
+      const target = markers.find((m) => m.id === markerId);
+      if (!target) {
+        return { earned: false, evaluator: key, note: `marker ${markerId} not in scenario data` };
+      }
+      const [mr, mc] = target.cell;
+      const candidates = placedPieces.filter((p) => p.number === furnitureNum);
+      if (candidates.length === 0) {
+        return { earned: false, evaluator: key, note: `#${furnitureNum} not placed` };
+      }
+      const covered = candidates.some((p) =>
+        pieceShapeCells(p).some(([r, c]) => r === mr && c === mc),
+      );
+      return {
+        earned: covered,
+        evaluator: key,
+        note: covered
+          ? `#${furnitureNum} covers ${markerId}`
+          : `#${furnitureNum} placed but not over ${markerId}`,
+      };
     }
 
     default:
