@@ -2,6 +2,7 @@ import type { FurnitureOption } from '../types';
 import type { Rotation, Variant } from '../store/game';
 import { transformOption } from '../lib/geometry';
 import { optionImageUrl } from '../lib/optionImage';
+import { FurnitureVector, hasVectorVisual } from '../vector/FurnitureVector';
 import './FurnitureShape.css';
 
 interface FurnitureShapeProps {
@@ -96,23 +97,48 @@ export function FurnitureShape({
           </clipPath>
         </defs>
 
-        {/* Artwork base (invert + lighten in CSS, so dark sketch lines show
-            as bright on the blueprint backdrop). Clipped to shape ∪ open so
-            void bbox cells stay transparent. */}
-        <g
-          transform={`translate(${w / 2}, ${h / 2}) rotate(${rotation * 90}) scale(${mirrored ? -1 : 1}, 1)`}
-          className="piece-art"
-        >
-          <image
-            href={imageUrl}
-            x={-origPxW / 2}
-            y={-origPxH / 2}
-            width={origPxW}
-            height={origPxH}
-            preserveAspectRatio="none"
-            clipPath={`url(#${clipId})`}
-          />
-        </g>
+        {/* Artwork base — vector primitives from furniture_visual.yaml when
+            available, otherwise the raster card crop (invert + lighten in
+            CSS so dark sketch lines show as bright on the blueprint
+            backdrop). Both are clipped to shape so void bbox cells stay
+            transparent.
+
+            Sharing this branch with FloorPlan means tagging an option in
+            the visual schema automatically updates the review thumbnail
+            and any sidebar / status preview, so the review pass actually
+            shows the new render. */}
+        {hasVectorVisual(number, variant, option.option_index) ? (
+          <g
+            transform={`translate(${w / 2}, ${h / 2}) rotate(${rotation * 90}) scale(${mirrored ? -1 : 1}, 1)`}
+            className="piece-vector"
+          >
+            <g transform={`translate(${-origPxW / 2}, ${-origPxH / 2})`}>
+              <FurnitureVector
+                number={number}
+                variant={variant}
+                optionIndex={option.option_index}
+                rows={origRows}
+                cols={origCols}
+                cellSize={cellSize}
+              />
+            </g>
+          </g>
+        ) : (
+          <g
+            transform={`translate(${w / 2}, ${h / 2}) rotate(${rotation * 90}) scale(${mirrored ? -1 : 1}, 1)`}
+            className="piece-art"
+          >
+            <image
+              href={imageUrl}
+              x={-origPxW / 2}
+              y={-origPxH / 2}
+              width={origPxW}
+              height={origPxH}
+              preserveAspectRatio="none"
+              clipPath={`url(#${clipId})`}
+            />
+          </g>
+        )}
 
         {/* Open-space marker — a single dot at the cell centre. */}
         {t.open_spaces.map(([r, c], i) => (
