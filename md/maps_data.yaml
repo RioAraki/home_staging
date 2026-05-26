@@ -564,13 +564,6 @@ scenarios:
         targets:
         - 28
         max: 2
-  - text_zh: 乐器（27）与音响设备（28）朝向一致
-    text_en: Instruments (27) and sound equipment (28) share the same orientation
-    points: 2
-    condition:
-      same_orientation:
-        a: 27
-        b: 28
   - text_zh: 装了地毯（33）
     text_en: Carpet (33) placed
     points: 3

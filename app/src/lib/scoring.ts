@@ -257,31 +257,6 @@ export function evaluateBonusCondition(
     }
 
     // ────────── Barn rehearsal ──────────
-    case 'same_orientation': {
-      // Two named furniture numbers must share rotation AND mirrored state.
-      // Used by the Rehearsal Barn "麦克风 (27) 与音箱 (28) 朝向一致"
-      // bonus. Both pieces must be placed; if either is missing, not
-      // earned. Multiple instances are tolerated as long as every placed
-      // piece (of either number) shares the reference orientation.
-      const a = arg.a as number;
-      const b = arg.b as number;
-      const piecesA = placedPieces.filter((p) => p.number === a);
-      const piecesB = placedPieces.filter((p) => p.number === b);
-      if (piecesA.length === 0 || piecesB.length === 0) {
-        return { earned: false, evaluator: key, note: `need at least one #${a} and one #${b}` };
-      }
-      const refRot = piecesA[0].rotation;
-      const refMir = piecesA[0].mirrored;
-      const ok = [...piecesA, ...piecesB].every(
-        (p) => p.rotation === refRot && p.mirrored === refMir,
-      );
-      return {
-        earned: ok,
-        evaluator: key,
-        note: ok ? 'orientations match' : `#${a} / #${b} orientations differ`,
-      };
-    }
-
     case 'each_distance_at_most': {
       // For each pair (instrument piece, target piece), the shortest grid
       // path (4-neighbour, walls block) between any pair of shape cells must
