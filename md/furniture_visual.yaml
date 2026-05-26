@@ -21,4 +21,128 @@
 # Coordinate convention: cells use the SAME (row, col) layout as the option's
 # `shape` in furniture_data.yaml. 0-indexed within the option's bbox.
 
-entries: []
+entries:
+
+  # ── #01 长沙发 / Long sofa & variants ───────────────────────────────
+  - number: 1
+    variant: A
+    option_index: 1
+    parts:
+      - kind: sofa_run
+        cells: [[0,0],[0,1],[0,2],[0,3]]
+  - number: 1
+    variant: B
+    option_index: 2
+    parts:
+      - kind: sofa_run
+        cells: [[0,2],[1,2],[2,0],[2,1],[2,2]]   # L-shape corner sofa
+
+  # ── #02 小沙发 ────────────────────────────────────────────────────
+  - number: 2
+    variant: A
+    option_index: 1
+    parts:
+      - kind: sofa_run
+        cells: [[0,1],[0,2],[1,2],[2,2]]   # folding corner sofa (L)
+  - number: 2
+    variant: A
+    option_index: 2
+    parts:
+      - kind: sofa_run
+        cells: [[0,0],[0,1]]
+
+  # ── #03 置物架 / Shelf ─────────────────────────────────────────────
+  - number: 3
+    variant: A
+    option_index: 1
+    parts:
+      - kind: shelf_unit
+        cells: [[0,0],[0,1],[0,2]]
+  - number: 3
+    variant: A
+    option_index: 2
+    parts:
+      - kind: shelf_unit
+        cells: [[1,0],[1,1]]
+  - number: 3
+    variant: B
+    option_index: 1
+    parts:
+      - kind: shelf_unit
+        cells: [[0,0],[0,1],[0,2],[0,3]]
+        books: true
+  - number: 3
+    variant: B
+    option_index: 2
+    parts:
+      - kind: shelf_unit
+        cells: [[0,0],[0,1],[0,2]]
+        books: true
+      - kind: shelf_unit
+        cells: [[1,2]]
+        books: true
+
+  # ── #05 小桌子 ─────────────────────────────────────────────────────
+  - number: 5
+    variant: A
+    option_index: 1   # Small table with plant
+    parts:
+      - kind: table_top
+        cells: [[0,1]]
+      - kind: chair_dot
+        cells: [[0,0]]
+        face: E
+      - kind: chair_dot
+        cells: [[0,2]]
+        face: W
+      - kind: plant_potted
+        cells: [[1,1]]
+        leaves: 4
+  - number: 5
+    variant: A
+    option_index: 2   # Corner small table
+    parts:
+      - kind: table_top
+        cells: [[0,0],[0,1],[1,1]]
+  - number: 5
+    variant: B
+    option_index: 1   # Small table with 2 chairs
+    parts:
+      - kind: table_top
+        cells: [[0,1]]
+      - kind: chair_dot
+        cells: [[0,0]]
+        face: E
+      - kind: chair_dot
+        cells: [[0,2]]
+        face: W
+
+  # ── #19 植物 ───────────────────────────────────────────────────────
+  - number: 19
+    variant: A
+    option_index: 1   # Rose colony (3 cells L-shape)
+    parts:
+      - kind: plant_potted
+        cells: [[0,0],[0,1],[1,1]]
+        leaves: 5
+  - number: 19
+    variant: A
+    option_index: 2   # Two tulips at diagonal
+    parts:
+      - kind: plant_potted
+        cells: [[0,0],[1,1]]
+        leaves: 3
+  - number: 19
+    variant: B
+    option_index: 1   # Single plant
+    parts:
+      - kind: plant_potted
+        cells: [[0,0]]
+        leaves: 4
+  - number: 19
+    variant: B
+    option_index: 2   # 2-cell horizontal plant colony
+    parts:
+      - kind: plant_potted
+        cells: [[0,0],[0,1]]
+        leaves: 4
