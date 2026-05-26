@@ -555,18 +555,17 @@ scenarios:
       text_en: Do not place furniture on the carpet.
     scoring: []
   bonus_points:
-  - text_zh: 每件乐器到麦克风（27）和音箱（28）都不超过 2 格
-    text_en: Each musical instrument ≤ 2 squares from mic (27) and amp (28)
+  - text_zh: 每件乐器（27）到音响设备（28）不超过 2 格
+    text_en: Each instrument (27) is ≤ 2 squares from sound equipment (28)
     points: 2
     condition:
       each_distance_at_most:
-        instrument: 17
+        instrument: 27
         targets:
-        - 27
         - 28
         max: 2
-  - text_zh: 麦克风（27）与音箱（28）朝向一致
-    text_en: Microphone (27) and amplifier (28) share the same orientation
+  - text_zh: 乐器（27）与音响设备（28）朝向一致
+    text_en: Instruments (27) and sound equipment (28) share the same orientation
     points: 2
     condition:
       same_orientation:
