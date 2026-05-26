@@ -699,22 +699,39 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           </g>
         )}
 
-        <g className="exterior-walls" transform={`translate(${labelGap}, ${labelGap})`} filter="url(#sketch)">
-          {exteriorWalls.map((e, i) => {
-            // Skip drawing the wall segment that's been turned into the front door
-            // — the door symbol layer below renders it instead.
-            if (e.key === frontDoorEdge) return null;
-            return (
-              <line
-                key={i}
-                x1={e.x1 * cellSize}
-                y1={e.y1 * cellSize}
-                x2={e.x2 * cellSize}
-                y2={e.y2 * cellSize}
-              />
-            );
-          })}
-        </g>
+        {/* Edges erased by the front door — the picked edge plus, for a
+            2-cell-wide door, the adjacent edge along the same wall the
+            extension visual occupies. Without this, a wide door leaves
+            a wall stub sitting in the middle of the opening. */}
+        {(() => {
+          const frontDoorWidth = scenario.rules?.front_door?.width ?? 1;
+          const eraseSet = new Set<string>();
+          if (frontDoorEdge) {
+            eraseSet.add(frontDoorEdge);
+            if (frontDoorWidth >= 2) {
+              const [t, rStr, cStr] = frontDoorEdge.split(':');
+              const er = parseInt(rStr, 10);
+              const ec = parseInt(cStr, 10);
+              eraseSet.add(t === 'h' ? `h:${er}:${ec + 1}` : `v:${er + 1}:${ec}`);
+            }
+          }
+          return (
+            <g className="exterior-walls" transform={`translate(${labelGap}, ${labelGap})`} filter="url(#sketch)">
+              {exteriorWalls.map((e, i) => {
+                if (eraseSet.has(e.key)) return null;
+                return (
+                  <line
+                    key={i}
+                    x1={e.x1 * cellSize}
+                    y1={e.y1 * cellSize}
+                    x2={e.x2 * cellSize}
+                    y2={e.y2 * cellSize}
+                  />
+                );
+              })}
+            </g>
+          );
+        })()}
 
         {/* Front door symbol — drawn separately so it doesn't carry the sketch
             wobble filter (which would distort the clean arc). Owner side =
