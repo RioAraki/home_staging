@@ -442,8 +442,13 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
   const demolishAtEdge = useGameStore((s) => s.demolishAtEdge);
   const themeId = useGameStore((s) => s.themeId) as ThemeId;
 
+  // Wall-drawing UI is only relevant for multi-room floor plans. A
+  // single-room scenario uses the building's exterior wall as the room
+  // boundary and the front door as the entrance — no interior walls or
+  // separate room door to draw, so we never enter wall mode for it.
   const inWallMode =
     !!activeRoomSlot &&
+    scenario.rooms.length > 1 &&
     isRoomReadyToSeal(
       scenario,
       { placedCardKeys, skippedCardKeys },

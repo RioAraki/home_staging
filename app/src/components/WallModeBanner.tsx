@@ -45,6 +45,10 @@ export function WallModeBanner({ scenario }: Props) {
     scenario, placedPieces, walls, frontDoorEdge, activeRoomSlot,
   );
   const room = scenario.rooms.find((r) => r.slot === activeRoomSlot);
+  // Single-room scenarios skip the wall/door phase entirely. The building's
+  // exterior IS the room boundary and the front door doubles as the room
+  // entrance — no interior walls or per-room door to draw.
+  const isSingleRoom = scenario.rooms.length === 1;
 
   const handleNext = () => {
     if (!topology.ok) {
@@ -74,8 +78,38 @@ export function WallModeBanner({ scenario }: Props) {
       setError(formatWallEdgeError());
       return;
     }
+    if (isSingleRoom && !frontDoorEdge) {
+      setError('Set the front door first — it is also this room\'s entrance.');
+      return;
+    }
     completeRoom();
   };
+
+  if (isSingleRoom) {
+    return (
+      <div className="wall-banner">
+        <div className="wall-banner-text">
+          <strong>Room {activeRoomSlot} {room?.name_zh}</strong> furniture done — single-room scenario. The exterior wall is the room boundary and the front door doubles as the entrance, so no interior walls or per-room door are needed. Set the front door (if not already), then ✓ Confirm.
+        </div>
+        <div className="wall-banner-stats">
+          <span className={frontDoorEdge ? '' : 'bad-stat'}>
+            front door: {frontDoorEdge ? '✓' : '— not set'}
+          </span>
+          {!wallEdgeCompliance.ok && (
+            <span className="bad-stat" title={formatWallEdgeError()}>
+              wall-edge: {wallEdgeCompliance.violations.length} pending
+            </span>
+          )}
+        </div>
+        <div className="wall-banner-actions">
+          <button type="button" className="confirm-room-btn" onClick={handleConfirm}>
+            ✓ Confirm room
+          </button>
+        </div>
+        {lastError && <div className="wall-banner-error">{lastError}</div>}
+      </div>
+    );
+  }
 
   return (
     <div className="wall-banner">
