@@ -645,7 +645,16 @@ scenarios:
     verify: true
   zones: {}
   pre_drawn:
-    doors: []
+    doors:
+    # Front door is fixed on the west side of 14K — i.e. the vertical
+    # edge between 14J (indoor, last cell of the narrow bottom row) and
+    # 14K (outdoor wedge). Auto-set on init because there's exactly one
+    # target=front_door entry.
+    - cell: [13, 10]
+      edge: W
+      target: front_door
+      notes_zh: 大门在 14K 的左边（西墙），固定不可移动
+      notes_en: Front door is on the west edge of 14K (fixed, not movable)
     windows:
     # Large south-wall shop window spanning 14E–14J. Each entry is the
     # indoor cell + its south edge.
