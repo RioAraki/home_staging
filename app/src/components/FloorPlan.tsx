@@ -876,6 +876,43 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             doors / windows / front-door visuals so clicks aren't absorbed
             by those visible elements.) */}
 
+        {/* Persistent "legal front-door positions" outline — a soft green
+            line traced just inside each exterior edge that's a valid
+            front-door spot, matching the rulebook's green stripe on the
+            printed scenario maps. Only drawn when the scenario actually
+            constrains the front door AND the player hasn't picked one
+            yet; once the door symbol is on the canvas the green is
+            redundant. */}
+        {!frontDoorEdge && (() => {
+          const forced = scenario.rules?.front_door?.forced_cells ?? [];
+          const width = scenario.rules?.front_door?.width ?? 1;
+          if (forced.length === 0 && width < 2) return null;
+          const valid = exteriorWalls.filter((e) => isValidFrontDoorEdge(e.key));
+          if (valid.length === 0) return null;
+          const inset = 3;
+          return (
+            <g className="front-door-zone" transform={`translate(${labelGap}, ${labelGap})`}>
+              {valid.map((e, i) => {
+                const dx = e.outward === 'W' ? inset : e.outward === 'E' ? -inset : 0;
+                const dy = e.outward === 'N' ? inset : e.outward === 'S' ? -inset : 0;
+                return (
+                  <line
+                    key={`fdz-${i}`}
+                    x1={e.x1 * cellSize + dx}
+                    y1={e.y1 * cellSize + dy}
+                    x2={e.x2 * cellSize + dx}
+                    y2={e.y2 * cellSize + dy}
+                    stroke="#7fcc4f"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    pointerEvents="none"
+                  />
+                );
+              })}
+            </g>
+          );
+        })()}
+
         {/* Hit-zones along the exterior wall — only active in front-door
             mode. For scenarios with forced_cells (or a multi-cell-wide
             door), edges that aren't legal placements are not rendered —
