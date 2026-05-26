@@ -126,14 +126,14 @@ function renderDoorSymbol(
 
 /**
  * Double-leaf (2-cell wide) front door — both leaves hinged at the ends of
- * the opening and swinging outward 45°, like the architectural casement
- * window but with door-weight strokes. Used for scenarios that declare
- * front_door.width === 2 (e.g. the barn doors in Rehearsal Barn).
+ * the opening and swinging outward 45°. Each leaf occupies a full cell so
+ * the combined opening spans 2 cells. The picked edge is the LEFT (or
+ * TOP, for vertical edges) anchor; the door extends one extra cell to the
+ * right / down along the wall.
  *
- * The model still tracks a single edge as frontDoorEdge; this renderer
- * just paints two leaves centred on that edge, each occupying half the
- * opening so the combined visual reads as one wide door. The opening is
- * inset slightly from the cell ends so the leaves don't overrun walls.
+ * Used for scenarios that declare front_door.width === 2 (e.g. the barn
+ * doors in Rehearsal Barn). The model still tracks a single edge as
+ * frontDoorEdge — this renderer just paints two cells' worth of door.
  */
 function renderDoubleDoorSymbol(
   edgeKey: string,
@@ -145,10 +145,10 @@ function renderDoubleDoorSymbol(
   const r = parseInt(rStr, 10);
   const c = parseInt(cStr, 10);
   const L = cellSize;
-  const margin = L * 0.06;
+  const margin = L * 0.04;
 
-  // The two cells the edge separates. `outwardSideCell` (if known) is the
-  // outdoor side — leaves swing in that direction.
+  // The two cells the picked edge separates. `outwardSideCell` (if known)
+  // is the outdoor side — leaves swing in that direction.
   const sideA: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
   const sideB: [number, number] = type === 'h' ? [r, c] : [r, c];
   let sign: -1 | 1 = 1;
@@ -157,12 +157,12 @@ function renderDoubleDoorSymbol(
     else if (outwardSideCell[0] === sideB[0] && outwardSideCell[1] === sideB[1]) sign = 1;
   }
 
-  // Each leaf occupies half the opening; at 45° open the leaf endpoint
-  // sits leafLen * cos(45°) = leafLen / √2 away from the hinge along both
-  // axes.
-  const span = L - 2 * margin;
-  const leafLen = span / 2;
-  const off = leafLen / Math.SQRT2;
+  // 2-cell-wide door: each leaf is a full cell long. The picked edge is
+  // the anchor; the door extends one extra cell forward (right for a
+  // horizontal edge, down for a vertical edge).
+  const span = 2 * L - 2 * margin;
+  const leafLen = L - margin;             // each leaf ≈ one cell
+  const off = leafLen / Math.SQRT2;       // 45° projection
 
   let leftHinge: [number, number];
   let rightHinge: [number, number];
@@ -174,23 +174,23 @@ function renderDoubleDoorSymbol(
   let rightSweep: 0 | 1;
 
   if (type === 'h') {
-    // Horizontal edge: leaves swing up (sign=-1) or down (sign=+1).
+    // Horizontal edge: door runs along the wall from col c to col c+2.
     const y = r * L;
     const xL = c * L + margin;
-    const xR = (c + 1) * L - margin;
+    const xR = (c + 2) * L - margin;
     leftHinge = [xL, y];
     rightHinge = [xR, y];
-    leftClosed = [xL + leafLen, y];           // closed = horizontal toward middle
+    leftClosed = [xL + leafLen, y];
     rightClosed = [xR - leafLen, y];
     leftOpen = [xL + off, y + sign * off];
     rightOpen = [xR - off, y + sign * off];
     leftSweep = sign === -1 ? 0 : 1;
     rightSweep = sign === -1 ? 1 : 0;
   } else {
-    // Vertical edge: leaves swing left (sign=-1) or right (sign=+1).
+    // Vertical edge: door runs from row r to row r+2.
     const x = c * L;
     const yT = r * L + margin;
-    const yB = (r + 1) * L - margin;
+    const yB = (r + 2) * L - margin;
     leftHinge = [x, yT];
     rightHinge = [x, yB];
     leftClosed = [x, yT + leafLen];
@@ -200,6 +200,11 @@ function renderDoubleDoorSymbol(
     leftSweep = sign === -1 ? 1 : 0;
     rightSweep = sign === -1 ? 0 : 1;
   }
+
+  // Silence "unused" lint — span is the conceptual full opening length;
+  // useful to keep around as documentation even though leafLen does the
+  // arithmetic work.
+  void span;
 
   const arcRadius = leafLen;
   const leftArc = `M ${leftClosed[0]} ${leftClosed[1]} A ${arcRadius} ${arcRadius} 0 0 ${leftSweep} ${leftOpen[0]} ${leftOpen[1]}`;
