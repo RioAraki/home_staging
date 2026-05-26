@@ -118,6 +118,10 @@ export function validatePlacement(
 
   // Cells on either side of a door (room door or front door) must stay
   // walkable — a furniture shape on one side would jam the door shut.
+  // For a multi-cell-wide front door (e.g. Rehearsal Barn's barn doors)
+  // we also protect the extension edge's adjacent cells; otherwise a
+  // piece could land in the cells *behind* the door even though those
+  // are exactly the squares the rulebook says must stay open.
   const doorAdjacentCells = new Set<string>();
   const collectAdj = (edgeKey: string) => {
     const [type, rStr, cStr] = edgeKey.split(':');
@@ -131,8 +135,33 @@ export function validatePlacement(
       doorAdjacentCells.add(`${r},${c}`);
     }
   };
+  const isIndoorAt = (r: number, c: number): boolean =>
+    isIndoor(cellAttrs(scenario, cells, r, c));
+  const isExteriorEdge = (edgeKey: string): boolean => {
+    const [type, rStr, cStr] = edgeKey.split(':');
+    const r = parseInt(rStr, 10);
+    const c = parseInt(cStr, 10);
+    if (type === 'h') return isIndoorAt(r - 1, c) !== isIndoorAt(r, c);
+    return isIndoorAt(r, c - 1) !== isIndoorAt(r, c);
+  };
   for (const k of Object.keys(doors)) collectAdj(k);
-  if (frontDoorEdge) collectAdj(frontDoorEdge);
+  if (frontDoorEdge) {
+    collectAdj(frontDoorEdge);
+    const width = scenario.rules?.front_door?.width ?? 1;
+    if (width >= 2) {
+      const [t, rStr, cStr] = frontDoorEdge.split(':');
+      const fr = parseInt(rStr, 10);
+      const fc = parseInt(cStr, 10);
+      const forward = t === 'h' ? `h:${fr}:${fc + 1}` : `v:${fr + 1}:${fc}`;
+      const backward = t === 'h' ? `h:${fr}:${fc - 1}` : `v:${fr - 1}:${fc}`;
+      const extension = isExteriorEdge(forward)
+        ? forward
+        : isExteriorEdge(backward)
+          ? backward
+          : null;
+      if (extension) collectAdj(extension);
+    }
+  }
 
   const absShape = absoluteCells(transformed.shape, origin);
   const absOpen = absoluteCells(transformed.open_spaces, origin);

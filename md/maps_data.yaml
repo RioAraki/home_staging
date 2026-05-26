@@ -549,10 +549,6 @@ scenarios:
       kind: drawing_constraint
       text_zh: 门带后面的 2 格必须保持空格（即 E 格的 open-space）。
       text_en: The 2 squares behind the door zone must stay empty.
-    - id: instruments_orientation
-      kind: drawing_constraint
-      text_zh: 17 号乐器与 27 号麦克风必须按同样朝向绘制。
-      text_en: Instruments (17) and microphone (27) must be drawn the same way.
     - id: no_furniture_on_carpet
       kind: drawing_constraint
       text_zh: 不要把家具压在地毯上。
@@ -569,6 +565,13 @@ scenarios:
         - 27
         - 28
         max: 2
+  - text_zh: 麦克风（27）与音箱（28）朝向一致
+    text_en: Microphone (27) and amplifier (28) share the same orientation
+    points: 2
+    condition:
+      same_orientation:
+        a: 27
+        b: 28
   - text_zh: 装了地毯（33）
     text_en: Carpet (33) placed
     points: 3

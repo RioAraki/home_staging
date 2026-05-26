@@ -598,7 +598,7 @@ export const useGameStore = create<GameState>((set, get) => {
       }),
 
     setFrontDoor: (edgeKey) => {
-      const { scenario } = get();
+      const { scenario, placedPieces } = get();
       const forced = scenario?.rules?.front_door?.forced_cells ?? [];
       if (forced.length > 0) {
         // Player can only pick an edge whose indoor-side cell is in forced_cells.
@@ -616,6 +616,71 @@ export const useGameStore = create<GameState>((set, get) => {
           set({
             lastError:
               'This scenario forces the front door to specific cells — pick one of the highlighted edges.',
+            frontDoorMode: false,
+          });
+          return;
+        }
+      }
+      // The cells flanking the (possibly multi-cell-wide) front door must
+      // stay walkable. If a piece's shape already occupies any of them,
+      // refuse — otherwise the rulebook's "门带后面的 2 格必须保持空格"
+      // rule would already be broken the moment the door is set.
+      if (scenario) {
+        const width = scenario.rules?.front_door?.width ?? 1;
+        const collectAdj = (k: string): [number, number][] => {
+          const [type, rStr, cStr] = k.split(':');
+          const r = parseInt(rStr, 10);
+          const c = parseInt(cStr, 10);
+          return type === 'h'
+            ? [[r - 1, c], [r, c]]
+            : [[r, c - 1], [r, c]];
+        };
+        const adj: [number, number][] = [...collectAdj(edgeKey)];
+        if (width >= 2) {
+          const [t, rStr, cStr] = edgeKey.split(':');
+          const fr = parseInt(rStr, 10);
+          const fc = parseInt(cStr, 10);
+          const forward = t === 'h' ? `h:${fr}:${fc + 1}` : `v:${fr + 1}:${fc}`;
+          const backward = t === 'h' ? `h:${fr}:${fc - 1}` : `v:${fr - 1}:${fc}`;
+          // Pick whichever neighbour exists in the building (try forward
+          // first then backward — same fallback the renderer uses).
+          const ascii = scenario.grid.ascii.replace(/\n+$/, '').split('\n');
+          const isIndoor = (rr: number, cc: number) => {
+            const ch = ascii[rr]?.[cc];
+            return !!ch && scenario.grid.legend[ch]?.terrain === 'indoor';
+          };
+          const isExt = (k: string) => {
+            const [t2, rs, cs] = k.split(':');
+            const r2 = parseInt(rs, 10);
+            const c2 = parseInt(cs, 10);
+            return t2 === 'h'
+              ? isIndoor(r2 - 1, c2) !== isIndoor(r2, c2)
+              : isIndoor(r2, c2 - 1) !== isIndoor(r2, c2);
+          };
+          const ext = isExt(forward) ? forward : isExt(backward) ? backward : null;
+          if (ext) adj.push(...collectAdj(ext));
+        }
+        const occupied = new Set<string>();
+        for (const p of placedPieces) {
+          const card = cardByNumberVariant(p.number, p.variant);
+          const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+          if (!opt) continue;
+          const [bRows, bCols] = opt.bbox;
+          for (const [sr, sc] of opt.shape) {
+            let rr = sr, cc = sc;
+            if (p.mirrored) cc = bCols - 1 - cc;
+            for (let i = 0; i < p.rotation; i++) {
+              const nr = cc;
+              const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
+              rr = nr; cc = nc;
+            }
+            occupied.add(`${p.origin[0] + rr},${p.origin[1] + cc}`);
+          }
+        }
+        const blocker = adj.find(([rr, cc]) => occupied.has(`${rr},${cc}`));
+        if (blocker) {
+          set({
+            lastError: `Cell ${blocker[0] + 1}${String.fromCharCode(65 + blocker[1])} is blocked by furniture — the cells behind the door must stay open. Withdraw that piece first.`,
             frontDoorMode: false,
           });
           return;
