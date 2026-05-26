@@ -9,6 +9,7 @@ import { SofaRun } from './SofaRun';
 import { ChairDot } from './ChairDot';
 import { ShelfUnit } from './ShelfUnit';
 import { TableTop } from './TableTop';
+import { RawSvg } from './RawSvg';
 
 export const primitiveRegistry: Record<string, ComponentType<PrimitiveProps>> = {
   plant_leaf_burst: PlantLeafBurst,
@@ -17,6 +18,7 @@ export const primitiveRegistry: Record<string, ComponentType<PrimitiveProps>> = 
   chair_dot: ChairDot,
   shelf_unit: ShelfUnit,
   table_top: TableTop,
+  raw_svg: RawSvg,
 };
 
 export function getPrimitive(kind: string): ComponentType<PrimitiveProps> | null {
