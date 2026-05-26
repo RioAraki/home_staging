@@ -104,6 +104,21 @@ function pieceShapeCells(p: PlacedPiece): Array<[number, number]> {
   return absoluteCellsFn(t.shape, p.origin);
 }
 
+/** Every cell the placed piece "occupies" on the card — its shape cells
+ *  plus its open-space cells. Distance-style rules treat this as the
+ *  piece's full footprint so e.g. the drum kit's cymbal hat counts the
+ *  same as the surrounding stool-radius open cells. */
+function pieceFootprintCells(p: PlacedPiece): Array<[number, number]> {
+  const card = cardByNumberVariant(p.number, p.variant);
+  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+  if (!opt) return [];
+  const t = transformOptionFn(opt, p.rotation, p.mirrored);
+  return [
+    ...absoluteCellsFn(t.shape, p.origin),
+    ...absoluteCellsFn(t.open_spaces, p.origin),
+  ];
+}
+
 function pieceOpenSpaceCells(p: PlacedPiece): Array<[number, number]> {
   const card = cardByNumberVariant(p.number, p.variant);
   const opt = card?.options.find((o) => o.option_index === p.optionIndex);
@@ -259,8 +274,9 @@ export function evaluateBonusCondition(
     // ────────── Barn rehearsal ──────────
     case 'each_distance_at_most': {
       // For each pair (instrument piece, target piece), the shortest grid
-      // path (4-neighbour, walls block) between any pair of shape cells must
-      // be ≤ max. Bonus earned iff all pairs satisfy.
+      // path (4-neighbour, walls block) between ANY pair of cells the
+      // pieces occupy (shape ∪ open_spaces — the full card footprint)
+      // must be ≤ max. Bonus earned iff every pair satisfies.
       if (!ctx) return { earned: false, evaluator: key, note: 'walls context missing' };
       const instrumentNum = arg.instrument as number;
       const targets = (arg.targets as number[]) ?? [];
@@ -273,8 +289,8 @@ export function evaluateBonusCondition(
       for (const src of sources) {
         for (const tgt of targetPieces) {
           let best: number | null = null;
-          for (const sc of pieceShapeCells(src)) {
-            for (const tc of pieceShapeCells(tgt)) {
+          for (const sc of pieceFootprintCells(src)) {
+            for (const tc of pieceFootprintCells(tgt)) {
               const d = pathDistance(scenario, ctx.walls, sc, tc);
               if (d === null) continue;
               if (best === null || d < best) best = d;
