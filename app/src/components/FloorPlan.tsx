@@ -367,6 +367,71 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
   const toggleWall = useGameStore((s) => s.toggleWall);
   const setDoor = useGameStore((s) => s.setDoor);
   const frontDoorEdge = useGameStore((s) => s.frontDoorEdge);
+
+  // Front door geometry: for width >= 2 the door visually spans two
+  // adjacent exterior edges. The "anchor" comes from frontDoorEdge; the
+  // extension picks whichever neighbour (forward first, else backward) is
+  // a real exterior edge. Used by the door renderer, the wall-erase set
+  // and the demolish hit zones so they all stay in sync.
+  const exteriorWallKeySet = useMemo(
+    () => new Set(exteriorWalls.map((e) => e.key)),
+    [exteriorWalls],
+  );
+  // Whether the given exterior edge is a legal place for the front door
+  // in this scenario. Honours rules.front_door.forced_cells AND, for
+  // multi-cell-wide doors, requires at least one extension neighbour to
+  // also be a real exterior edge — otherwise the door's extra width
+  // would extend into a non-wall region (the user's screenshot bug).
+  const isValidFrontDoorEdge = useMemo(() => {
+    const forced = scenario.rules?.front_door?.forced_cells ?? [];
+    const width = scenario.rules?.front_door?.width ?? 1;
+    return (edgeKey: string): boolean => {
+      const [type, rStr, cStr] = edgeKey.split(':');
+      const r = parseInt(rStr, 10);
+      const c = parseInt(cStr, 10);
+      if (forced.length > 0) {
+        const sideA: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
+        const sideB: [number, number] = type === 'h' ? [r, c] : [r, c];
+        const passes = forced.some(
+          (fc) =>
+            (fc[0] === sideA[0] && fc[1] === sideA[1]) ||
+            (fc[0] === sideB[0] && fc[1] === sideB[1]),
+        );
+        if (!passes) return false;
+      }
+      if (width >= 2) {
+        const forward = type === 'h' ? `h:${r}:${c + 1}` : `v:${r + 1}:${c}`;
+        const backward = type === 'h' ? `h:${r}:${c - 1}` : `v:${r - 1}:${c}`;
+        if (!exteriorWallKeySet.has(forward) && !exteriorWallKeySet.has(backward)) {
+          return false;
+        }
+      }
+      return true;
+    };
+  }, [scenario, exteriorWallKeySet]);
+
+  const frontDoorSpan = useMemo<{ edges: string[]; anchor: string | null }>(() => {
+    if (!frontDoorEdge) return { edges: [], anchor: null };
+    const width = scenario.rules?.front_door?.width ?? 1;
+    if (width < 2) return { edges: [frontDoorEdge], anchor: frontDoorEdge };
+    const [t, rStr, cStr] = frontDoorEdge.split(':');
+    const er = parseInt(rStr, 10);
+    const ec = parseInt(cStr, 10);
+    const forward = t === 'h' ? `h:${er}:${ec + 1}` : `v:${er + 1}:${ec}`;
+    const backward = t === 'h' ? `h:${er}:${ec - 1}` : `v:${er - 1}:${ec}`;
+    let extension: string | null = null;
+    if (exteriorWallKeySet.has(forward)) extension = forward;
+    else if (exteriorWallKeySet.has(backward)) extension = backward;
+    if (!extension) return { edges: [frontDoorEdge], anchor: frontDoorEdge };
+    // Anchor = whichever edge has the smaller (r, c) — that's the
+    // visual left/top of the door.
+    const [, arS, acS] = frontDoorEdge.split(':');
+    const [, brS, bcS] = extension.split(':');
+    const aRank = parseInt(arS, 10) * 100 + parseInt(acS, 10);
+    const bRank = parseInt(brS, 10) * 100 + parseInt(bcS, 10);
+    const anchor = aRank <= bRank ? frontDoorEdge : extension;
+    return { edges: [frontDoorEdge, extension], anchor };
+  }, [frontDoorEdge, scenario, exteriorWallKeySet]);
   const frontDoorMode = useGameStore((s) => s.frontDoorMode);
   const setFrontDoor = useGameStore((s) => s.setFrontDoor);
   const windows = useGameStore((s) => s.windows);
@@ -700,38 +765,24 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
         )}
 
         {/* Edges erased by the front door — the picked edge plus, for a
-            2-cell-wide door, the adjacent edge along the same wall the
-            extension visual occupies. Without this, a wide door leaves
-            a wall stub sitting in the middle of the opening. */}
-        {(() => {
-          const frontDoorWidth = scenario.rules?.front_door?.width ?? 1;
-          const eraseSet = new Set<string>();
-          if (frontDoorEdge) {
-            eraseSet.add(frontDoorEdge);
-            if (frontDoorWidth >= 2) {
-              const [t, rStr, cStr] = frontDoorEdge.split(':');
-              const er = parseInt(rStr, 10);
-              const ec = parseInt(cStr, 10);
-              eraseSet.add(t === 'h' ? `h:${er}:${ec + 1}` : `v:${er + 1}:${ec}`);
-            }
-          }
-          return (
-            <g className="exterior-walls" transform={`translate(${labelGap}, ${labelGap})`} filter="url(#sketch)">
-              {exteriorWalls.map((e, i) => {
-                if (eraseSet.has(e.key)) return null;
-                return (
-                  <line
-                    key={i}
-                    x1={e.x1 * cellSize}
-                    y1={e.y1 * cellSize}
-                    x2={e.x2 * cellSize}
-                    y2={e.y2 * cellSize}
-                  />
-                );
-              })}
-            </g>
-          );
-        })()}
+            2-cell-wide door, the adjacent edge along the same wall (chosen
+            by frontDoorSpan to be a real exterior edge in either
+            direction). Without this, a wide door near the end of a wall
+            leaves a stub in the middle of the opening. */}
+        <g className="exterior-walls" transform={`translate(${labelGap}, ${labelGap})`} filter="url(#sketch)">
+          {exteriorWalls.map((e, i) => {
+            if (frontDoorSpan.edges.includes(e.key)) return null;
+            return (
+              <line
+                key={i}
+                x1={e.x1 * cellSize}
+                y1={e.y1 * cellSize}
+                x2={e.x2 * cellSize}
+                y2={e.y2 * cellSize}
+              />
+            );
+          })}
+        </g>
 
         {/* Front door symbol — drawn separately so it doesn't carry the sketch
             wobble filter (which would distort the clean arc). Owner side =
@@ -744,23 +795,25 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             frontDoorEdge,
             (k) => regionMap.cellToRegion.has(k),
           );
-          const isDouble = (scenario.rules?.front_door?.width ?? 1) >= 2;
+          const isDouble = frontDoorSpan.edges.length >= 2;
           if (isDouble) {
-            // Double-leaf renderer wants the OUTDOOR side cell (leaves
-            // swing toward it). Flip the indoor-side back to its sibling.
+            const anchor = frontDoorSpan.anchor ?? frontDoorEdge;
             const outdoorSide: [number, number] | null = indoorOwner
               ? (() => {
-                  const [type, rStr, cStr] = frontDoorEdge.split(':');
+                  const [type, rStr, cStr] = anchor.split(':');
                   const r = parseInt(rStr, 10);
                   const c = parseInt(cStr, 10);
                   const a: [number, number] = type === 'h' ? [r - 1, c] : [r, c - 1];
                   const b: [number, number] = type === 'h' ? [r, c] : [r, c];
-                  return indoorOwner[0] === a[0] && indoorOwner[1] === a[1] ? b : a;
+                  // indoorOwner is reported relative to the original
+                  // picked edge; for the visual anchor (possibly the
+                  // extension), recompute by region membership directly.
+                  return regionMap.cellToRegion.has(`${a[0]},${a[1]}`) ? b : a;
                 })()
               : null;
             return (
               <g className="front-door-symbol-layer" transform={`translate(${labelGap}, ${labelGap})`}>
-                {renderDoubleDoorSymbol(frontDoorEdge, outdoorSide, cellSize, 'front-door-symbol')}
+                {renderDoubleDoorSymbol(anchor, outdoorSide, cellSize, 'front-door-symbol')}
               </g>
             );
           }
@@ -823,10 +876,14 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             doors / windows / front-door visuals so clicks aren't absorbed
             by those visible elements.) */}
 
-        {/* Hit-zones along the exterior wall — only active in front-door mode */}
+        {/* Hit-zones along the exterior wall — only active in front-door
+            mode. For scenarios with forced_cells (or a multi-cell-wide
+            door), edges that aren't legal placements are not rendered —
+            the player gets no highlight there, signalling "can't go
+            here" without showing a misleading clickable target. */}
         {frontDoorMode && (
           <g className="front-door-hit" transform={`translate(${labelGap}, ${labelGap})`}>
-            {exteriorWalls.map((e, i) => {
+            {exteriorWalls.filter((e) => isValidFrontDoorEdge(e.key)).map((e, i) => {
               const isHorizontal = e.y1 === e.y2;
               const isHovered = hoverEdge === e.key;
               const stroke = isHovered ? 'var(--accent)' : 'rgba(255,225,105,0.35)';
@@ -1201,7 +1258,9 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           for (const k of Object.keys(playerWalls)) edgeKeys.add(k);
           for (const k of Object.keys(playerDoors)) edgeKeys.add(k);
           for (const k of Object.keys(windows)) edgeKeys.add(k);
-          if (frontDoorEdge) edgeKeys.add(frontDoorEdge);
+          // Front door may span 2 edges (width >= 2). Add ALL edges so the
+          // demolish overlay covers both halves of a double door.
+          for (const k of frontDoorSpan.edges) edgeKeys.add(k);
           return (
             <g className="demolish-edge-hit" transform={`translate(${labelGap}, ${labelGap})`}>
               {Array.from(edgeKeys).map((ek) => {
@@ -1222,7 +1281,16 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
                       style={{ cursor: 'pointer', pointerEvents: 'stroke' }}
                       onMouseEnter={() => setHoverEdge(ek)}
                       onMouseLeave={() => setHoverEdge(null)}
-                      onClick={() => demolishAtEdge(ek)}
+                      onClick={() => {
+                        // For a 2-cell front door, clicking either half
+                        // demolishes the whole thing. The store only knows
+                        // about the picked anchor (frontDoorEdge), so map
+                        // an extension click back to it.
+                        const target = frontDoorSpan.edges.includes(ek)
+                          ? (frontDoorEdge ?? ek)
+                          : ek;
+                        demolishAtEdge(target);
+                      }}
                     />
                     <line
                       x1={x1} y1={y1} x2={x2} y2={y2}
