@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13.33 100.00" data-cad-width="40.0" data-cad-height="300.0">
-  <path d="M 1.67 5.30 L 11.67 5.30 L 11.67 94.70 L 1.67 94.70 Z" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 0.00 0.00 L 13.33 0.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 4.21 100.00 L 4.21 94.70" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 9.13 100.00 L 9.13 94.70" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 9.13 0.00 L 9.13 5.30" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 4.21 0.00 L 4.21 5.30" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 0.00 100.00 L 13.33 100.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-</svg>

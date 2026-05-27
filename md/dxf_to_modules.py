@@ -36,13 +36,31 @@ FILL = "none"
 # Chinese / English strings (e.g. "水龙头（大理石）-HS-01-31号").
 ANON_RE = re.compile(
     r"^("
-    r"\*[A-Z]\d+"                # *A1, *U2, etc.
+    r"\*[A-Z]\d+"                # *A1, *U2, *D77 — anonymous variants
     r"|[Aa]\$[A-Za-z]C?[0-9A-Fa-f]+"  # A$C1234ABCD — dynamic block anon
     r"|\*MODEL_SPACE|\*PAPER_SPACE"
     r"|\*Model_Space|\*Paper_Space"
     r"|_Model_Space|_Paper_Space"
+    r"|\$TD_AUDIT_GENERATED_.*"  # autosave / audit helpers
+    r"|\$D_.+"                   # dynamic-block intermediates
     r")$",
 )
+
+# A user-named block worth exporting must look like a real catalogue
+# entry rather than the author's scratch jot (zt, wa, safa, 11, …).
+# Heuristic: at least one Chinese character AND total length ≥ 4. The
+# Chinese requirement filters short English nonsense; the length rule
+# filters single-glyph helpers like "把手" (handle) which keeps the
+# gallery focused on top-level furniture rather than sub-components.
+CHINESE_RE = re.compile(r"[一-鿿]")
+
+
+def is_meaningful_name(name: str) -> bool:
+    if len(name) < 4:
+        return False
+    if not CHINESE_RE.search(name):
+        return False
+    return True
 
 
 def safe_filename(name: str) -> str:
@@ -270,8 +288,9 @@ def main() -> int:
         b for b in blocks
         if b.name not in {"$MODEL_SPACE", "$PAPER_SPACE", "*MODEL_SPACE", "*PAPER_SPACE", "*Model_Space", "*Paper_Space"}
         and not b.name.startswith("*")
+        and is_meaningful_name(b.name)
     ]
-    print(f"found {len(blocks)} user-named blocks")
+    print(f"found {len(blocks)} meaningful user-named blocks")
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     written = 0
