@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <path d="M 81.79 31.79 L 18.21 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 18.21 31.79 A 31.79 31.79 0 0 1 81.79 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 81.79 31.79 L 97.79 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 50.00 63.59 L 50.00 79.58" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 71.44 55.27 L 50.00 79.58" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 73.47 53.24 L 97.79 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 81.79 31.79 L 97.79 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 81.79 31.79 A 31.79 31.79 0 0 1 18.21 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 50.00 63.59 L 50.00 79.58" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 28.56 55.27 L 50.00 79.58" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 18.21 31.79 L 2.21 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 26.53 53.24 L 2.21 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 18.21 31.79 L 2.21 31.79" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+</svg>

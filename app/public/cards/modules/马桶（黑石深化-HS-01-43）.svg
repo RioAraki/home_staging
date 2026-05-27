@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <path d="M 0.00 92.76 L 0.00 53.54" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 16.34 92.76 L 16.34 53.54" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 0.00 53.54 L 74.63 53.54" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 0.00 92.76 L 74.63 92.76" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 74.63 53.54 A 19.61 19.61 0 0 1 74.63 92.76" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 74.63 61.82 A 11.33 11.33 0 0 1 74.63 84.48" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 74.63 63.47 A 9.68 9.68 0 0 1 74.63 82.83" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 53.93 85.25 A 12.10 12.10 0 0 1 53.93 61.05" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 53.93 87.31 A 14.16 14.16 0 0 1 53.93 58.99" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 53.93 87.31 L 74.63 84.48" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 53.93 85.25 L 74.63 82.83" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 53.93 61.05 L 74.63 63.47" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 53.93 58.99 L 74.63 61.82" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 9.81 77.51 L 9.81 68.79 L 8.72 67.70 L 7.63 67.70 L 6.54 68.79 L 6.54 77.51 L 7.63 78.60 L 8.72 78.60 Z" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 10.89 77.51 L 10.89 68.79 L 8.72 66.61 L 7.63 66.61 L 5.45 68.79 L 5.45 77.51 L 7.63 79.69 L 8.72 79.69 Z" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.54 71.62 L 9.81 71.62" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 65.30 74.10 L 65.30 71.92 L 60.94 67.56 L 52.23 67.56 L 48.96 70.83 L 48.96 75.19 L 52.23 78.46 L 60.94 78.46 Z" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <circle cx="32.41" cy="83.60" r="2.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <circle cx="32.41" cy="62.70" r="2.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 5.76 8.33 L 5.76 92.76" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 100.00 43.19 L 100.00 48.64" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 5.76 8.33 L 23.19 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 5.76 92.76 L 89.11 92.76" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 23.19 48.64 L 100.00 48.64" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 45.53 46.46 L 100.00 46.46" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 45.53 43.19 L 100.00 43.19" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 22.10 8.33 L 22.10 92.76" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 23.19 8.33 L 23.19 48.64" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 45.53 46.46 L 45.53 48.64" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 45.53 46.46 L 41.67 42.61" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 41.67 42.61 L 41.67 39.34" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 41.67 39.34 L 45.53 43.19" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 100.00 112.10 A 46.30 46.30 0 0 1 89.11 67.98" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 11.21 7.24 L 16.65 7.24" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 11.21 7.24 L 11.21 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 16.65 7.24 L 16.65 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 32.40 8.33 L 71.62 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 45.47 7.24 L 58.55 7.24" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 37.85 92.76 L 66.17 92.76" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 32.40 48.64 L 32.40 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 71.62 48.64 L 71.62 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 32.40 43.19 L 71.62 43.19" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 32.40 48.64 L 71.62 48.64" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 37.85 70.70 A 92.73 92.73 0 0 1 32.40 114.82" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 71.62 114.82 A 92.73 92.73 0 0 1 66.17 70.70" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 45.47 7.24 L 45.47 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 58.55 7.24 L 58.55 8.33" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 53.54 8.33 L 53.54 7.24" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+</svg>

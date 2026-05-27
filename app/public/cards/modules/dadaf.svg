@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <path d="M 6.06 35.29 L 6.06 9.41" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 15.47 18.82 A 9.41 9.41 0 0 1 6.06 9.41" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 17.82 100.00 L 17.82 92.94" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 15.47 0.00 L 22.53 0.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.06 100.00 L 17.82 100.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 76.65 100.00 L 88.41 100.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.06 23.53 L 88.41 23.53" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.06 35.29 L 76.65 35.29" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.06 92.94 L 88.41 92.94" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.06 90.59 L 88.41 90.59" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 31.94 35.29 L 31.94 35.29" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 31.94 23.53 L 31.94 9.41" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 31.94 9.41 A 9.41 9.41 0 0 1 22.53 18.82" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 11.94 41.18 L 76.65 41.18" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 26.06 29.41 A 5.88 5.88 0 0 1 31.94 35.29" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.06 35.29 A 5.88 5.88 0 0 1 11.94 29.41" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 88.41 41.18 L 90.32 41.18" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 88.41 35.29 L 88.41 100.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 88.41 23.53 L 88.41 100.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 76.65 35.29 L 76.65 100.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 93.82 45.12 L 88.41 90.59" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 93.82 44.29 A 3.53 3.53 0 0 1 90.32 48.24" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 76.65 35.29 L 88.41 23.53" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 6.06 100.00 L 6.06 47.06" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 11.94 52.94 A 5.88 5.88 0 0 1 6.06 47.06" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+</svg>
