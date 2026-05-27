@@ -1,39 +1,50 @@
-// Lookup of auto-traced SVGs produced by md/trace_cards.py.
+// Lookup of per-cell auto-traced SVGs produced by md/trace_cards.py.
 //
-// The script writes one .svg per option crop into app/public/cards/vectors/.
-// We eagerly import their URLs at build time via Vite glob so the renderer
-// can ask "is there a traced SVG for (number, variant, optionIndex)?" in
-// O(1) without a fetch.
-//
-// Naming convention matches optionImageUrl: `NN_X_optK.svg`.
+// One SVG per (number, variant, optionIndex, row, col) — the renderer
+// stamps each shape cell with its corresponding cell-trace and skips
+// cells that don't have one (void cells, or open cells the script
+// didn't bother to trace). The naming convention is
+// `NN_X_optK_cell_R_C.svg` under `app/public/cards/vectors/`.
 
-const tracedSvgUrls = import.meta.glob<string>(
+const cellSvgUrls = import.meta.glob<string>(
   '/public/cards/vectors/*.svg',
   { eager: true, import: 'default', query: '?url' },
 ) as Record<string, string>;
 
-// Build a name → url map (the keys above are absolute paths starting with
-// "/public/...", we strip down to just the filename so callers can ask
-// by "01_A_opt1.svg").
 const byFileName = new Map<string, string>();
-for (const [absPath, url] of Object.entries(tracedSvgUrls)) {
+for (const [absPath, url] of Object.entries(cellSvgUrls)) {
   const name = absPath.split('/').pop();
   if (name) byFileName.set(name, url);
 }
 
-export function tracedSvgUrl(
+function fileNameFor(
   number: number,
   variant: 'A' | 'B',
   optionIndex: number,
-): string | null {
-  const filename = `${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}.svg`;
-  return byFileName.get(filename) ?? null;
+  row: number,
+  col: number,
+): string {
+  return `${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}_cell_${row}_${col}.svg`;
 }
 
-export function hasTracedSvg(
+export function cellTracedSvgUrl(
+  number: number,
+  variant: 'A' | 'B',
+  optionIndex: number,
+  row: number,
+  col: number,
+): string | null {
+  return byFileName.get(fileNameFor(number, variant, optionIndex, row, col)) ?? null;
+}
+
+export function hasAnyCellTrace(
   number: number,
   variant: 'A' | 'B',
   optionIndex: number,
 ): boolean {
-  return tracedSvgUrl(number, variant, optionIndex) !== null;
+  const prefix = `${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}_cell_`;
+  for (const name of byFileName.keys()) {
+    if (name.startsWith(prefix)) return true;
+  }
+  return false;
 }

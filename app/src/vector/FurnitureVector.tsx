@@ -1,13 +1,17 @@
-// Renders one furniture option as composed primitives, from its visual
-// schema entry. Falls back to an auto-traced SVG (produced by
-// md/trace_cards.py) when no hand-authored schema is present. Returns
-// null only when neither source is available so the caller can fall back
-// to the raster card crop.
+// Renders one furniture option in three possible ways, picked by priority:
+//   1. Hand-authored schema in furniture_visual.yaml (programmatic
+//      primitives or raw_svg paste).
+//   2. Per-shape-cell traced SVGs produced by md/trace_cards.py — we
+//      stamp one cell-sized <image> per shape cell. Void cells get
+//      nothing and open cells defer to the existing dot layer in
+//      FloorPlan / FurnitureShape.
+//   3. null — caller falls back to the raster card crop.
 
 import { getPrimitive } from './primitives';
 import { themes, type ThemeId, DEFAULT_THEME_ID } from './themes';
 import { visualByKey } from '../data/visual';
-import { tracedSvgUrl } from './tracedSvg';
+import { cellTracedSvgUrl, hasAnyCellTrace } from './tracedSvg';
+import { cardByNumberVariant } from '../data';
 
 interface Props {
   number: number;
@@ -27,7 +31,7 @@ export function FurnitureVector({
   const W = cols * cellSize;
   const H = rows * cellSize;
 
-  // Hand-authored schema wins — explicit primitives or raw_svg blocks.
+  // Hand-authored schema wins.
   if (visual) {
     const theme = themes[themeId] ?? themes[DEFAULT_THEME_ID];
     return (
@@ -46,39 +50,48 @@ export function FurnitureVector({
             />
           );
         })}
-        {/* Invisible bbox spacer — keeps the <g> size consistent for layout. */}
         <rect x={0} y={0} width={W} height={H} fill="none" />
       </g>
     );
   }
 
-  // Otherwise drop in the auto-traced SVG if one exists. The traced
-  // file was rasterised at SCALE_TO units long-edge and preserves the
-  // crop's aspect ratio, so stretching it to fit the bbox matches what
-  // the raster fallback does (preserveAspectRatio="none").
-  const tracedUrl = tracedSvgUrl(number, variant, optionIndex);
-  if (tracedUrl) {
+  // Per-cell traced SVGs. Render only the shape cells; open / void are
+  // skipped (open gets its dot from the surrounding layer).
+  if (hasAnyCellTrace(number, variant, optionIndex)) {
+    const card = cardByNumberVariant(number, variant);
+    const opt = card?.options.find((o) => o.option_index === optionIndex);
+    const shapeCells: Array<[number, number]> = opt?.shape ?? [];
     return (
       <g className="furniture-vector furniture-vector-traced">
-        <image
-          href={tracedUrl}
-          x={0} y={0}
-          width={W} height={H}
-          preserveAspectRatio="none"
-        />
+        {shapeCells.map(([r, c], i) => {
+          const url = cellTracedSvgUrl(number, variant, optionIndex, r, c);
+          if (!url) return null;
+          return (
+            <image
+              key={`cell-${i}`}
+              href={url}
+              x={c * cellSize}
+              y={r * cellSize}
+              width={cellSize}
+              height={cellSize}
+              preserveAspectRatio="none"
+            />
+          );
+        })}
       </g>
     );
   }
+
   return null;
 }
 
-/** True when this option has either a hand-authored schema OR an
- *  auto-traced SVG available. */
+/** True when this option has either a hand-authored schema OR at least
+ *  one per-cell traced SVG available. */
 export function hasVectorVisual(
   number: number,
   variant: 'A' | 'B',
   optionIndex: number,
 ): boolean {
   return visualByKey(number, variant, optionIndex) !== null
-    || tracedSvgUrl(number, variant, optionIndex) !== null;
+    || hasAnyCellTrace(number, variant, optionIndex);
 }

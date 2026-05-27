@@ -1,12 +1,14 @@
-"""Auto-trace every option crop into an SVG via potrace.
+"""Auto-trace each card option's SHAPE cells into per-cell SVGs.
 
-Reads each `app/public/cards/options/NN_X_optK.jpg` and writes
-`app/public/cards/vectors/NN_X_optK.svg`. The SVG is the rasterised
-card's dark linework converted to one or more <path> elements with
-stroke = white (so it stacks cleanly on the blueprint background).
+The renderer composes a furniture piece by stamping the cell-level SVG
+at each shape position. Void cells render nothing; open cells get the
+existing dot indicator from the FloorPlan / FurnitureShape layer.
 
-Runtime is small enough (≈ 130 images) to re-run on demand. Tunables
-near the top of the file control thresholding + tracing fidelity.
+Output layout:
+    app/public/cards/vectors/NN_X_optK_cell_R_C.svg
+
+Each per-cell SVG uses viewBox="0 0 100 100" so they're trivially
+stampable inside a cell-sized box.
 
 Run from repo root:
     python md/trace_cards.py
@@ -19,51 +21,62 @@ from pathlib import Path
 
 import numpy as np
 import potrace
-from PIL import Image, ImageOps
+import yaml
+from PIL import Image
 
 # ── Tunables ────────────────────────────────────────────────────────
 THRESHOLD = 128         # 0–255; pixels darker than this become "ink".
 TURDSIZE = 2            # Drop tiny noise speckles smaller than N pixels.
-ALPHAMAX = 1.0          # Curve smoothing (0 = sharp polygon, 1.34 = max bezier).
-OPTTOLERANCE = 0.2      # Allowed deviation when fitting beziers.
-SCALE_TO = 400          # Resize the long edge of each crop before tracing (px).
+ALPHAMAX = 1.0
+OPTTOLERANCE = 0.2
+CELL_PX = 100           # Each cell is normalised to this many pixels
+                        # before tracing (= viewBox side of the output).
+BORDER_TRIM_PX = 4      # Set the outermost N pixels of every cell to
+                        # white before tracing — kills the scanned card
+                        # border artefacts so per-cell traces are clean.
 
-# Output style.
 STROKE_COLOR = "rgba(255,255,255,0.92)"
-STROKE_WIDTH = 1.5       # In SVG user units (which match the traced pixel
-                         # space, i.e. SCALE_TO across the long edge).
-# fill=none keeps the trace as pure linework — closed shapes show their
-# outlines only. Switch to a low-alpha white like "rgba(255,255,255,0.10)"
-# if you want filled regions (e.g. on per-card overrides).
+STROKE_WIDTH = 1.2
 FILL_COLOR = "none"
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC_DIR = ROOT / "app" / "public" / "cards" / "options"
 OUT_DIR = ROOT / "app" / "public" / "cards" / "vectors"
+DATA_YAML = ROOT / "md" / "furniture_data.yaml"
 
 
-def trace_image(src: Path, dst: Path) -> tuple[int, int]:
-    """Trace a single crop and write its SVG. Returns (width, height) of
-    the resized image in pixels (= the SVG user-space dimensions)."""
-    img = Image.open(src).convert("L")  # grayscale
+def load_card_meta() -> dict[tuple[int, str, int], dict]:
+    """Map (number, variant, option_index) → option metadata (bbox/shape)."""
+    with DATA_YAML.open(encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    out: dict[tuple[int, str, int], dict] = {}
+    for card in data.get("cards", []):
+        for opt in card.get("options", []):
+            key = (card["number"], card["variant"], opt["option_index"])
+            out[key] = {
+                "bbox": opt["bbox"],
+                "shape": opt.get("shape", []),
+                "open_spaces": opt.get("open_spaces", []),
+            }
+    return out
 
-    # Resize so the long edge = SCALE_TO. Keeps aspect ratio so we don't
-    # distort the card.
-    w, h = img.size
-    if w >= h:
-        new_w = SCALE_TO
-        new_h = max(1, round(h * SCALE_TO / w))
-    else:
-        new_h = SCALE_TO
-        new_w = max(1, round(w * SCALE_TO / h))
-    img = img.resize((new_w, new_h), Image.LANCZOS)
 
-    # Threshold to B&W. Ink = darker than THRESHOLD.
-    arr = np.asarray(img)
-    bw = arr < THRESHOLD  # True where there is ink.
+def trace_cell(arr: np.ndarray) -> str | None:
+    """Trace one 100×100 grayscale array. Returns SVG d-string or None
+    when the cell holds nothing worth tracing."""
+    # Zero out the outermost border so scanned card frames don't leak.
+    if BORDER_TRIM_PX > 0:
+        b = BORDER_TRIM_PX
+        arr = arr.copy()
+        arr[:b, :] = 255
+        arr[-b:, :] = 255
+        arr[:, :b] = 255
+        arr[:, -b:] = 255
 
-    # potrace wants a Bitmap of bools — uint8 silently collapses into a
-    # single curve covering the whole image, so we must pass a bool array.
+    bw = arr < THRESHOLD
+    if not bw.any():
+        return None
+
     bmp = potrace.Bitmap(bw)
     path = bmp.trace(
         turdsize=TURDSIZE,
@@ -73,8 +86,6 @@ def trace_image(src: Path, dst: Path) -> tuple[int, int]:
         opttolerance=OPTTOLERANCE,
     )
 
-    # Build one big SVG path d-string. Each curve becomes a subpath
-    # (M start ... Z).
     def xy(p) -> tuple[float, float]:
         return p.x, p.y
 
@@ -93,40 +104,77 @@ def trace_image(src: Path, dst: Path) -> tuple[int, int]:
                 c1x, c1y = xy(seg.c1)
                 c2x, c2y = xy(seg.c2)
                 ex, ey = xy(seg.end_point)
-                d.append(f"C {c1x:.2f} {c1y:.2f} {c2x:.2f} {c2y:.2f} {ex:.2f} {ey:.2f}")
+                d.append(
+                    f"C {c1x:.2f} {c1y:.2f} {c2x:.2f} {c2y:.2f} {ex:.2f} {ey:.2f}",
+                )
         d.append("Z")
         d_parts.append(" ".join(d))
-    big_d = " ".join(d_parts)
+    return " ".join(d_parts)
 
-    svg = (
-        f'<svg xmlns="http://www.w3.org/2000/svg" '
-        f'viewBox="0 0 {new_w} {new_h}" '
-        f'width="{new_w}" height="{new_h}">\n'
-        f'  <path d="{big_d}" '
-        f'fill="{FILL_COLOR}" stroke="{STROKE_COLOR}" '
-        f'stroke-width="{STROKE_WIDTH}" stroke-linejoin="round" '
-        f'fill-rule="evenodd"/>\n'
-        f'</svg>\n'
-    )
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    dst.write_text(svg, encoding="utf-8")
-    return new_w, new_h
+
+def trace_option(crop_path: Path, meta: dict, dest_dir: Path) -> int:
+    """Slice an option crop into rows × cols cells, trace each shape cell,
+    write its SVG. Returns the number of SVGs written."""
+    rows, cols = meta["bbox"]
+    shape: list[list[int]] = meta["shape"]
+    img = Image.open(crop_path).convert("L")
+    # Resize so each cell = CELL_PX × CELL_PX (regardless of source aspect).
+    img = img.resize((cols * CELL_PX, rows * CELL_PX), Image.LANCZOS)
+    arr_full = np.asarray(img)
+    stem = crop_path.stem
+    written = 0
+    for r, c in shape:
+        x0 = c * CELL_PX
+        y0 = r * CELL_PX
+        cell = arr_full[y0 : y0 + CELL_PX, x0 : x0 + CELL_PX]
+        d = trace_cell(cell)
+        if not d:
+            continue
+        svg = (
+            f'<svg xmlns="http://www.w3.org/2000/svg" '
+            f'viewBox="0 0 {CELL_PX} {CELL_PX}" '
+            f'width="{CELL_PX}" height="{CELL_PX}">\n'
+            f'  <path d="{d}" '
+            f'fill="{FILL_COLOR}" stroke="{STROKE_COLOR}" '
+            f'stroke-width="{STROKE_WIDTH}" stroke-linejoin="round" '
+            f'fill-rule="evenodd"/>\n'
+            f'</svg>\n'
+        )
+        out = dest_dir / f"{stem}_cell_{r}_{c}.svg"
+        out.write_text(svg, encoding="utf-8")
+        written += 1
+    return written
 
 
 def main() -> int:
     if not SRC_DIR.exists():
         print(f"source dir not found: {SRC_DIR}", file=sys.stderr)
         return 1
+    cards = load_card_meta()
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    # Wipe any prior whole-card SVGs so we don't ship stale data.
+    for old in OUT_DIR.glob("*.svg"):
+        old.unlink()
     crops = sorted(SRC_DIR.glob("*.jpg"))
-    print(f"tracing {len(crops)} crops → {OUT_DIR}")
+    print(f"tracing {len(crops)} option crops → {OUT_DIR} (per shape cell)")
+    total_cells = 0
     for crop in crops:
-        out = OUT_DIR / (crop.stem + ".svg")
+        stem = crop.stem
         try:
-            w, h = trace_image(crop, out)
-            print(f"  {crop.name:>20s} → {out.name:>20s}  ({w}×{h})")
-        except Exception as e:  # pragma: no cover
-            print(f"  {crop.name:>20s} FAILED: {e}", file=sys.stderr)
-    print("done.")
+            num_part, variant, opt_part = stem.split("_")
+            number = int(num_part)
+            opt = int(opt_part.replace("opt", ""))
+        except (ValueError, IndexError):
+            print(f"  skip (bad name): {crop.name}", file=sys.stderr)
+            continue
+        meta = cards.get((number, variant, opt))
+        if meta is None:
+            print(f"  skip (no metadata): {crop.name}", file=sys.stderr)
+            continue
+        n = trace_option(crop, meta, OUT_DIR)
+        total_cells += n
+        print(f"  {crop.name}: {n} cell svg(s)")
+    print(f"done. {total_cells} per-cell svgs across {len(crops)} crops.")
     return 0
 
 
