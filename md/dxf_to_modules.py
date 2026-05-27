@@ -165,22 +165,37 @@ def entity_to_svg(e, transform):
 
 
 class Transform:
-    """Maps a block's drawing bbox to the 0..VIEW SVG space, keeping
-    aspect ratio (longer side spans VIEW, other side centred)."""
+    """Maps a block's drawing bbox to its own SVG space.
+
+    Each module keeps its TRUE aspect ratio: the longer side maps to
+    `VIEW` and the shorter side becomes proportionally smaller. The
+    SVG's viewBox / svg_width / svg_height (exposed below) are sized
+    accordingly so the consumer doesn't need to pad the rest as empty
+    space.
+    """
 
     def __init__(self, bb):
+        self.svg_width = VIEW
+        self.svg_height = VIEW
         if bb is None or bb.has_data is False:
             self.scale = 1.0
             self.dx = 0.0
             self.dy = 0.0
+            self.cad_width = 0.0
+            self.cad_height = 0.0
             return
         ext_w = bb.size.x or 1.0
         ext_h = bb.size.y or 1.0
+        self.cad_width = ext_w
+        self.cad_height = ext_h
         s = VIEW / max(ext_w, ext_h)
         self.scale = s
-        # SVG y axis flips relative to CAD.
-        self.dx = -bb.extmin.x * s + (VIEW - ext_w * s) / 2
-        self.dy = bb.extmax.y * s + (VIEW - ext_h * s) / 2
+        self.svg_width = ext_w * s
+        self.svg_height = ext_h * s
+        # SVG y axis flips relative to CAD; no centring offset — the
+        # viewBox now matches the content's aspect exactly.
+        self.dx = -bb.extmin.x * s
+        self.dy = bb.extmax.y * s
 
     def __call__(self, p):
         return (p[0] * self.scale + self.dx, -p[1] * self.scale + self.dy)
@@ -219,10 +234,16 @@ def block_to_svg(block) -> tuple[str | None, int]:
     if not elements:
         return None, 0
     body = "\n  ".join(elements)
+    w = transform.svg_width
+    h = transform.svg_height
+    # Stash the original CAD dimensions in data-* attributes so downstream
+    # consumers (the game's cell-mapping logic, etc.) can recover the true
+    # millimetre size if it ever matters.
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" '
-        f'viewBox="0 0 {VIEW:.0f} {VIEW:.0f}" '
-        f'width="{VIEW:.0f}" height="{VIEW:.0f}">\n'
+        f'viewBox="0 0 {w:.2f} {h:.2f}" '
+        f'data-cad-width="{transform.cad_width:.1f}" '
+        f'data-cad-height="{transform.cad_height:.1f}">\n'
         f'  {body}\n'
         f'</svg>\n'
     )

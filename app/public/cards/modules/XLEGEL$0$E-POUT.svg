@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-  <path d="M 57.50 87.50 L 57.50 12.50" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 42.50 87.50 L 42.50 12.50" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 0.00 87.50 L 100.00 87.50" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
-  <path d="M 95.00 87.50 A 45.00 45.00 0 0 1 5.00 87.50" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100.00 75.00" data-cad-width="200.0" data-cad-height="150.0">
+  <path d="M 57.50 75.00 L 57.50 0.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 42.50 75.00 L 42.50 0.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 0.00 75.00 L 100.00 75.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
+  <path d="M 95.00 75.00 A 45.00 45.00 0 0 1 5.00 75.00" stroke="rgba(255,255,255,0.92)" stroke-width="1.0" fill="none"/>
 </svg>

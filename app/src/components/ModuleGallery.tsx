@@ -101,12 +101,17 @@ export function ModuleGallery() {
                 borderRadius: 4,
               }}
             >
-              {/* The SVG is sized to 100×100 in user units; <img> scales it
-                  to the requested CSS box. */}
+              {/* Each SVG's viewBox now matches its true CAD aspect
+                  ratio; object-fit: contain keeps proportions in the
+                  square cell. */}
               <img
                 src={m.url}
                 alt={m.name}
-                style={{ width: '90%', height: '90%' }}
+                style={{
+                  maxWidth: '95%',
+                  maxHeight: '95%',
+                  objectFit: 'contain',
+                }}
               />
             </div>
             <span
