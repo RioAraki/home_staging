@@ -8,8 +8,6 @@ import { WallModeBanner } from './components/WallModeBanner';
 import { EndGameScreen } from './components/EndGameScreen';
 import { FinishGameBanner } from './components/FinishGameBanner';
 import { ReviewPanel } from './components/ReviewPanel';
-import { ModuleGallery } from './components/ModuleGallery';
-import { DxfPreview } from './components/DxfPreview';
 import { BonusPanel } from './components/BonusPanel';
 import { FloorPlanToolbar } from './components/FloorPlanToolbar';
 import { Toolbar } from './components/Toolbar';
@@ -75,12 +73,6 @@ function App() {
 
   if (hash === '#/review') {
     return <ReviewPanel />;
-  }
-  if (hash === '#/modules') {
-    return <ModuleGallery />;
-  }
-  if (hash === '#/dxf') {
-    return <DxfPreview />;
   }
 
   if (!scenario) {

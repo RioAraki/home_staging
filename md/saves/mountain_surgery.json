@@ -1,0 +1,300 @@
+{
+  "v": 1,
+  "ts": 1779703772704,
+  "chosenVariants": {
+    "1": "B",
+    "3": "A",
+    "16": "A",
+    "17": "A",
+    "18": "B",
+    "19": "A",
+    "21": "A",
+    "24": "B",
+    "31": "B",
+    "32": "B",
+    "33": "B"
+  },
+  "activeRoomSlot": null,
+  "completedRoomSlots": [
+    "II",
+    "I",
+    "III"
+  ],
+  "revealedCardKeys": [
+    "III:0",
+    "III:1",
+    "III:2",
+    "I:0",
+    "I:1",
+    "I:2",
+    "I:3",
+    "I:4",
+    "I:5",
+    "I:6",
+    "I:7",
+    "I:8",
+    "I:9",
+    "II:0",
+    "II:1",
+    "II:2",
+    "II:3"
+  ],
+  "placedCardKeys": [
+    "I:0",
+    "I:2",
+    "I:4",
+    "I:5",
+    "I:7",
+    "I:9",
+    "II:0",
+    "II:1",
+    "II:2",
+    "II:3",
+    "III:0",
+    "III:1",
+    "III:2",
+    "I:1"
+  ],
+  "skippedCardKeys": [
+    "I:3",
+    "I:6",
+    "I:8"
+  ],
+  "placedPieces": [
+    {
+      "slot": "I",
+      "slotIdx": 0,
+      "number": 16,
+      "variant": "A",
+      "optionIndex": 2,
+      "rotation": 0,
+      "mirrored": false,
+      "origin": [
+        10,
+        3
+      ],
+      "roomSlot": "I"
+    },
+    {
+      "slot": "I",
+      "slotIdx": 2,
+      "number": 21,
+      "variant": "A",
+      "optionIndex": 2,
+      "rotation": 1,
+      "mirrored": false,
+      "origin": [
+        9,
+        7
+      ],
+      "roomSlot": "I"
+    },
+    {
+      "slot": "I",
+      "slotIdx": 4,
+      "number": 24,
+      "variant": "B",
+      "optionIndex": 2,
+      "rotation": 3,
+      "mirrored": true,
+      "origin": [
+        8,
+        9
+      ],
+      "roomSlot": "I"
+    },
+    {
+      "slot": "I",
+      "slotIdx": 5,
+      "number": 31,
+      "variant": "B",
+      "optionIndex": 1,
+      "rotation": 3,
+      "mirrored": false,
+      "origin": [
+        9,
+        10
+      ],
+      "roomSlot": "I"
+    },
+    {
+      "slot": "I",
+      "slotIdx": 7,
+      "number": 32,
+      "variant": "B",
+      "optionIndex": 2,
+      "rotation": 1,
+      "mirrored": false,
+      "origin": [
+        6,
+        12
+      ],
+      "roomSlot": "I"
+    },
+    {
+      "slot": "I",
+      "slotIdx": 9,
+      "number": 33,
+      "variant": "B",
+      "optionIndex": 2,
+      "rotation": 0,
+      "mirrored": false,
+      "origin": [
+        7,
+        10
+      ],
+      "roomSlot": "I"
+    },
+    {
+      "slot": "II",
+      "slotIdx": 0,
+      "number": 1,
+      "variant": "B",
+      "optionIndex": 1,
+      "rotation": 1,
+      "mirrored": false,
+      "origin": [
+        3,
+        9
+      ],
+      "roomSlot": "II"
+    },
+    {
+      "slot": "II",
+      "slotIdx": 1,
+      "number": 1,
+      "variant": "B",
+      "optionIndex": 2,
+      "rotation": 2,
+      "mirrored": false,
+      "origin": [
+        3,
+        7
+      ],
+      "roomSlot": "II"
+    },
+    {
+      "slot": "II",
+      "slotIdx": 2,
+      "number": 19,
+      "variant": "A",
+      "optionIndex": 2,
+      "rotation": 0,
+      "mirrored": false,
+      "origin": [
+        6,
+        9
+      ],
+      "roomSlot": "II"
+    },
+    {
+      "slot": "II",
+      "slotIdx": 3,
+      "number": 19,
+      "variant": "A",
+      "optionIndex": 1,
+      "rotation": 1,
+      "mirrored": false,
+      "origin": [
+        7,
+        8
+      ],
+      "roomSlot": "II"
+    },
+    {
+      "slot": "III",
+      "slotIdx": 0,
+      "number": 3,
+      "variant": "A",
+      "optionIndex": 1,
+      "rotation": 3,
+      "mirrored": false,
+      "origin": [
+        3,
+        3
+      ],
+      "roomSlot": "III"
+    },
+    {
+      "slot": "III",
+      "slotIdx": 1,
+      "number": 3,
+      "variant": "A",
+      "optionIndex": 2,
+      "rotation": 2,
+      "mirrored": false,
+      "origin": [
+        3,
+        5
+      ],
+      "roomSlot": "III"
+    },
+    {
+      "slot": "III",
+      "slotIdx": 2,
+      "number": 17,
+      "variant": "A",
+      "optionIndex": 1,
+      "rotation": 3,
+      "mirrored": false,
+      "origin": [
+        5,
+        5
+      ],
+      "roomSlot": "III"
+    },
+    {
+      "slot": "I",
+      "slotIdx": 1,
+      "number": 18,
+      "variant": "B",
+      "optionIndex": 2,
+      "rotation": 0,
+      "mirrored": false,
+      "origin": [
+        9,
+        3
+      ],
+      "roomSlot": "I"
+    }
+  ],
+  "walls": {
+    "h:9:8": true,
+    "v:8:9": true,
+    "h:8:9": true,
+    "h:8:10": true,
+    "v:7:11": true,
+    "v:6:11": true,
+    "h:6:11": true,
+    "v:3:7": true,
+    "v:4:7": true,
+    "v:5:7": true,
+    "h:6:7": true,
+    "v:6:8": true,
+    "v:7:8": true,
+    "v:8:8": true,
+    "h:9:4": true,
+    "h:9:5": true,
+    "h:9:7": true,
+    "h:9:6": true,
+    "h:8:4": true,
+    "h:8:5": true,
+    "h:8:6": true,
+    "v:7:7": true,
+    "v:6:7": true
+  },
+  "doors": {
+    "v:6:8": "II",
+    "h:9:6": "I",
+    "v:7:7": "III"
+  },
+  "windows": {
+    "h:3:4": true,
+    "h:3:10": true,
+    "h:12:7": true,
+    "h:12:6": true
+  },
+  "jokerUsed": true,
+  "frontDoorEdge": "v:8:4",
+  "gameFinished": true
+}
