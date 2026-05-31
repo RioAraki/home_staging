@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, resources, UIOpacity, UITransform } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, resources, UIOpacity, UITransform, Color } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
@@ -17,6 +17,7 @@ export class GhostPiece extends Component {
     this.refresh();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.selectedOption !== prev.selectedOption) this.refresh();
+      if (s.lastError !== prev.lastError && s.lastError) this.flashRed();
     });
   }
 
@@ -31,6 +32,14 @@ export class GhostPiece extends Component {
   }
 
   getOrigin(): [number, number] { return this.origin; }
+
+  private flashRed() {
+    const sp = this.sprite?.getComponent(Sprite);
+    if (!sp) return;
+    const orig = sp.color.clone();
+    sp.color = new Color(255, 100, 100, 255);
+    this.scheduleOnce(() => { sp.color = orig; }, 0.2);
+  }
 
   private refresh() {
     const s = gameStore.getState();
