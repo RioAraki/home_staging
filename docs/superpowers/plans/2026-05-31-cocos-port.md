@@ -485,23 +485,14 @@ export class GameBootstrap extends Component {
 }
 ```
 
-- [ ] **Step 5: Move JSON data into resources folder**
+- [ ] **Step 5: (no-op) Verify JSON is in resources/data/**
 
-Cocos's `resources.load()` only works for files under `assets/resources/`. Move JSON there:
+Task 2 already places JSON in `assets/resources/data/` (so `resources.load('data/maps_data', JsonAsset, ...)` works). Just verify:
 
 ```
-New-Item -ItemType Directory -Force -Path D:\github\home_staging\cocos\assets\resources\data
-Move-Item D:\github\home_staging\cocos\assets\data\*.json D:\github\home_staging\cocos\assets\resources\data\ -Force
+ls cocos/home-staging-cocos/assets/resources/data/
 ```
-
-Update the .gitignore in cocos/ — change `/assets/data/*.json` to `/assets/resources/data/*.json`.
-
-Update `yaml2json.cjs` line `const OUT_DIR = path.join(__dirname, '..', 'assets', 'data');` to:
-```
-const OUT_DIR = path.join(__dirname, '..', 'assets', 'resources', 'data');
-```
-
-Re-run `npm run data:build`.
+should show `furniture_data.json` and `maps_data.json`. If not, re-run `npm run data:build` from `cocos/home-staging-cocos/`.
 
 - [ ] **Step 6: Attach GameBootstrap to the scene**
 
