@@ -1,12 +1,13 @@
 import { _decorator, Component, Graphics, Node } from 'cc';
 import { gameStore } from '../state/gameStore';
-import { drawGridBg, drawWalls, drawDoors, drawWindows } from './LayerRenderer';
+import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn } from './LayerRenderer';
 import { PlacedPiece } from './PlacedPiece';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloorPlan')
 export class FloorPlan extends Component {
   @property(Node) gridBg!: Node;
+  @property(Node) preDrawnLayer!: Node;
   @property(Node) placedLayer!: Node;
   @property(Node) wallsLayer!: Node;
   @property(Node) doorsLayer!: Node;
@@ -32,6 +33,8 @@ export class FloorPlan extends Component {
     if (!s.scenario) return;
     const g = this.gridBg?.getComponent(Graphics);
     if (g) drawGridBg(g, s.scenario);
+    const pg = this.preDrawnLayer?.getComponent(Graphics);
+    if (pg) drawPreDrawn(pg, s.scenario);
     this.rebuildPlacedLayer();
     this.redrawWalls();
     this.redrawDoors();
