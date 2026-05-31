@@ -5,12 +5,16 @@
     "version": "3.8.8"
   },
   "scripts": {
-    "data:build": "node tools/yaml2json.cjs"
+    "data:build": "node tools/yaml2json.cjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "zustand": "^5.0.13"
   },
   "devDependencies": {
-    "js-yaml": "^4.1.1"
+    "js-yaml": "^4.1.1",
+    "typescript": "~5.6",
+    "vitest": "^2.1.9"
   }
 }
