@@ -14,7 +14,7 @@ import { Toolbar } from './components/Toolbar';
 import { useGameStore } from './store/game';
 import { loadSavedState } from './lib/persistence';
 import { audioManager } from './lib/audio';
-import { loadAudioSettings, saveAudioSettings } from './lib/audioSettings';
+import { saveAudioSettings } from './lib/audioSettings';
 import { useAudioUnlock } from './hooks/useAudioUnlock';
 
 const AVAILABLE_SCENARIO_IDS = [
@@ -48,21 +48,21 @@ function App() {
   const [scenarioId, setScenarioId] = useState<string>(loadScenarioId);
   const scenario = scenarioById(scenarioId);
   const initRun = useGameStore((s) => s.initRun);
-  const setBgmMuted = useGameStore((s) => s.setBgmMuted);
-  const setSfxMuted = useGameStore((s) => s.setSfxMuted);
   const bgmMuted = useGameStore((s) => s.bgmMuted);
   const sfxMuted = useGameStore((s) => s.sfxMuted);
 
-  // Init audio + restore saved mute prefs. Runs once on first mount; the
-  // audio manager itself is idempotent under StrictMode double-mount.
+  // Init audio + push restored mute prefs (loaded by the store at init time)
+  // into the audio manager. Runs once; audioManager is idempotent under
+  // StrictMode double-mount.
   useEffect(() => {
     audioManager.init();
-    const saved = loadAudioSettings();
-    setBgmMuted(saved.bgmMuted);
-    setSfxMuted(saved.sfxMuted);
-  }, [setBgmMuted, setSfxMuted]);
+    const s = useGameStore.getState();
+    audioManager.setBgmMuted(s.bgmMuted);
+    audioManager.setSfxMuted(s.sfxMuted);
+  }, []);
 
-  // Mirror mute changes back to localStorage.
+  // Mirror mute changes back to localStorage. First run writes the same
+  // values just loaded by the store initializer — no clobber, no race.
   useEffect(() => {
     saveAudioSettings({ bgmMuted, sfxMuted });
   }, [bgmMuted, sfxMuted]);

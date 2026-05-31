@@ -5,6 +5,7 @@ import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../lib/walls
 import { frontDoorOpensIntoRoom } from '../lib/regions';
 import type { PersistedState } from '../lib/persistence';
 import { audioManager } from '../lib/audio';
+import { loadAudioSettings } from '../lib/audioSettings';
 
 export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
@@ -243,6 +244,8 @@ function autoFrontDoor(scenario: Scenario): string | null {
   return doorEdgeKey(d.cell, d.edge);
 }
 
+const initialAudioSettings = loadAudioSettings();
+
 export const useGameStore = create<GameState>((set, get) => {
   /** Wrap a mutation: snapshot current state into history, then apply patch. */
   const mutate = (apply: () => void) => {
@@ -261,8 +264,8 @@ export const useGameStore = create<GameState>((set, get) => {
     windowMode: false,
     demolishMode: false,
     themeId: 'blueprint',
-    bgmMuted: false,
-    sfxMuted: false,
+    bgmMuted: initialAudioSettings.bgmMuted,
+    sfxMuted: initialAudioSettings.sfxMuted,
 
     initRun: (scenario, saved) => {
       // If the caller pre-loaded a saved session, restore from it. Otherwise
