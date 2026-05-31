@@ -13,6 +13,9 @@ import { FloorPlanToolbar } from './components/FloorPlanToolbar';
 import { Toolbar } from './components/Toolbar';
 import { useGameStore } from './store/game';
 import { loadSavedState } from './lib/persistence';
+import { audioManager } from './lib/audio';
+import { loadAudioSettings, saveAudioSettings } from './lib/audioSettings';
+import { useAudioUnlock } from './hooks/useAudioUnlock';
 
 const AVAILABLE_SCENARIO_IDS = [
   'training',
@@ -45,6 +48,27 @@ function App() {
   const [scenarioId, setScenarioId] = useState<string>(loadScenarioId);
   const scenario = scenarioById(scenarioId);
   const initRun = useGameStore((s) => s.initRun);
+  const setBgmMuted = useGameStore((s) => s.setBgmMuted);
+  const setSfxMuted = useGameStore((s) => s.setSfxMuted);
+  const bgmMuted = useGameStore((s) => s.bgmMuted);
+  const sfxMuted = useGameStore((s) => s.sfxMuted);
+
+  // Init audio + restore saved mute prefs. Runs once on first mount; the
+  // audio manager itself is idempotent under StrictMode double-mount.
+  useEffect(() => {
+    audioManager.init();
+    const saved = loadAudioSettings();
+    setBgmMuted(saved.bgmMuted);
+    setSfxMuted(saved.sfxMuted);
+  }, [setBgmMuted, setSfxMuted]);
+
+  // Mirror mute changes back to localStorage.
+  useEffect(() => {
+    saveAudioSettings({ bgmMuted, sfxMuted });
+  }, [bgmMuted, sfxMuted]);
+
+  useAudioUnlock();
+
   const hash = useHashRoute();
 
   // Re-init the game store whenever the scenario changes. Fetch the
