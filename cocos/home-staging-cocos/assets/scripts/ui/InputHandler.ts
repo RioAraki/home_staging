@@ -24,9 +24,24 @@ export class InputHandler extends Component {
 
   private onTouchStart(e: EventTouch) {
     const s = gameStore.getState();
-    if (!s.selectedOption) return;
-    e.propagationStopped = true;
-    this.moveGhost(e);
+    if (s.selectedOption) {
+      e.propagationStopped = true;
+      this.moveGhost(e);
+      return;
+    }
+    const hit = this.hitTest(e);
+    if (hit.kind === 'edge') {
+      e.propagationStopped = true;
+      this.routeEdge(hit);
+    }
+  }
+
+  private routeEdge(hit: HitResult & { kind: 'edge' }) {
+    const s = gameStore.getState();
+    if (s.frontDoorMode) { s.setFrontDoor(hit.key); return; }
+    if (s.windowMode)    { s.toggleWindow(hit.key); return; }
+    if (s.wallPhase === 'walls') s.toggleWall(hit.key);
+    else                          s.setDoor(hit.key);
   }
 
   private onTouchMove(e: EventTouch) {

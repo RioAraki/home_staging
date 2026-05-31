@@ -54,3 +54,68 @@ function fillColorFor(terrain?: string): Color {
     default:         return new Color(255, 255, 255, 0);
   }
 }
+
+import type { RoomSlot } from '../core/types';
+
+export function drawWalls(g: Graphics, walls: Record<string, true>) {
+  g.clear();
+  g.strokeColor = new Color(50, 50, 50, 255);
+  g.lineWidth = 4;
+  const W = GRID_COLS * CELL_SIZE, H = GRID_ROWS * CELL_SIZE;
+  for (const key of Object.keys(walls)) {
+    const [type, rs, cs] = key.split(':');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    if (type === 'h') {
+      g.moveTo(c * CELL_SIZE - W / 2, H / 2 - r * CELL_SIZE);
+      g.lineTo((c + 1) * CELL_SIZE - W / 2, H / 2 - r * CELL_SIZE);
+    } else {
+      g.moveTo(c * CELL_SIZE - W / 2, H / 2 - r * CELL_SIZE);
+      g.lineTo(c * CELL_SIZE - W / 2, H / 2 - (r + 1) * CELL_SIZE);
+    }
+  }
+  g.stroke();
+}
+
+export function drawDoors(g: Graphics, doors: Record<string, RoomSlot>) {
+  g.clear();
+  g.strokeColor = new Color(180, 90, 30, 255);
+  g.lineWidth = 3;
+  const W = GRID_COLS * CELL_SIZE, H = GRID_ROWS * CELL_SIZE;
+  for (const key of Object.keys(doors)) {
+    const [type, rs, cs] = key.split(':');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    if (type === 'h') {
+      const x = c * CELL_SIZE + CELL_SIZE / 2 - W / 2;
+      const y = H / 2 - r * CELL_SIZE;
+      g.circle(x, y, CELL_SIZE * 0.4);
+    } else {
+      const x = c * CELL_SIZE - W / 2;
+      const y = H / 2 - r * CELL_SIZE - CELL_SIZE / 2;
+      g.circle(x, y, CELL_SIZE * 0.4);
+    }
+  }
+  g.stroke();
+}
+
+export function drawWindows(g: Graphics, windows: Record<string, true>) {
+  g.clear();
+  g.strokeColor = new Color(80, 140, 200, 255);
+  g.lineWidth = 4;
+  const W = GRID_COLS * CELL_SIZE, H = GRID_ROWS * CELL_SIZE;
+  for (const key of Object.keys(windows)) {
+    const [type, rs, cs] = key.split(':');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    if (type === 'h') {
+      const x1 = c * CELL_SIZE - W / 2;
+      const x2 = (c + 1) * CELL_SIZE - W / 2;
+      const y = H / 2 - r * CELL_SIZE;
+      g.moveTo(x1, y); g.lineTo(x2, y);
+    } else {
+      const x = c * CELL_SIZE - W / 2;
+      const y1 = H / 2 - r * CELL_SIZE;
+      const y2 = H / 2 - (r + 1) * CELL_SIZE;
+      g.moveTo(x, y1); g.lineTo(x, y2);
+    }
+  }
+  g.stroke();
+}

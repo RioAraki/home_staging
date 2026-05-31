@@ -1,6 +1,6 @@
 import { _decorator, Component, Graphics, Node } from 'cc';
 import { gameStore } from '../state/gameStore';
-import { drawGridBg } from './LayerRenderer';
+import { drawGridBg, drawWalls, drawDoors, drawWindows } from './LayerRenderer';
 import { PlacedPiece } from './PlacedPiece';
 const { ccclass, property } = _decorator;
 
@@ -8,6 +8,9 @@ const { ccclass, property } = _decorator;
 export class FloorPlan extends Component {
   @property(Node) gridBg!: Node;
   @property(Node) placedLayer!: Node;
+  @property(Node) wallsLayer!: Node;
+  @property(Node) doorsLayer!: Node;
+  @property(Node) windowsLayer!: Node;
 
   private unsub?: () => void;
 
@@ -16,6 +19,9 @@ export class FloorPlan extends Component {
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.scenario !== prev.scenario) this.renderAll();
       if (s.placedPieces !== prev.placedPieces) this.rebuildPlacedLayer();
+      if (s.walls !== prev.walls) this.redrawWalls();
+      if (s.doors !== prev.doors) this.redrawDoors();
+      if (s.windows !== prev.windows) this.redrawWindows();
     });
   }
 
@@ -27,6 +33,9 @@ export class FloorPlan extends Component {
     const g = this.gridBg?.getComponent(Graphics);
     if (g) drawGridBg(g, s.scenario);
     this.rebuildPlacedLayer();
+    this.redrawWalls();
+    this.redrawDoors();
+    this.redrawWindows();
   }
 
   private rebuildPlacedLayer() {
@@ -38,5 +47,21 @@ export class FloorPlan extends Component {
       const comp = node.addComponent(PlacedPiece);
       comp.init(p);
     }
+  }
+
+  private redrawWalls() {
+    if (!this.wallsLayer) return;
+    const g = this.wallsLayer.getComponent(Graphics);
+    if (g) drawWalls(g, gameStore.getState().walls);
+  }
+  private redrawDoors() {
+    if (!this.doorsLayer) return;
+    const g = this.doorsLayer.getComponent(Graphics);
+    if (g) drawDoors(g, gameStore.getState().doors);
+  }
+  private redrawWindows() {
+    if (!this.windowsLayer) return;
+    const g = this.windowsLayer.getComponent(Graphics);
+    if (g) drawWindows(g, gameStore.getState().windows);
   }
 }
