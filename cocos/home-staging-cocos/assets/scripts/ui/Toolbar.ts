@@ -10,6 +10,7 @@ export class Toolbar extends Component {
   @property(Button) frontDoorBtn!: Button;
   @property(Button) windowBtn!: Button;
   @property(Button) demolishBtn!: Button;
+  @property(Button) finishBtn!: Button;
 
   private unsub?: () => void;
 
@@ -26,6 +27,7 @@ export class Toolbar extends Component {
     if (this.frontDoorBtn) this.frontDoorBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().toggleFrontDoorMode());
     if (this.windowBtn)    this.windowBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().toggleWindowMode());
     if (this.demolishBtn)  this.demolishBtn.node.on(Button.EventType.CLICK,  () => gameStore.getState().toggleDemolishMode());
+    if (this.finishBtn)    this.finishBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().finishGame());
     this.refresh();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.wallPhase !== prev.wallPhase ||
