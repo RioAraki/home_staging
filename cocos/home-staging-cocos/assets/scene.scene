@@ -741,7 +741,7 @@
     "elastic": true,
     "inertia": true,
     "horizontal": true,
-    "vertical": true,
+    "vertical": false,
     "cancelInnerEvents": true,
     "scrollEvents": [],
     "_content": {
@@ -749,7 +749,10 @@
     },
     "_horizontalScrollBar": null,
     "_verticalScrollBar": null,
-    "_id": "58vZ15FCNHpo4+LcRwElXH"
+    "_id": "58vZ15FCNHpo4+LcRwElXH",
+    "content": {
+      "__id__": 17
+    }
   },
   {
     "__type__": "cc.Mask",
