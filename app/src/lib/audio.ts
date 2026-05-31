@@ -22,7 +22,7 @@ class AudioManager {
   private inited = false;
   private bgmStarted = false;
   private bgm: Howl | null = null;
-  private sfx: Record<SfxName, Howl> | null = null;
+  private sfx: Record<SfxName, Howl | null> | null = null;
   private bgmMuted = false;
   private sfxMuted = false;
 
@@ -52,7 +52,7 @@ class AudioManager {
         pool: 3,
         onloaderror: (_id, err) => {
           console.warn('[audio] place SFX failed to load:', err);
-          if (this.sfx) this.sfx.place = null as unknown as Howl;
+          if (this.sfx) this.sfx.place = null;
         },
       }),
       remove: new Howl({
@@ -61,7 +61,7 @@ class AudioManager {
         pool: 3,
         onloaderror: (_id, err) => {
           console.warn('[audio] remove SFX failed to load:', err);
-          if (this.sfx) this.sfx.remove = null as unknown as Howl;
+          if (this.sfx) this.sfx.remove = null;
         },
       }),
     };
