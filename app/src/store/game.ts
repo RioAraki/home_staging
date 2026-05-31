@@ -4,6 +4,7 @@ import { cardByNumberVariant } from '../data';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../lib/walls';
 import { frontDoorOpensIntoRoom } from '../lib/regions';
 import type { PersistedState } from '../lib/persistence';
+import { audioManager } from '../lib/audio';
 
 export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
@@ -84,6 +85,12 @@ export interface GameState extends Undoable {
   demolishMode: boolean;
   /** Visual theme for vector furniture rendering. UI-only, not undoable. */
   themeId: string;
+  /** UI-only: BGM mute toggle. Persisted globally (not per scenario). */
+  bgmMuted: boolean;
+  /** UI-only: SFX mute toggle. Persisted globally (not per scenario). */
+  sfxMuted: boolean;
+  setBgmMuted: (muted: boolean) => void;
+  setSfxMuted: (muted: boolean) => void;
 
   initRun: (scenario: Scenario, saved?: PersistedState | null) => void;
   resetCurrentScenario: () => void;
@@ -254,6 +261,8 @@ export const useGameStore = create<GameState>((set, get) => {
     windowMode: false,
     demolishMode: false,
     themeId: 'blueprint',
+    bgmMuted: false,
+    sfxMuted: false,
 
     initRun: (scenario, saved) => {
       // If the caller pre-loaded a saved session, restore from it. Otherwise
@@ -890,6 +899,16 @@ export const useGameStore = create<GameState>((set, get) => {
     },
 
     setThemeId: (id) => set({ themeId: id }),
+
+    setBgmMuted: (muted) => {
+      set({ bgmMuted: muted });
+      audioManager.setBgmMuted(muted);
+    },
+
+    setSfxMuted: (muted) => {
+      set({ sfxMuted: muted });
+      audioManager.setSfxMuted(muted);
+    },
 
     finishGame: () => mutate(() => set({ gameFinished: true, lastError: null })),
     unfinishGame: () => mutate(() => set({ gameFinished: false })),
