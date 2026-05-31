@@ -456,6 +456,7 @@ export const useGameStore = create<GameState>((set, get) => {
           lastError: null,
         });
       });
+      audioManager.playSfx('place');
       return true;
     },
 
@@ -536,18 +537,21 @@ export const useGameStore = create<GameState>((set, get) => {
           lastError: null,
         });
       });
+      audioManager.playSfx('remove');
     },
 
     toggleWall: (edgeKey) => {
       const { walls, doors, wallPhase } = get();
       if (wallPhase !== 'walls') return;
       if (doors[edgeKey]) return;
+      const isRemoving = !!walls[edgeKey];
       mutate(() => {
         const next = { ...walls };
         if (next[edgeKey]) delete next[edgeKey];
         else next[edgeKey] = true;
         set({ walls: next });
       });
+      audioManager.playSfx(isRemoving ? 'remove' : 'place');
     },
 
     setDoor: (edgeKey) => {
@@ -594,6 +598,7 @@ export const useGameStore = create<GameState>((set, get) => {
         }
         set({ doors: nextDoors, lastError: null });
       });
+      audioManager.playSfx(isToggleOff ? 'remove' : 'place');
     },
 
     setWallPhase: (phase) => set({ wallPhase: phase, lastError: null }),
@@ -697,6 +702,7 @@ export const useGameStore = create<GameState>((set, get) => {
       }
       mutate(() => set({ frontDoorEdge: edgeKey, lastError: null }));
       set({ frontDoorMode: false });
+      audioManager.playSfx('place');
     },
 
     toggleWindowMode: () =>
@@ -792,6 +798,7 @@ export const useGameStore = create<GameState>((set, get) => {
           lastError: null,
         });
       });
+      audioManager.playSfx('remove');
     },
 
     demolishAtEdge: (edgeKey) => {
@@ -819,6 +826,7 @@ export const useGameStore = create<GameState>((set, get) => {
           return;
         }
         mutate(() => set({ frontDoorEdge: null, gameFinished: false, lastError: null }));
+        audioManager.playSfx('remove');
         return;
       }
 
@@ -837,6 +845,7 @@ export const useGameStore = create<GameState>((set, get) => {
           delete next[edgeKey];
           set({ windows: next, gameFinished: false, lastError: null });
         });
+        audioManager.playSfx('remove');
         return;
       }
 
@@ -875,6 +884,7 @@ export const useGameStore = create<GameState>((set, get) => {
             lastError: null,
           });
         });
+        audioManager.playSfx('remove');
       }
     },
 
@@ -890,12 +900,14 @@ export const useGameStore = create<GameState>((set, get) => {
         set({ lastError: 'Windows can only be placed on exterior walls.' });
         return;
       }
+      const isRemoving = !!windows[edgeKey];
       mutate(() => {
         const next = { ...windows };
         if (next[edgeKey]) delete next[edgeKey];
         else next[edgeKey] = true;
         set({ windows: next, lastError: null });
       });
+      audioManager.playSfx(isRemoving ? 'remove' : 'place');
     },
 
     setThemeId: (id) => set({ themeId: id }),
