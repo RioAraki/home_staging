@@ -1,5 +1,6 @@
 import { _decorator, Component, Label, Button, Color } from 'cc';
 import { gameStore } from '../state/gameStore';
+import { styleButton } from './StyledButton';
 const { ccclass, property } = _decorator;
 
 @ccclass('Toolbar')
@@ -30,6 +31,9 @@ export class Toolbar extends Component {
     if (this.demolishBtn)  this.demolishBtn.node.on(Button.EventType.CLICK,  () => gameStore.getState().toggleDemolishMode());
     if (this.finishBtn)    this.finishBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().finishGame());
     if (this.undoBtn) this.undoBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().undo());
+    // Paint styled rounded-rect backgrounds on every button
+    [this.phaseBtn, this.completeBtn, this.frontDoorBtn, this.windowBtn,
+     this.demolishBtn, this.finishBtn, this.undoBtn].forEach(styleButton);
     this.refresh();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.wallPhase !== prev.wallPhase ||
@@ -45,7 +49,7 @@ export class Toolbar extends Component {
   private refresh() {
     if (!this.phaseLabel) return;
     const s = gameStore.getState();
-    this.phaseLabel.string = s.wallPhase === 'walls' ? 'walls (-> door)' : 'door (-> walls)';
+    this.phaseLabel.string = s.wallPhase === 'walls' ? '画墙 (→ 门)' : '放门 (→ 墙)';
     const dim = (b: Button | null | undefined, active: boolean) => {
       if (!b) return;
       const sprite = b.node.getComponent('cc.Sprite' as any) as any;

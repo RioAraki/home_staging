@@ -1,5 +1,8 @@
 import { _decorator, Component, EventTouch, Node, Vec3, UITransform } from 'cc';
 import { gameStore } from '../state/gameStore';
+import { cardByNumberVariant } from '../core/dataLoader';
+import { validatePlacement } from '../core/validation';
+import { transformOption } from '../core/geometry';
 import { CELL_SIZE, GRID_ROWS, GRID_COLS } from './LayerRenderer';
 import { GhostPiece } from './GhostPiece';
 const { ccclass, property } = _decorator;
@@ -65,7 +68,37 @@ export class InputHandler extends Component {
     const s = gameStore.getState();
     if (!s.selectedOption) return;
     e.propagationStopped = true;
-    s.placeSelected(this.ghost.getOrigin());
+    // NOTE: Do NOT auto-place on touch end. Ghost just stays where the user
+    // dragged it. They confirm via the "✓ 放置" button in SelectionStatus.
+    // Rationale: with auto-place, players can't rotate/mirror because any
+    // touch up commits placement.
+  }
+
+  /** Called by SelectionStatus's Place button. Validates first. */
+  tryPlaceAtGhost() {
+    const s = gameStore.getState();
+    const sel = s.selectedOption;
+    if (!sel || !s.scenario) return;
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    if (!opt) return;
+
+    const origin = this.ghost.getOrigin();
+    const transformed = transformOption(opt, sel.rotation, sel.mirrored);
+    const result = validatePlacement(
+      s.scenario,
+      transformed,
+      origin,
+      s.placedPieces,
+      sel.number,
+      s.doors,
+      s.frontDoorEdge,
+    );
+    if (!result.valid) {
+      s.setError(result.reason ?? '不能放在这里');
+      return;
+    }
+    s.placeSelected(origin);
   }
 
   private moveGhost(e: EventTouch) {

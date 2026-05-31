@@ -38,9 +38,9 @@ export class BonusPanel extends Component {
         s.frontDoorEdge,
         s.windows,
       );
-      this.summaryLabel.string = `Score: ${result.total}`;
+      this.summaryLabel.string = `总分: ${result.total}`;
     } catch (e) {
-      this.summaryLabel.string = `Score: ?`;
+      this.summaryLabel.string = `总分: ?`;
     }
   }
 }

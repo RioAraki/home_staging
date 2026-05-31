@@ -22,9 +22,9 @@ export class WallModeBanner extends Component {
 
   private refresh() {
     const s = gameStore.getState();
-    if (s.frontDoorMode) this.set('Tap an exterior edge to set front door');
-    else if (s.windowMode) this.set('Tap an exterior edge to add/remove a window');
-    else if (s.demolishMode) this.set('Tap a piece or wall/door/window to demolish');
+    if (s.frontDoorMode) this.set('点外墙 edge 设前门');
+    else if (s.windowMode) this.set('点外墙 edge 加/移除窗');
+    else if (s.demolishMode) this.set('点家具 / 墙 / 门 / 窗 拆除');
     else if (this.node) this.node.active = false;
   }
   private set(text: string) {
