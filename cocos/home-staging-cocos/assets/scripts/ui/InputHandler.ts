@@ -30,8 +30,19 @@ export class InputHandler extends Component {
       return;
     }
     const hit = this.hitTest(e);
+    if (hit.kind === 'cell') {
+      if (s.demolishMode) {
+        e.propagationStopped = true;
+        s.demolishAtCell([hit.row, hit.col]);
+      }
+      return;
+    }
     if (hit.kind === 'edge') {
       e.propagationStopped = true;
+      if (s.demolishMode) {
+        s.demolishAtEdge(hit.key);
+        return;
+      }
       this.routeEdge(hit);
     }
   }
