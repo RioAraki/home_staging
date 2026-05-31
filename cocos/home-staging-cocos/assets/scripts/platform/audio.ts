@@ -4,6 +4,7 @@ type SfxKind = 'place' | 'remove' | 'error';
 
 class AudioManager {
   private bgm?: AudioSource;
+  private sfxSource?: AudioSource;
   private hostNode?: Node;
   private clips: Record<string, AudioClip> = {};
   private _bgmMuted = false;
@@ -21,6 +22,8 @@ class AudioManager {
     this.hostNode = root;
     this.bgm = root.addComponent(AudioSource);
     this.bgm.loop = true;
+    // Dedicated source for one-shots so SFX never interrupts BGM
+    this.sfxSource = root.addComponent(AudioSource);
 
     this.preload('bgm', 'audio/bgm-ambient');
     this.preload('place', 'audio/sfx-place');
@@ -41,8 +44,8 @@ class AudioManager {
   playSfx(kind: SfxKind) {
     if (this._sfxMuted) return;
     const clip = this.clips[kind];
-    if (!clip || !this.hostNode) return;
-    AudioSource.playOneShot(clip);
+    if (!clip || !this.sfxSource) return;
+    this.sfxSource.playOneShot(clip);
   }
 
   setBgmMuted(m: boolean) {
