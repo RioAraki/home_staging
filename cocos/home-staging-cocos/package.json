@@ -4,7 +4,13 @@
   "creator": {
     "version": "3.8.8"
   },
+  "scripts": {
+    "data:build": "node tools/yaml2json.cjs"
+  },
   "dependencies": {
     "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.1"
   }
 }
