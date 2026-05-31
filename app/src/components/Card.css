@@ -190,3 +190,57 @@
   text-align: left;
   flex: 1;
 }
+
+/* Compact one-line bar shown when a card is placed and not manually
+   expanded. Clicking expands back to the normal up-state look. */
+.card.placed-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 110px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px dashed var(--pen);
+  border-radius: 6px;
+  color: var(--pen);
+  font-family: 'Patrick Hand', sans-serif;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.card.placed-bar:hover { background: rgba(255, 255, 255, 0.08); opacity: 0.95; }
+.card.placed-bar .num {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.card.placed-bar .badge.placed-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(120, 220, 120, 0.18);
+  color: rgba(180, 240, 180, 0.95);
+}
+.card.placed-bar .chev {
+  font-size: 1.1rem;
+  color: var(--pen-soft);
+  line-height: 1;
+}
+
+/* Collapse-back button shown in the expanded view's header when a placed
+   card has been manually expanded. Mirrors .room-collapse-btn pattern. */
+.card-collapse-btn {
+  margin-left: 6px;
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen-soft);
+  padding: 0 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+.card-collapse-btn:hover { background: rgba(255, 255, 255, 0.06); color: var(--pen); }

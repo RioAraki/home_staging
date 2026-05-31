@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { cardByNumberVariant } from '../data';
 import { useGameStore, instanceKey, type Variant } from '../store/game';
 import type { RoomSlot } from '../types';
@@ -37,6 +38,12 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
     return useGameStore.getState().activeRoomSlot === slot;
   };
 
+  // Card auto-collapses to a one-line "placed" bar whenever it transitions
+  // into the placed state. Click the bar to expand. Withdraw lives only in
+  // the expanded view so single-click on the bar stays non-destructive.
+  const [manuallyExpanded, setManuallyExpanded] = useState(false);
+  useEffect(() => { setManuallyExpanded(false); }, [placed]);
+
   const card = cardByNumberVariant(number, variant);
   if (!card) return <div className="card error">no card {number}{variant}</div>;
 
@@ -73,6 +80,22 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
     );
   }
 
+  if (placed && !manuallyExpanded) {
+    return (
+      <button
+        type="button"
+        className="card placed-bar"
+        onClick={() => setManuallyExpanded(true)}
+        aria-label={`Placed card ${number}, click to expand`}
+        title="Click to expand"
+      >
+        <span className="num">#{number}</span>
+        <span className="badge placed-badge">placed</span>
+        <span className="chev">⌄</span>
+      </button>
+    );
+  }
+
   return (
     <div className={`card up ${placed ? 'placed' : ''} ${skipped ? 'skipped' : ''} ${isMine ? 'selected' : ''}`}>
       <div className="card-header">
@@ -81,6 +104,17 @@ export function Card({ number, variant, slot, slotIdx, disabled }: CardProps) {
         {placed && <span className="badge placed-badge">placed</span>}
         {skipped && <span className="badge skipped-badge">skipped</span>}
         {isMine && !resolved && <span className="badge selected-badge">selected</span>}
+        {placed && manuallyExpanded && (
+          <button
+            type="button"
+            className="card-collapse-btn"
+            onClick={() => setManuallyExpanded(false)}
+            title="Collapse this placed card"
+            aria-label="Collapse placed card"
+          >
+            ⌃
+          </button>
+        )}
       </div>
       <div className="card-options">
         {card.options.map((opt) => {
