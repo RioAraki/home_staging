@@ -15,7 +15,7 @@ const COL_WATER    = new Color(150, 180, 220, 255);
 const COL_ROAD     = new Color(180, 180, 180, 255);
 const COL_OBSTACLE = new Color(100, 100, 100, 255);
 
-const COL_GRIDLINE = new Color(100, 100, 100, 40);   // very faint grey
+const COL_GRIDLINE = new Color(80, 80, 90, 160);     // visible blueprint pencil
 const COL_WALL     = new Color(30,  40,  60,  255);  // navy — architectural pen
 const COL_DOOR     = new Color(200, 140,  30, 255);  // warm golden — matches accent
 const COL_WINDOW   = new Color(168, 216, 238, 255);  // #a8d8ee light blue

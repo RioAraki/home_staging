@@ -41,25 +41,23 @@ export class CardItem extends Component {
     ui.setContentSize(160, 180);
 
     // Background — draw via Graphics since Sprite without SpriteFrame doesn't render.
-    // Rounded corners (r=12) + subtle shadow layer for visual depth.
     const bg = new Node('Bg');
     this.node.addChild(bg);
     const bgUi = bg.addComponent(UITransform);
     bgUi.setContentSize(160, 180);
     const bgGfx = bg.addComponent(Graphics);
 
-    // Shadow layer: offset darker rect drawn first.
-    const sx = 4, sy = -4;
+    // Shadow layer
     bgGfx.fillColor = new Color(160, 150, 130, 80);
     bgGfx.lineWidth = 0;
-    drawRoundRect(bgGfx, -80 + sx, -90 + sy, 160, 180, 12);
+    bgGfx.rect(-76, -94, 160, 180);
     bgGfx.fill();
 
     // Card face: warm cream fill with border.
     bgGfx.fillColor = new Color(250, 245, 235, 255);
     bgGfx.strokeColor = new Color(160, 148, 120, 255);
     bgGfx.lineWidth = 2;
-    drawRoundRect(bgGfx, -80, -90, 160, 180, 12);
+    bgGfx.rect(-80, -90, 160, 180);
     bgGfx.fill();
     bgGfx.stroke();
 
