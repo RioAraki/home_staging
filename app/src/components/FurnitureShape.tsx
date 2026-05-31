@@ -2,7 +2,7 @@ import type { FurnitureOption } from '../types';
 import type { Rotation, Variant } from '../store/game';
 import { transformOption } from '../lib/geometry';
 import { optionImageUrl } from '../lib/optionImage';
-import { FurnitureVector, hasVectorVisual } from '../vector/FurnitureVector';
+import { FurnitureVector, hasSchemaVisual } from '../vector/FurnitureVector';
 import './FurnitureShape.css';
 
 interface FurnitureShapeProps {
@@ -107,7 +107,7 @@ export function FurnitureShape({
             the visual schema automatically updates the review thumbnail
             and any sidebar / status preview, so the review pass actually
             shows the new render. */}
-        {hasVectorVisual(number, variant, option.option_index) ? (
+        {hasSchemaVisual(number, variant, option.option_index) ? (
           <g
             transform={`translate(${w / 2}, ${h / 2}) rotate(${rotation * 90}) scale(${mirrored ? -1 : 1}, 1)`}
             className="piece-vector"

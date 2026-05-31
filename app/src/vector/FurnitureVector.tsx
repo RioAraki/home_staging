@@ -86,7 +86,8 @@ export function FurnitureVector({
 }
 
 /** True when this option has either a hand-authored schema OR at least
- *  one per-cell traced SVG available. */
+ *  one per-cell traced SVG available. Kept for completeness — callers
+ *  that want the auto-traced fallback to win over raster can use this. */
 export function hasVectorVisual(
   number: number,
   variant: 'A' | 'B',
@@ -94,4 +95,16 @@ export function hasVectorVisual(
 ): boolean {
   return visualByKey(number, variant, optionIndex) !== null
     || hasAnyCellTrace(number, variant, optionIndex);
+}
+
+/** True ONLY when a hand-authored schema exists for this option. Use this
+ *  to keep the raster card crop ahead of the auto-traced SVG layer in the
+ *  visual priority — schema wins, raster fallback, traced never triggers
+ *  (the tier 2 branch above stays as dormant code for future opt-in). */
+export function hasSchemaVisual(
+  number: number,
+  variant: 'A' | 'B',
+  optionIndex: number,
+): boolean {
+  return visualByKey(number, variant, optionIndex) !== null;
 }

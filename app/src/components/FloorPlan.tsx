@@ -24,7 +24,7 @@ import {
   frontDoorOpensIntoRoom,
 } from '../lib/regions';
 import { optionImageUrl } from '../lib/optionImage';
-import { FurnitureVector, hasVectorVisual } from '../vector/FurnitureVector';
+import { FurnitureVector, hasSchemaVisual } from '../vector/FurnitureVector';
 import type { ThemeId } from '../vector/themes';
 import './FloorPlan.css';
 
@@ -1057,7 +1057,7 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
             const origPxH = origH * cellSize;
             const url = optionImageUrl(p.number, p.variant, p.optionIndex);
 
-            const useVector = hasVectorVisual(p.number, p.variant, p.optionIndex);
+            const useVector = hasSchemaVisual(p.number, p.variant, p.optionIndex);
             // Clip the scanned card crop to SHAPE cells only. Open-space and
             // void cells render transparent — the open-space marker is just
             // the centre dot below, so the scan's imprecise cell borders
