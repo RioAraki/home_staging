@@ -93,3 +93,20 @@
   background: var(--bg);
   color: var(--pen);
 }
+
+.audio-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px dashed var(--pen-soft);
+  color: var(--pen);
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Patrick Hand', sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+}
+.audio-btn:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--pen); }
+.audio-btn.muted { opacity: 0.45; }
