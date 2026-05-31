@@ -60,6 +60,8 @@ export class CardItem extends Component {
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.revealedCardKeys !== prev.revealedCardKeys ||
           s.chosenVariants   !== prev.chosenVariants ||
+          s.placedCardKeys   !== prev.placedCardKeys   ||
+          s.skippedCardKeys  !== prev.skippedCardKeys  ||
           s.selectedOption   !== prev.selectedOption) {
         this.refresh();
       }
@@ -75,6 +77,8 @@ export class CardItem extends Component {
     const s = gameStore.getState();
     const key = instanceKey(this.slot, this.slotIdx);
     const revealed = s.revealedCardKeys.has(key);
+    const placed = s.placedCardKeys.has(key);
+    const skipped = s.skippedCardKeys.has(key);
 
     this.optionRow.removeAllChildren();
     if (this.revealHandler) {
@@ -82,6 +86,14 @@ export class CardItem extends Component {
       this.revealHandler = undefined;
     }
 
+    if (placed) {
+      this.numberLabel.string = `#${this.number} OK`;
+      return;
+    }
+    if (skipped) {
+      this.numberLabel.string = `#${this.number} -`;
+      return;
+    }
     if (!revealed) {
       this.numberLabel.string = `#${this.number}`;
       this.revealHandler = () => this.onReveal();
