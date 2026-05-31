@@ -19,9 +19,9 @@
 //   7. A room is "accessible" iff its region is reachable.
 
 import type { Scenario, RoomSlot } from './types';
-import type { PlacedPiece } from '../store/game';
+import type { PlacedPiece } from '../state/gameStore';
 import { transformOption, absoluteCells } from './geometry';
-import { cardByNumberVariant } from '../data';
+import { cardByNumberVariant } from './dataLoader';
 
 export type CellKey = string;        // "r,c"
 export type RegionId = number;

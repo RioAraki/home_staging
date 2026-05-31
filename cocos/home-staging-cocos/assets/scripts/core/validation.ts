@@ -29,9 +29,9 @@
 import type { Scenario, CellAttrs } from './types';
 import type { Cell, TransformedShape } from './geometry';
 import { absoluteCells, inBounds } from './geometry';
-import type { PlacedPiece } from '../store/game';
+import type { PlacedPiece } from '../state/gameStore';
 import { transformOption } from './geometry';
-import { cardByNumberVariant } from '../data';
+import { cardByNumberVariant } from './dataLoader';
 
 export interface ValidationResult {
   valid: boolean;

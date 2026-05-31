@@ -1,8 +1,8 @@
 // End-game scoring per RULES.md §"End of the game and final scoring".
 
 import type { Scenario, RoomSlot, BonusPoint } from './types';
-import type { PlacedPiece } from '../store/game';
-import { cardByNumberVariant } from '../data';
+import type { PlacedPiece } from '../state/gameStore';
+import { cardByNumberVariant } from './dataLoader';
 import { transformOption, absoluteCells } from './geometry';
 import {
   analyseAccessibility,
