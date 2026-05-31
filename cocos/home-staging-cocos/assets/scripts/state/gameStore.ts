@@ -3,7 +3,8 @@ import type { RoomSlot, Scenario } from '../core/types';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../core/walls';
 import { frontDoorOpensIntoRoom } from '../core/regions';
-import { audioManager, loadAudioSettings } from '../platform/audioStub';
+import { audioManager } from '../platform/audio';
+import { loadAudioSettings } from '../platform/audioSettings';
 
 // PersistedState is unused in v1; declare a stub for type compat.
 type PersistedState = unknown;

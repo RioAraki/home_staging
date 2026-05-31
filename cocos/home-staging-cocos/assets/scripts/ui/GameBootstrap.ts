@@ -1,6 +1,7 @@
 import { _decorator, Component, resources, JsonAsset } from 'cc';
 import { setLoadedData, scenarioById } from '../core/dataLoader';
 import { gameStore } from '../state/gameStore';
+import { audioManager } from '../platform/audio';
 const { ccclass } = _decorator;
 
 @ccclass('GameBootstrap')
@@ -22,6 +23,10 @@ export class GameBootstrap extends Component {
     gameStore.getState().initRun(training);
     console.log('[bootstrap] store initialized for training:',
       gameStore.getState().scenario?.title_en);
+
+    audioManager.init();
+    audioManager.setBgmMuted(gameStore.getState().bgmMuted);
+    audioManager.setSfxMuted(gameStore.getState().sfxMuted);
 
     // Expose to console for manual smoke tests.
     (globalThis as any).gameStore = gameStore;
