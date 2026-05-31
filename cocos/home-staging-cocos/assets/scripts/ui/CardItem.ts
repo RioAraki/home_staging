@@ -4,6 +4,28 @@ import { cardByNumberVariant } from '../core/dataLoader';
 import type { RoomSlot } from '../core/types';
 const { ccclass } = _decorator;
 
+/**
+ * Draw a rounded rectangle path on a Graphics object.
+ * x, y = top-left corner (in Cocos coords where +y is up, so y here is the
+ * top which is the LARGER y value).  w, h = full width/height.  r = corner radius.
+ * Cocos Graphics y-axis: +y is up, so (x, y) is "top-left" means y is
+ * the upper edge and y - h is the lower edge.
+ */
+function drawRoundRect(g: Graphics, x: number, y: number, w: number, h: number, r: number) {
+  // In Cocos UI coords: x is left, x+w is right, y is top (higher), y-h is bottom (lower).
+  // Arc angles: 0 = right, PI/2 = up, PI = left, 3PI/2 = down.
+  g.moveTo(x + r, y);
+  g.lineTo(x + w - r, y);
+  g.arc(x + w - r, y - r,     r, Math.PI / 2,        0,           true);   // top-right
+  g.lineTo(x + w, y - h + r);
+  g.arc(x + w - r, y - h + r, r, 0,                  -Math.PI / 2, true);  // bottom-right
+  g.lineTo(x + r, y - h);
+  g.arc(x + r,     y - h + r, r, -Math.PI / 2,       -Math.PI,     true);  // bottom-left
+  g.lineTo(x, y - r);
+  g.arc(x + r,     y - r,     r, Math.PI,             Math.PI / 2,  true);  // top-left
+  g.close();
+}
+
 @ccclass('CardItem')
 export class CardItem extends Component {
   private slot!: RoomSlot;
@@ -18,16 +40,26 @@ export class CardItem extends Component {
     const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
     ui.setContentSize(160, 180);
 
-    // Background — draw via Graphics since Sprite without SpriteFrame doesn't render
+    // Background — draw via Graphics since Sprite without SpriteFrame doesn't render.
+    // Rounded corners (r=12) + subtle shadow layer for visual depth.
     const bg = new Node('Bg');
     this.node.addChild(bg);
     const bgUi = bg.addComponent(UITransform);
     bgUi.setContentSize(160, 180);
     const bgGfx = bg.addComponent(Graphics);
-    bgGfx.fillColor = new Color(245, 240, 230, 255);
-    bgGfx.strokeColor = new Color(180, 170, 150, 255);
+
+    // Shadow layer: offset darker rect drawn first.
+    const sx = 4, sy = -4;
+    bgGfx.fillColor = new Color(160, 150, 130, 80);
+    bgGfx.lineWidth = 0;
+    drawRoundRect(bgGfx, -80 + sx, -90 + sy, 160, 180, 12);
+    bgGfx.fill();
+
+    // Card face: warm cream fill with border.
+    bgGfx.fillColor = new Color(250, 245, 235, 255);
+    bgGfx.strokeColor = new Color(160, 148, 120, 255);
     bgGfx.lineWidth = 2;
-    bgGfx.rect(-80, -90, 160, 180);
+    drawRoundRect(bgGfx, -80, -90, 160, 180, 12);
     bgGfx.fill();
     bgGfx.stroke();
 
