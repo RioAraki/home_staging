@@ -1,0 +1,10 @@
+{
+  "name": "home-staging-cocos",
+  "uuid": "2813ca89-a64e-4ef8-89a6-d868ee0e7cba",
+  "creator": {
+    "version": "3.8.8"
+  },
+  "dependencies": {
+    "zustand": "^5.0.13"
+  }
+}
