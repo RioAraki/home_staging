@@ -11,6 +11,7 @@ export class Toolbar extends Component {
   @property(Button) windowBtn!: Button;
   @property(Button) demolishBtn!: Button;
   @property(Button) finishBtn!: Button;
+  @property(Button) undoBtn!: Button;
 
   private unsub?: () => void;
 
@@ -28,12 +29,14 @@ export class Toolbar extends Component {
     if (this.windowBtn)    this.windowBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().toggleWindowMode());
     if (this.demolishBtn)  this.demolishBtn.node.on(Button.EventType.CLICK,  () => gameStore.getState().toggleDemolishMode());
     if (this.finishBtn)    this.finishBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().finishGame());
+    if (this.undoBtn) this.undoBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().undo());
     this.refresh();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.wallPhase !== prev.wallPhase ||
           s.frontDoorMode !== prev.frontDoorMode ||
           s.windowMode    !== prev.windowMode ||
-          s.demolishMode  !== prev.demolishMode) this.refresh();
+          s.demolishMode  !== prev.demolishMode ||
+          s.past          !== prev.past) this.refresh();
     });
   }
 
@@ -53,5 +56,6 @@ export class Toolbar extends Component {
     dim(this.frontDoorBtn, s.frontDoorMode);
     dim(this.windowBtn,    s.windowMode);
     dim(this.demolishBtn,  s.demolishMode);
+    if (this.undoBtn) this.undoBtn.interactable = gameStore.getState().past.length > 0;
   }
 }
