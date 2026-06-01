@@ -3,16 +3,11 @@ import { gameStore } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { validatePlacement } from '../core/validation';
 import { transformOption } from '../core/geometry';
-import { CELL_SIZE, GRID_ROWS, GRID_COLS } from './LayerRenderer';
+import { hitTestLocal, type HitResult } from './viewport';
 import { GhostPiece } from './GhostPiece';
 const { ccclass, property } = _decorator;
 
-const EDGE_SLOP = 12;
-
-export type HitResult =
-  | { kind: 'cell'; row: number; col: number }
-  | { kind: 'edge'; key: string; row: number; col: number; side: 'top'|'right'|'bottom'|'left' }
-  | { kind: 'outside' };
+export type { HitResult };
 
 @ccclass('InputHandler')
 export class InputHandler extends Component {
@@ -114,35 +109,6 @@ export class InputHandler extends Component {
     if (!ui) return { kind: 'outside' };
     const world = new Vec3(e.getUILocation().x, e.getUILocation().y, 0);
     const local = ui.convertToNodeSpaceAR(world);
-    const W = GRID_COLS * CELL_SIZE;
-    const H = GRID_ROWS * CELL_SIZE;
-    const x = local.x + W / 2;
-    const y = H / 2 - local.y;
-    if (x < 0 || y < 0 || x >= W || y >= H) return { kind: 'outside' };
-    const cellX = Math.floor(x / CELL_SIZE);
-    const cellY = Math.floor(y / CELL_SIZE);
-    const lx = x - cellX * CELL_SIZE;
-    const ly = y - cellY * CELL_SIZE;
-    const distTop    = ly;
-    const distBottom = CELL_SIZE - ly;
-    const distLeft   = lx;
-    const distRight  = CELL_SIZE - lx;
-    const minDist = Math.min(distTop, distBottom, distLeft, distRight);
-
-    if (minDist >= EDGE_SLOP) {
-      return { kind: 'cell', row: cellY, col: cellX };
-    }
-    let side: 'top'|'right'|'bottom'|'left';
-    if      (minDist === distTop)    side = 'top';
-    else if (minDist === distBottom) side = 'bottom';
-    else if (minDist === distLeft)   side = 'left';
-    else                              side = 'right';
-
-    let key: string;
-    if      (side === 'top')    key = `h:${cellY}:${cellX}`;
-    else if (side === 'bottom') key = `h:${cellY + 1}:${cellX}`;
-    else if (side === 'left')   key = `v:${cellY}:${cellX}`;
-    else                         key = `v:${cellY}:${cellX + 1}`;
-    return { kind: 'edge', key, row: cellY, col: cellX, side };
+    return hitTestLocal(local.x, local.y);
   }
 }

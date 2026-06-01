@@ -1,6 +1,7 @@
-import { _decorator, Component, Graphics, Node } from 'cc';
+import { _decorator, Component, Graphics, Node, UITransform, view } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn } from './LayerRenderer';
+import { computeLayout, setLayout, layout } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
 const { ccclass, property } = _decorator;
 
@@ -28,9 +29,32 @@ export class FloorPlan extends Component {
 
   onDestroy() { this.unsub?.(); }
 
+  /** Available area to fit the map into: the FloorPlan's parent container, or
+   *  a fraction of the visible screen if the parent isn't sized. */
+  private availSize(): { w: number; h: number } {
+    const parentUi = this.node.parent?.getComponent(UITransform);
+    if (parentUi && parentUi.contentSize.width > 0 && parentUi.contentSize.height > 0) {
+      return { w: parentUi.contentSize.width, h: parentUi.contentSize.height };
+    }
+    const vis = view.getVisibleSize();
+    // Fallback: leave room for the top toolbar and bottom card tray.
+    return { w: vis.width, h: vis.height * 0.55 };
+  }
+
+  private applyLayout() {
+    const s = gameStore.getState();
+    if (!s.scenario) return;
+    const { w, h } = this.availSize();
+    setLayout(computeLayout(s.scenario, w, h));
+    // Match the node's own hit/visual area to the cropped map (anchor 0.5).
+    const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
+    ui.setContentSize(layout().w, layout().h);
+  }
+
   private renderAll() {
     const s = gameStore.getState();
     if (!s.scenario) return;
+    this.applyLayout();
     const g = this.gridBg?.getComponent(Graphics);
     if (g) drawGridBg(g, s.scenario);
     const pg = this.preDrawnLayer?.getComponent(Graphics);

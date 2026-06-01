@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Sprite, SpriteFrame, resources, UIOpacity,
 import { gameStore } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
-import { CELL_SIZE, GRID_ROWS, GRID_COLS } from './LayerRenderer';
+import { layout, edgeX, edgeY, FULL_GRID_ROWS, FULL_GRID_COLS } from './viewport';
 const { ccclass, property } = _decorator;
 
 @ccclass('GhostPiece')
@@ -25,8 +25,8 @@ export class GhostPiece extends Component {
 
   setOrigin(r: number, c: number) {
     this.origin = [
-      Math.max(0, Math.min(GRID_ROWS - 1, r)),
-      Math.max(0, Math.min(GRID_COLS - 1, c)),
+      Math.max(0, Math.min(FULL_GRID_ROWS - 1, r)),
+      Math.max(0, Math.min(FULL_GRID_COLS - 1, c)),
     ];
     this.updatePosition();
   }
@@ -56,8 +56,9 @@ export class GhostPiece extends Component {
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return;
     const t = transformOption(opt, sel.rotation, sel.mirrored);
+    const cell = layout().cell;
     const ui = this.sprite.getComponent(UITransform) ?? this.sprite.addComponent(UITransform);
-    ui.setContentSize(t.bbox[1] * CELL_SIZE, t.bbox[0] * CELL_SIZE);
+    ui.setContentSize(t.bbox[1] * cell, t.bbox[0] * cell);
     this.updatePosition();
 
     const op = this.sprite.getComponent(UIOpacity) ?? this.sprite.addComponent(UIOpacity);
@@ -72,10 +73,9 @@ export class GhostPiece extends Component {
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return;
     const t = transformOption(opt, sel.rotation, sel.mirrored);
-    const W = GRID_COLS * CELL_SIZE;
-    const H = GRID_ROWS * CELL_SIZE;
-    const x = this.origin[1] * CELL_SIZE - W / 2 + (t.bbox[1] * CELL_SIZE) / 2;
-    const y = -this.origin[0] * CELL_SIZE + H / 2 - (t.bbox[0] * CELL_SIZE) / 2;
+    const cell = layout().cell;
+    const x = edgeX(this.origin[1]) + (t.bbox[1] * cell) / 2;
+    const y = edgeY(this.origin[0]) - (t.bbox[0] * cell) / 2;
     this.sprite.setPosition(x, y, 0);
   }
 }

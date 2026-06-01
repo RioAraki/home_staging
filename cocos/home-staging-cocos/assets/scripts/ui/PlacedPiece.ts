@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Sprite, SpriteFrame, resources, UITransfor
 import type { PlacedPiece as PlacedPieceData } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
-import { CELL_SIZE, GRID_ROWS, GRID_COLS } from './LayerRenderer';
+import { layout, edgeX, edgeY } from './viewport';
 const { ccclass } = _decorator;
 
 @ccclass('PlacedPiece')
@@ -20,13 +20,12 @@ export class PlacedPiece extends Component {
       if (!err && sf) sprite.spriteFrame = sf;
     });
 
+    const cell = layout().cell;
     const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
-    ui.setContentSize(t.bbox[1] * CELL_SIZE, t.bbox[0] * CELL_SIZE);
+    ui.setContentSize(t.bbox[1] * cell, t.bbox[0] * cell);
 
-    const W = GRID_COLS * CELL_SIZE;
-    const H = GRID_ROWS * CELL_SIZE;
-    const x = p.origin[1] * CELL_SIZE - W / 2 + (t.bbox[1] * CELL_SIZE) / 2;
-    const y = -p.origin[0] * CELL_SIZE + H / 2 - (t.bbox[0] * CELL_SIZE) / 2;
+    const x = edgeX(p.origin[1]) + (t.bbox[1] * cell) / 2;
+    const y = edgeY(p.origin[0]) - (t.bbox[0] * cell) / 2;
     this.node.setPosition(x, y, 0);
   }
 }
