@@ -7,14 +7,15 @@ import { cardByNumberVariant } from '../core/dataLoader';
 import { InputHandler } from './InputHandler';
 const { ccclass, property } = _decorator;
 
-const PX_PER_CELL = 42;       // shared cells→px scale so footprints are comparable
-const SLOT_W = 220;           // fixed hit/layout slot per option
-const SLOT_H = 180;
+const PX_PER_CELL = 52;       // shared cells→px scale so footprints are comparable
+const SLOT_W = 240;           // fixed hit/layout slot per option
+const SLOT_H = 240;
 const FRAME_PAD = 8;
+const TITLE_GAP = 16;         // px between image top and its title
 const SWIPE_THRESHOLD = 30;   // px of horizontal drag that counts as a rotate
-const OPT1_X = -240;
-const OPT2_X = 20;
-const CONFIRM_X = 260;
+const OPT1_X = -250;
+const OPT2_X = 35;
+const CONFIRM_X = 300;
 
 /**
  * Bottom chooser: the active room's current card shown as its two options,
@@ -38,6 +39,10 @@ export class RoomPanel extends Component {
       const parent = c.parent;
       const sv = parent?.getComponent('cc.ScrollView' as any) as any;
       if (sv) sv.enabled = false;
+      // No scrolling and no clipping for two fixed options — disable the Mask
+      // so enlarged pieces aren't cut off by the old list viewport.
+      const mask = parent?.getComponent('cc.Mask' as any) as any;
+      if (mask) mask.enabled = false;
       const ui = c.getComponent(UITransform) ?? c.addComponent(UITransform);
       const pui = parent?.getComponent(UITransform);
       if (pui) ui.setContentSize(pui.contentSize.width, pui.contentSize.height);
@@ -130,6 +135,19 @@ export class RoomPanel extends Component {
     imgNode.setScale(mirrored ? -1 : 1, 1, 1);
     const sprite = imgNode.addComponent(Sprite);
     sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+
+    // Name as a title (added last → above the image), dark outline for contrast.
+    const nameNode = new Node('name');
+    node.addChild(nameNode);
+    nameNode.setPosition(0, SLOT_H / 2 - 12, 0);  // default; tightened to image below
+    const nameLabel = nameNode.addComponent(Label);
+    nameLabel.string = name;
+    nameLabel.fontSize = 22;
+    nameLabel.color = selected ? new Color(255, 240, 200, 255) : new Color(255, 255, 255, 255);
+    const outline = nameNode.addComponent(LabelOutline);
+    outline.color = new Color(0, 0, 0, 230);
+    outline.width = 2;
+
     const url = `cards/options/${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}/spriteFrame`;
     resources.load(url, SpriteFrame, (err, sf) => {
       if (err || !sf) return;
@@ -151,20 +169,9 @@ export class RoomPanel extends Component {
       fg.rect(-fw / 2, -fh / 2, fw, fh);
       fg.fill();
       fg.stroke();
+      // Sit the title just above the actual image top, like a caption header.
+      nameNode.setPosition(0, h / 2 + TITLE_GAP, 0);
     });
-
-    // Name overlaid on top of the image (added last → renders above it),
-    // near the top edge, with a dark outline so it reads over any artwork.
-    const nameNode = new Node('name');
-    node.addChild(nameNode);
-    nameNode.setPosition(0, SLOT_H / 2 - 16, 0);
-    const nameLabel = nameNode.addComponent(Label);
-    nameLabel.string = name;
-    nameLabel.fontSize = 18;
-    nameLabel.color = new Color(255, 255, 255, 255);
-    const outline = nameNode.addComponent(LabelOutline);
-    outline.color = new Color(0, 0, 0, 220);
-    outline.width = 2;
   }
 
   private makeConfirm(x: number, enabled: boolean) {
