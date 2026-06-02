@@ -63,10 +63,10 @@ export class InputHandler extends Component {
     const s = gameStore.getState();
     if (!s.selectedOption) return;
     e.propagationStopped = true;
-    // NOTE: Do NOT auto-place on touch end. Ghost just stays where the user
-    // dragged it. They confirm via the "✓ 放置" button in SelectionStatus.
-    // Rationale: with auto-place, players can't rotate/mirror because any
-    // touch up commits placement.
+    // No confirm button anymore — lifting the finger after positioning the
+    // ghost commits the placement. Rotation happens earlier via swipe in the
+    // chooser, so auto-place on release no longer blocks rotating.
+    this.tryPlaceAtGhost();
   }
 
   /** Called by SelectionStatus's Place button. Validates first. */

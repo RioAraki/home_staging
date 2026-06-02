@@ -6,8 +6,8 @@ import { gameStore, currentCard } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 const { ccclass, property } = _decorator;
 
-const OPT_SIZE = 120;        // option thumbnail edge (px)
-const OPT_GAP = 40;          // gap between the two options
+const OPT_MAX = 150;         // longest edge of an option image (px); aspect kept
+const FRAME_PAD = 10;        // highlight frame padding around the image
 const SWIPE_THRESHOLD = 30;  // px of horizontal drag that counts as a rotate
 
 /**
@@ -39,7 +39,7 @@ export class RoomPanel extends Component {
       const ui = c.getComponent(UITransform) ?? c.addComponent(UITransform);
       const pui = parent?.getComponent(UITransform);
       if (pui) ui.setContentSize(pui.contentSize.width, pui.contentSize.height);
-      else ui.setContentSize(2 * OPT_SIZE + OPT_GAP + 40, OPT_SIZE + 40);
+      else ui.setContentSize(2 * OPT_MAX + 80, OPT_MAX + 40);
       ui.setAnchorPoint(0.5, 0.5);
       c.setPosition(0, 0, 0);
       c.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
@@ -113,10 +113,12 @@ export class RoomPanel extends Component {
     if (!data) return;
 
     const sel = s.selectedOption;
+    const ui = this.listContent.getComponent(UITransform);
+    const half = (ui ? ui.contentSize.width : 4 * OPT_MAX) / 4;  // spread across the viewport
     for (const opt of data.options) {
       const isSel = !!sel && sel.slot === card.slot && sel.slotIdx === card.slotIdx &&
                     sel.optionIndex === opt.option_index;
-      const x = opt.option_index === 1 ? -(OPT_SIZE + OPT_GAP) / 2 : (OPT_SIZE + OPT_GAP) / 2;
+      const x = opt.option_index === 1 ? -half : half;
       this.makeOption(card.number, variant, opt.option_index, x, isSel,
         isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false);
     }
@@ -129,36 +131,44 @@ export class RoomPanel extends Component {
     const node = new Node(`opt${optionIndex}`);
     this.listContent.addChild(node);
     node.setPosition(x, 0, 0);
-    const ui = node.addComponent(UITransform);
-    ui.setContentSize(OPT_SIZE, OPT_SIZE);
+    node.addComponent(UITransform).setContentSize(OPT_MAX, OPT_MAX);
 
-    // Highlight frame behind the selected option.
+    // Highlight frame (sized to the image once we know its aspect ratio).
     const frame = new Node('frame');
     node.addChild(frame);
+    frame.addComponent(UITransform);
     const fg = frame.addComponent(Graphics);
-    const half = OPT_SIZE / 2 + 6;
-    fg.fillColor = selected ? new Color(255, 245, 200, 255) : new Color(250, 245, 235, 255);
-    fg.strokeColor = selected ? new Color(210, 160, 40, 255) : new Color(170, 158, 130, 255);
-    fg.lineWidth = selected ? 4 : 2;
-    fg.rect(-half, -half, half * 2, half * 2);
-    fg.fill();
-    fg.stroke();
 
-    // Option image — reflects rotation/mirror for live feedback on the selected one.
+    // Option image — sized to preserve the source aspect ratio (no distortion);
+    // reflects rotation/mirror for live feedback on the selected one.
     const imgNode = new Node('img');
     node.addChild(imgNode);
     const imgUi = imgNode.addComponent(UITransform);
-    imgUi.setContentSize(OPT_SIZE - 16, OPT_SIZE - 16);
     imgNode.angle = -90 * rotation;
     imgNode.setScale(mirrored ? -1 : 1, 1, 1);
     const sprite = imgNode.addComponent(Sprite);
     sprite.sizeMode = Sprite.SizeMode.CUSTOM;
     const url = `cards/options/${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}/spriteFrame`;
     resources.load(url, SpriteFrame, (err, sf) => {
-      if (!err && sf) {
-        sprite.spriteFrame = sf;
-        imgUi.setContentSize(OPT_SIZE - 16, OPT_SIZE - 16);
-      }
+      if (err || !sf) return;
+      sprite.spriteFrame = sf;
+      // Fit the longest edge to OPT_MAX while keeping the native aspect ratio.
+      const orig = (sf as any).originalSize;
+      const nw = orig ? orig.width : sf.rect.width;
+      const nh = orig ? orig.height : sf.rect.height;
+      const k = OPT_MAX / Math.max(nw, nh);
+      const w = Math.max(1, Math.round(nw * k));
+      const h = Math.max(1, Math.round(nh * k));
+      imgUi.setContentSize(w, h);
+      // Draw the frame to match the (un-rotated) image footprint.
+      const fw = w + FRAME_PAD * 2, fh = h + FRAME_PAD * 2;
+      fg.clear();
+      fg.fillColor = selected ? new Color(255, 245, 200, 255) : new Color(250, 245, 235, 255);
+      fg.strokeColor = selected ? new Color(210, 160, 40, 255) : new Color(170, 158, 130, 255);
+      fg.lineWidth = selected ? 4 : 2;
+      fg.rect(-fw / 2, -fh / 2, fw, fh);
+      fg.fill();
+      fg.stroke();
     });
   }
 

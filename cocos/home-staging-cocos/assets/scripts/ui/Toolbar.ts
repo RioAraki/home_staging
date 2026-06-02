@@ -50,30 +50,25 @@ export class Toolbar extends Component {
   onDestroy() { this.unsub?.(); }
 
   private refresh() {
-    if (!this.phaseLabel) return;
     const s = gameStore.getState();
-    // Construction tools (walls/doors/windows/front-door/demolish/complete) are
-    // locked until the active room's furniture is all placed or skipped.
+    // Construction tools stay HIDDEN during the furniture phase to keep the
+    // top bar clean; they appear only once the room's furniture is done.
     const construction = getRoomPhase(s) === 'construction';
-    this.phaseLabel.string = !construction
-      ? '先摆完家具'
-      : (s.wallPhase === 'walls' ? '画墙 (→ 门)' : '放门 (→ 墙)');
 
-    const setEnabled = (b: Button | null | undefined, enabled: boolean) => {
-      if (!b) return;
-      b.interactable = enabled;
-      const sprite = b.node.getComponent('cc.Sprite' as any) as any;
-      if (sprite && sprite.color !== undefined) {
-        sprite.color = enabled ? new Color(255, 255, 255, 255) : new Color(150, 150, 150, 150);
-      }
+    const show = (b: Button | null | undefined, visible: boolean) => {
+      if (b) b.node.active = visible;
     };
-    // Lock all construction buttons during the furniture phase.
     [this.phaseBtn, this.completeBtn, this.frontDoorBtn, this.windowBtn, this.demolishBtn]
-      .forEach((b) => setEnabled(b, construction));
+      .forEach((b) => show(b, construction));
+    if (this.phaseLabel) this.phaseLabel.node.active = construction;
 
-    // Active-mode highlight (only meaningful in construction phase).
+    if (this.phaseLabel && construction) {
+      this.phaseLabel.string = s.wallPhase === 'walls' ? '画墙 (→ 门)' : '放门 (→ 墙)';
+    }
+
+    // Active-mode highlight (construction phase only).
     const dim = (b: Button | null | undefined, active: boolean) => {
-      if (!b || !b.interactable) return;
+      if (!b) return;
       const sprite = b.node.getComponent('cc.Sprite' as any) as any;
       if (sprite && sprite.color !== undefined) {
         sprite.color = active ? new Color(100, 100, 100, 255) : new Color(255, 255, 255, 255);
