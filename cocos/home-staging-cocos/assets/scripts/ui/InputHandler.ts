@@ -76,6 +76,10 @@ export class InputHandler extends Component {
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return;
 
+    if (!this.ghost.isPositioned()) {
+      s.setError('把家具拖到户型图上再放置');
+      return;
+    }
     const origin = this.ghost.getOrigin();
     const transformed = transformOption(opt, sel.rotation, sel.mirrored);
     const result = validatePlacement(
@@ -94,11 +98,23 @@ export class InputHandler extends Component {
     s.placeSelected(origin);
   }
 
+  /** Public: drag the ghost to follow a touch — used when dragging an option
+   *  out of the bottom tray onto the plan (the tray node captures that touch,
+   *  so RoomPanel forwards the move events here). */
+  dragGhost(e: EventTouch) { this.moveGhost(e); }
+
   private moveGhost(e: EventTouch) {
     const hit = this.hitTest(e);
-    if (hit.kind === 'cell') {
-      this.ghost.setOrigin(hit.row, hit.col);
-    }
+    if (hit.kind !== 'cell') return;
+    const sel = gameStore.getState().selectedOption;
+    if (!sel) return;
+    // Centre the piece under the finger so it tracks the touch naturally.
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    const t = opt ? transformOption(opt, sel.rotation, sel.mirrored) : null;
+    const offR = t ? Math.floor(t.bbox[0] / 2) : 0;
+    const offC = t ? Math.floor(t.bbox[1] / 2) : 0;
+    this.ghost.setOrigin(hit.row - offR, hit.col - offC);
   }
 
   hitTest(e: EventTouch): HitResult {

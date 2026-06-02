@@ -15,7 +15,6 @@ const MAX_FOOTPRINT_CELLS = 4;  // tallest furniture bbox dimension in the data
 // Single shared title line for ALL options — sits above the tallest piece so
 // every name aligns horizontally regardless of its image size.
 const TITLE_Y = (MAX_FOOTPRINT_CELLS * PX_PER_CELL) / 2 + 18;
-const SWIPE_THRESHOLD = 30;   // px of horizontal drag that counts as a rotate
 const OPT1_X = -250;
 const OPT2_X = 35;
 const CONFIRM_X = 300;
@@ -114,16 +113,14 @@ export class RoomPanel extends Component {
     node.setPosition(x, 0, 0);
     node.addComponent(UITransform).setContentSize(SLOT_W, SLOT_H);  // fixed hit area
 
-    // Tap to select; horizontal swipe (on the selected option) to rotate.
-    let startX = 0;
-    node.on(Node.EventType.TOUCH_START, (e: EventTouch) => { startX = e.getUILocation().x; });
-    node.on(Node.EventType.TOUCH_END, (e: EventTouch) => {
-      const dx = e.getUILocation().x - startX;
-      if (Math.abs(dx) > SWIPE_THRESHOLD && selected) {
-        gameStore.getState().rotateSelection(dx > 0 ? 1 : -1);
-      } else {
-        gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
-      }
+    // Touch-down picks this option up; drag it onto the floor plan (the ghost
+    // follows the finger). Rotation is via the 旋转 button. The ghost stays
+    // hidden until the finger reaches the plan, so a tap no longer auto-hovers.
+    node.on(Node.EventType.TOUCH_START, () => {
+      gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
+    });
+    node.on(Node.EventType.TOUCH_MOVE, (e: EventTouch) => {
+      this.input?.dragGhost(e);
     });
 
     // Frame (drawn to the real footprint once we know the cell size).
