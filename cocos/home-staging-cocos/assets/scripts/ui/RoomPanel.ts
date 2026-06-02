@@ -11,7 +11,10 @@ const PX_PER_CELL = 52;       // shared cells→px scale so footprints are compa
 const SLOT_W = 240;           // fixed hit/layout slot per option
 const SLOT_H = 240;
 const FRAME_PAD = 8;
-const TITLE_GAP = 16;         // px between image top and its title
+const MAX_FOOTPRINT_CELLS = 4;  // tallest furniture bbox dimension in the data
+// Single shared title line for ALL options — sits above the tallest piece so
+// every name aligns horizontally regardless of its image size.
+const TITLE_Y = (MAX_FOOTPRINT_CELLS * PX_PER_CELL) / 2 + 18;
 const SWIPE_THRESHOLD = 30;   // px of horizontal drag that counts as a rotate
 const OPT1_X = -250;
 const OPT2_X = 35;
@@ -136,10 +139,11 @@ export class RoomPanel extends Component {
     const sprite = imgNode.addComponent(Sprite);
     sprite.sizeMode = Sprite.SizeMode.CUSTOM;
 
-    // Name as a title (added last → above the image), dark outline for contrast.
+    // Name as a title on one shared line for every option (added last → above
+    // the image), dark outline for contrast.
     const nameNode = new Node('name');
     node.addChild(nameNode);
-    nameNode.setPosition(0, SLOT_H / 2 - 12, 0);  // default; tightened to image below
+    nameNode.setPosition(0, TITLE_Y, 0);
     const nameLabel = nameNode.addComponent(Label);
     nameLabel.string = name;
     nameLabel.fontSize = 22;
@@ -169,8 +173,6 @@ export class RoomPanel extends Component {
       fg.rect(-fw / 2, -fh / 2, fw, fh);
       fg.fill();
       fg.stroke();
-      // Sit the title just above the actual image top, like a caption header.
-      nameNode.setPosition(0, h / 2 + TITLE_GAP, 0);
     });
   }
 
