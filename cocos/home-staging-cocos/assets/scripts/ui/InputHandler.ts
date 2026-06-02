@@ -63,10 +63,8 @@ export class InputHandler extends Component {
     const s = gameStore.getState();
     if (!s.selectedOption) return;
     e.propagationStopped = true;
-    // No confirm button anymore — lifting the finger after positioning the
-    // ghost commits the placement. Rotation happens earlier via swipe in the
-    // chooser, so auto-place on release no longer blocks rotating.
-    this.tryPlaceAtGhost();
+    // Dragging only repositions the ghost; it does NOT place. Placement is
+    // committed exclusively by the 确定 button in the chooser.
   }
 
   /** Called by SelectionStatus's Place button. Validates first. */

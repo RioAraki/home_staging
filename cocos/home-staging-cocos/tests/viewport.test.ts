@@ -29,12 +29,12 @@ describe('computeLayout', () => {
     // 6x6 indoor block, rows 4..9, cols 5..10
     const sc = scenarioWithIndoor(4, 9, 5, 10);
     const l = computeLayout(sc, 1000, 1000);
-    expect(MAP_CROP_MARGIN).toBe(2);
-    expect(l.r0).toBe(2);          // 4 - 2
-    expect(l.c0).toBe(3);          // 5 - 2
-    expect(l.rows).toBe(10);       // (9+2) - (4-2) + 1
-    expect(l.cols).toBe(10);       // (10+2) - (5-2) + 1
-    expect(l.cell).toBe(100);      // floor(min(1000/10, 1000/10))
+    expect(MAP_CROP_MARGIN).toBe(1);
+    expect(l.r0).toBe(3);          // 4 - 1
+    expect(l.c0).toBe(4);          // 5 - 1
+    expect(l.rows).toBe(8);        // (9+1) - (4-1) + 1
+    expect(l.cols).toBe(8);        // (10+1) - (5-1) + 1
+    expect(l.cell).toBe(125);      // floor(min(1000/8, 1000/8))
     expect(l.w).toBe(1000);
     expect(l.h).toBe(1000);
   });
@@ -49,9 +49,9 @@ describe('computeLayout', () => {
   });
 
   it('picks the limiting dimension for cell size', () => {
-    const sc = scenarioWithIndoor(4, 9, 5, 10); // 10x10 crop after margin
+    const sc = scenarioWithIndoor(4, 9, 5, 10); // 8x8 crop after margin
     const l = computeLayout(sc, 500, 1000);     // width-limited
-    expect(l.cell).toBe(50);                    // floor(500/10)
+    expect(l.cell).toBe(62);                    // floor(500/8)
   });
 
   it('falls back to the full grid when there are no indoor cells', () => {
@@ -77,7 +77,7 @@ describe('edge helpers + hitTestLocal', () => {
 
   it('round-trips a cell centre back to its absolute grid coords', () => {
     const cell = layout().cell;
-    for (const [r, c] of [[2, 3], [4, 5], [9, 10], [11, 12]] as const) {
+    for (const [r, c] of [[3, 4], [4, 5], [9, 10], [10, 11]] as const) {
       const cx = edgeX(c) + cell / 2;
       const cy = edgeY(r) - cell / 2;
       const hit = hitTestLocal(cx, cy);

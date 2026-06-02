@@ -7,7 +7,7 @@ export const FULL_GRID_COLS = 16;
 /** Outdoor cells kept around the indoor bbox so the front door + hallway still
  *  have somewhere to go. Single global default; per-scenario override deferred
  *  until a scenario actually needs it. */
-export const MAP_CROP_MARGIN = 2;
+export const MAP_CROP_MARGIN = 1;
 
 /** Fraction of a cell, measured from each grid line, that counts as an "edge"
  *  tap (wall/door) rather than a cell tap. Was a fixed 12px at cell=40. */

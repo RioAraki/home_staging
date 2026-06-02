@@ -1,51 +1,51 @@
 import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
-  Graphics, Color, Label, EventTouch, Vec3,
+  Graphics, Color, Label, EventTouch, director,
 } from 'cc';
 import { gameStore, currentCard } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
+import { InputHandler } from './InputHandler';
 const { ccclass, property } = _decorator;
 
-const OPT_MAX = 150;         // longest edge of an option image (px); aspect kept
-const FRAME_PAD = 10;        // highlight frame padding around the image
-const SWIPE_THRESHOLD = 30;  // px of horizontal drag that counts as a rotate
+const PX_PER_CELL = 28;       // shared cells→px scale so footprints are comparable
+const SLOT_W = 150;           // fixed hit/layout slot per option
+const SLOT_H = 160;
+const FRAME_PAD = 8;
+const SWIPE_THRESHOLD = 30;   // px of horizontal drag that counts as a rotate
+const OPT1_X = -190;
+const OPT2_X = -10;
+const CONFIRM_X = 195;
 
 /**
- * Bottom "two-choice" chooser. Shows ONLY the active room's current card and
- * its two options side by side; tap one to select, horizontal-swipe to rotate
- * the selected piece 90°. When the room enters the construction phase
- * (all furniture placed/skipped) it shows a hint instead.
- *
- * Kept under @ccclass('RoomPanel') so the existing scene node binding survives.
+ * Bottom chooser: the active room's current card shown as its two options,
+ * sized to their real grid footprint (a 1x1 piece is 1/9 the area of 3x3),
+ * each labelled with its name. Tap an option to select; horizontal-swipe the
+ * selected option to rotate 90°. A 确定 button to the right commits placement
+ * (placement happens ONLY via this button, never by dragging on the plan).
  */
 @ccclass('RoomPanel')
 export class RoomPanel extends Component {
   @property(Node) listContent!: Node;
 
   private unsub?: () => void;
-  private touchStartX = 0;
-  private hint!: Label;
+  private input: InputHandler | null = null;
 
   start() {
     const c = this.listContent;
     if (c) {
-      // The scene wraps this content node in a ScrollView+Mask (it used to be a
-      // horizontal scrolling card list). The new chooser is two fixed options,
-      // so disable scrolling and center the content inside the masked viewport
-      // — otherwise the left option falls outside the mask and gets clipped.
+      // The scene wraps this in a ScrollView+Mask (old horizontal list). The
+      // new chooser is fixed, so disable scrolling and centre the content.
       const parent = c.parent;
       const sv = parent?.getComponent('cc.ScrollView' as any) as any;
       if (sv) sv.enabled = false;
       const ui = c.getComponent(UITransform) ?? c.addComponent(UITransform);
       const pui = parent?.getComponent(UITransform);
       if (pui) ui.setContentSize(pui.contentSize.width, pui.contentSize.height);
-      else ui.setContentSize(2 * OPT_MAX + 80, OPT_MAX + 40);
       ui.setAnchorPoint(0.5, 0.5);
       c.setPosition(0, 0, 0);
-      c.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
-      c.on(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
-      c.on(Node.EventType.TOUCH_END, this.onTouchEnd, this);
     }
+    this.input = director.getScene()?.getComponentInChildren(InputHandler) ?? null;
+
     this.rebuild();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.scenario        !== prev.scenario        ||
@@ -58,43 +58,7 @@ export class RoomPanel extends Component {
     });
   }
 
-  onDestroy() {
-    this.unsub?.();
-    const c = this.listContent;
-    if (c) {
-      c.off(Node.EventType.TOUCH_START, this.onTouchStart, this);
-      c.off(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
-      c.off(Node.EventType.TOUCH_END, this.onTouchEnd, this);
-    }
-  }
-
-  // ── Touch: tap one half = select that option; horizontal drag = rotate ──
-
-  private onTouchStart(e: EventTouch) {
-    this.touchStartX = e.getUILocation().x;
-  }
-
-  private onTouchMove(_e: EventTouch) { /* tracked on end */ }
-
-  private onTouchEnd(e: EventTouch) {
-    const card = currentCard(gameStore.getState());
-    if (!card) return;
-    const dx = e.getUILocation().x - this.touchStartX;
-    if (Math.abs(dx) > SWIPE_THRESHOLD) {
-      // Right swipe = clockwise, left = counter-clockwise.
-      gameStore.getState().rotateSelection(dx > 0 ? 1 : -1);
-      return;
-    }
-    // Tap: left half → option 1, right half → option 2.
-    const ui = this.listContent.getComponent(UITransform);
-    if (!ui) return;
-    const p = e.getUILocation();
-    const local = ui.convertToNodeSpaceAR(new Vec3(p.x, p.y, 0));
-    const optionIndex = local.x < 0 ? 1 : 2;
-    gameStore.getState().selectOption({ slot: card.slot, slotIdx: card.slotIdx, optionIndex });
-  }
-
-  // ── Render ──
+  onDestroy() { this.unsub?.(); }
 
   private rebuild() {
     const c = this.listContent;
@@ -104,7 +68,7 @@ export class RoomPanel extends Component {
     const s = gameStore.getState();
     const card = currentCard(s);
     if (!card) {
-      this.showHint(s.activeRoomSlot ? '本房间家具已摆完 — 现在造墙 / 门' : '请选择一个房间');
+      this.showHint(s.activeRoomSlot ? '家具摆完，去造墙 / 门' : '请选择一个房间');
       return;
     }
 
@@ -113,34 +77,52 @@ export class RoomPanel extends Component {
     if (!data) return;
 
     const sel = s.selectedOption;
-    const ui = this.listContent.getComponent(UITransform);
-    const half = (ui ? ui.contentSize.width : 4 * OPT_MAX) / 4;  // spread across the viewport
     for (const opt of data.options) {
       const isSel = !!sel && sel.slot === card.slot && sel.slotIdx === card.slotIdx &&
                     sel.optionIndex === opt.option_index;
-      const x = opt.option_index === 1 ? -half : half;
-      this.makeOption(card.number, variant, opt.option_index, x, isSel,
-        isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false);
+      const x = opt.option_index === 1 ? OPT1_X : OPT2_X;
+      this.makeOption(
+        card.slot, card.slotIdx, card.number, variant, opt.option_index,
+        opt.bbox, opt.name_zh, x, isSel,
+        isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
+      );
     }
+    this.makeConfirm(CONFIRM_X, !!sel);
   }
 
   private makeOption(
-    number: number, variant: 'A' | 'B', optionIndex: number,
-    x: number, selected: boolean, rotation: number, mirrored: boolean,
+    slot: any, slotIdx: number, number: number, variant: 'A' | 'B', optionIndex: number,
+    bbox: [number, number], name: string, x: number, selected: boolean,
+    rotation: number, mirrored: boolean,
   ) {
     const node = new Node(`opt${optionIndex}`);
     this.listContent.addChild(node);
     node.setPosition(x, 0, 0);
-    node.addComponent(UITransform).setContentSize(OPT_MAX, OPT_MAX);
+    node.addComponent(UITransform).setContentSize(SLOT_W, SLOT_H);  // fixed hit area
 
-    // Highlight frame (sized to the image once we know its aspect ratio).
+    // Tap to select; horizontal swipe (on the selected option) to rotate.
+    let startX = 0;
+    node.on(Node.EventType.TOUCH_START, (e: EventTouch) => { startX = e.getUILocation().x; });
+    node.on(Node.EventType.TOUCH_END, (e: EventTouch) => {
+      const dx = e.getUILocation().x - startX;
+      if (Math.abs(dx) > SWIPE_THRESHOLD && selected) {
+        gameStore.getState().rotateSelection(dx > 0 ? 1 : -1);
+      } else {
+        gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
+      }
+    });
+
+    // Frame (drawn to the real footprint once we know the cell size).
     const frame = new Node('frame');
     node.addChild(frame);
     frame.addComponent(UITransform);
     const fg = frame.addComponent(Graphics);
 
-    // Option image — sized to preserve the source aspect ratio (no distortion);
-    // reflects rotation/mirror for live feedback on the selected one.
+    // Footprint box from the bbox at the shared scale — this is what makes a
+    // 1x1 piece render 1/9 the area of a 3x3 piece.
+    const boxW = bbox[1] * PX_PER_CELL;
+    const boxH = bbox[0] * PX_PER_CELL;
+
     const imgNode = new Node('img');
     node.addChild(imgNode);
     const imgUi = imgNode.addComponent(UITransform);
@@ -152,15 +134,15 @@ export class RoomPanel extends Component {
     resources.load(url, SpriteFrame, (err, sf) => {
       if (err || !sf) return;
       sprite.spriteFrame = sf;
-      // Fit the longest edge to OPT_MAX while keeping the native aspect ratio.
+      // Fit the native image INSIDE the footprint box, preserving its aspect
+      // ratio (no distortion). Size is governed by the footprint → comparable.
       const orig = (sf as any).originalSize;
       const nw = orig ? orig.width : sf.rect.width;
       const nh = orig ? orig.height : sf.rect.height;
-      const k = OPT_MAX / Math.max(nw, nh);
+      const k = Math.min(boxW / nw, boxH / nh);
       const w = Math.max(1, Math.round(nw * k));
       const h = Math.max(1, Math.round(nh * k));
       imgUi.setContentSize(w, h);
-      // Draw the frame to match the (un-rotated) image footprint.
       const fw = w + FRAME_PAD * 2, fh = h + FRAME_PAD * 2;
       fg.clear();
       fg.fillColor = selected ? new Color(255, 245, 200, 255) : new Color(250, 245, 235, 255);
@@ -170,14 +152,46 @@ export class RoomPanel extends Component {
       fg.fill();
       fg.stroke();
     });
+
+    // Name label below the footprint.
+    const nameNode = new Node('name');
+    node.addChild(nameNode);
+    nameNode.setPosition(0, -SLOT_H / 2 + 12, 0);
+    const nameLabel = nameNode.addComponent(Label);
+    nameLabel.string = name;
+    nameLabel.fontSize = 18;
+    nameLabel.color = selected ? new Color(150, 90, 20, 255) : new Color(70, 60, 45, 255);
+  }
+
+  private makeConfirm(x: number, enabled: boolean) {
+    const node = new Node('confirm');
+    this.listContent.addChild(node);
+    node.setPosition(x, 0, 0);
+    node.addComponent(UITransform).setContentSize(110, 64);
+
+    const g = node.addComponent(Graphics);
+    g.fillColor = enabled ? new Color(80, 160, 90, 255) : new Color(170, 170, 170, 255);
+    g.roundRect(-55, -32, 110, 64, 10);
+    g.fill();
+
+    const lblNode = new Node('label');
+    node.addChild(lblNode);
+    const lbl = lblNode.addComponent(Label);
+    lbl.string = '确定';
+    lbl.fontSize = 26;
+    lbl.color = new Color(255, 255, 255, 255);
+
+    node.on(Node.EventType.TOUCH_END, () => {
+      if (enabled) this.input?.tryPlaceAtGhost();
+    });
   }
 
   private showHint(text: string) {
     const node = new Node('hint');
     this.listContent.addChild(node);
-    this.hint = node.addComponent(Label);
-    this.hint.string = text;
-    this.hint.fontSize = 22;
-    this.hint.color = new Color(90, 80, 60, 255);
+    const hint = node.addComponent(Label);
+    hint.string = text;
+    hint.fontSize = 22;
+    hint.color = new Color(90, 80, 60, 255);
   }
 }
