@@ -33,6 +33,14 @@ export class RoomPanel extends Component {
   private unsub?: () => void;
   private input: InputHandler | null = null;
 
+  /** Resolve the scene's InputHandler lazily (it may not exist at start()). */
+  private getInput(): InputHandler | null {
+    if (!this.input || !this.input.isValid) {
+      this.input = director.getScene()?.getComponentInChildren(InputHandler) ?? null;
+    }
+    return this.input;
+  }
+
   start() {
     const c = this.listContent;
     if (c) {
@@ -51,8 +59,7 @@ export class RoomPanel extends Component {
       ui.setAnchorPoint(0.5, 0.5);
       c.setPosition(0, 0, 0);
     }
-    this.input = director.getScene()?.getComponentInChildren(InputHandler) ?? null;
-
+    this.getInput();
     this.rebuild();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.scenario        !== prev.scenario        ||
@@ -100,7 +107,7 @@ export class RoomPanel extends Component {
     this.makeButton(CONFIRM_X, 0, '旋转', new Color(70, 120, 200, 255), !!sel,
       () => gameStore.getState().rotateSelection(1));
     this.makeButton(CONFIRM_X, -88, '放置', new Color(80, 160, 90, 255), !!sel,
-      () => this.input?.tryPlaceAtGhost());
+      () => this.getInput()?.tryPlaceAtGhost());
   }
 
   private makeOption(
@@ -120,7 +127,7 @@ export class RoomPanel extends Component {
       gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
     });
     node.on(Node.EventType.TOUCH_MOVE, (e: EventTouch) => {
-      this.input?.dragGhost(e);
+      this.getInput()?.dragGhost(e);
     });
 
     // Frame (drawn to the real footprint once we know the cell size).

@@ -1,5 +1,5 @@
 import { _decorator, Component, EventTouch, Node, Vec3, UITransform } from 'cc';
-import { gameStore } from '../state/gameStore';
+import { gameStore, type SelectedOption } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { validatePlacement } from '../core/validation';
 import { transformOption } from '../core/geometry';
@@ -14,6 +14,9 @@ export class InputHandler extends Component {
   @property(Node)       floorPlan!: Node;
   @property(GhostPiece) ghost!: GhostPiece;
 
+  /** True once the current touch sequence has moved (a drag, not a tap). */
+  private movedDuringDrag = false;
+
   onLoad() {
     this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
     this.node.on(Node.EventType.TOUCH_MOVE,  this.onTouchMove,  this);
@@ -23,8 +26,10 @@ export class InputHandler extends Component {
   private onTouchStart(e: EventTouch) {
     const s = gameStore.getState();
     if (s.selectedOption) {
+      // Defer: decide tap (rotate / first-position) vs drag (reposition) on
+      // move/end, so a tap meant to rotate doesn't jump the piece.
       e.propagationStopped = true;
-      this.moveGhost(e);
+      this.movedDuringDrag = false;
       return;
     }
     const hit = this.hitTest(e);
@@ -56,15 +61,37 @@ export class InputHandler extends Component {
   private onTouchMove(e: EventTouch) {
     if (!gameStore.getState().selectedOption) return;
     e.propagationStopped = true;
-    this.moveGhost(e);
+    this.movedDuringDrag = true;
+    this.moveGhost(e);   // drag → ghost follows the finger
   }
 
   private onTouchEnd(e: EventTouch) {
     const s = gameStore.getState();
-    if (!s.selectedOption) return;
+    const sel = s.selectedOption;
+    if (!sel) return;
     e.propagationStopped = true;
-    // Dragging only repositions the ghost; it does NOT place. Placement is
-    // committed exclusively by the 确定 button in the chooser.
+    if (this.movedDuringDrag) { this.movedDuringDrag = false; return; }  // was a drag
+
+    // It was a TAP on the plan.
+    const hit = this.hitTest(e);
+    if (hit.kind !== 'cell') return;
+    if (!this.ghost.isPositioned()) {
+      this.moveGhost(e);                 // first tap: drop the ghost here
+    } else if (this.tapOnGhost(hit.row, hit.col, sel)) {
+      s.rotateSelection(1);              // tap the piece → rotate
+    } else {
+      this.moveGhost(e);                 // tap elsewhere → move it there
+    }
+  }
+
+  /** Is grid cell (row,col) one of the ghost's occupied cells right now? */
+  private tapOnGhost(row: number, col: number, sel: SelectedOption): boolean {
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    if (!opt) return false;
+    const t = transformOption(opt, sel.rotation, sel.mirrored);
+    const [or, oc] = this.ghost.getOrigin();
+    return t.shape.some(([r, c]) => or + r === row && oc + c === col);
   }
 
   /** Called by SelectionStatus's Place button. Validates first. */
