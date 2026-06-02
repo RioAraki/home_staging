@@ -5,6 +5,7 @@ import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../core/wall
 import { frontDoorOpensIntoRoom } from '../core/regions';
 import { audioManager } from '../platform/audio';
 import { loadAudioSettings } from '../platform/audioSettings';
+import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, type RoomPhase } from './roomFlow';
 
 // PersistedState is unused in v1; declare a stub for type compat.
 type PersistedState = unknown;
@@ -101,7 +102,7 @@ export interface GameState extends Undoable {
   autoRevealRoom: (slot: RoomSlot) => void;
   revealCard: (slot: RoomSlot, slotIdx: number) => void;
   selectOption: (opt: { slot: RoomSlot; slotIdx: number; optionIndex: number }) => void;
-  rotateSelection: () => void;
+  rotateSelection: (dir?: 1 | -1) => void;
   mirrorSelection: () => void;
   clearSelection: () => void;
   placeSelected: (origin: [number, number]) => boolean;
@@ -180,6 +181,45 @@ function lookupNumber(scenario: Scenario | null, slot: RoomSlot, slotIdx: number
   return room.furniture_numbers[slotIdx] ?? null;
 }
 
+// ── Derived per-room flow (sequential cards + furniture/construction phase) ──
+// Computed from placedCardKeys/skippedCardKeys so they stay in sync with undo
+// without extra undoable state. See state/roomFlow.ts.
+
+function activeRoom(s: GameState) {
+  if (!s.scenario || !s.activeRoomSlot) return null;
+  return s.scenario.rooms.find((r) => r.slot === s.activeRoomSlot) ?? null;
+}
+
+/** First unresolved (not placed, not skipped) card index in the active room. */
+export function currentCardIndexOf(s: GameState): number {
+  const room = activeRoom(s);
+  if (!room || !s.activeRoomSlot) return 0;
+  const slot = s.activeRoomSlot;
+  return firstUnresolved(room.furniture_numbers.length, (i) => {
+    const k = instanceKey(slot, i);
+    return s.placedCardKeys.has(k) || s.skippedCardKeys.has(k);
+  });
+}
+
+/** 'construction' once the active room's furniture is all placed/skipped.
+ *  'furniture' otherwise (including when no room is selected yet). */
+export function getRoomPhase(s: GameState): RoomPhase {
+  const room = activeRoom(s);
+  if (!room) return 'furniture';
+  return phaseOf(room.furniture_numbers.length, currentCardIndexOf(s));
+}
+
+/** The card to present right now, or null in construction / no active room. */
+export function currentCard(
+  s: GameState,
+): { slot: RoomSlot; slotIdx: number; number: number } | null {
+  const room = activeRoom(s);
+  if (!room || !s.activeRoomSlot) return null;
+  const idx = currentCardIndexOf(s);
+  if (idx >= room.furniture_numbers.length) return null;
+  return { slot: s.activeRoomSlot, slotIdx: idx, number: room.furniture_numbers[idx] };
+}
+
 function doorEdgeKey(cell: [number, number], edge: 'N' | 'S' | 'E' | 'W'): string {
   const [r, c] = cell;
   switch (edge) {
@@ -256,6 +296,10 @@ export const gameStore = createStore<GameState>((set, get) => {
     set({ past: newPast });
     apply();
   };
+
+  /** Walls/doors/windows/front-door/demolish are locked until the active
+   *  room's furniture is all placed or skipped (the 'construction' phase). */
+  const constructionLocked = () => getRoomPhase(get()) !== 'construction';
 
   return {
     ...blank,
@@ -423,10 +467,11 @@ export const gameStore = createStore<GameState>((set, get) => {
       }));
     },
 
-    rotateSelection: () => {
+    rotateSelection: (dir: 1 | -1 = 1) => {
       const s = get().selectedOption;
       if (!s) return;
-      set({ selectedOption: { ...s, rotation: (((s.rotation + 1) % 4) as Rotation) } });
+      const next = (((s.rotation + (dir === -1 ? 3 : 1)) % 4) as Rotation);
+      set({ selectedOption: { ...s, rotation: next } });
     },
 
     mirrorSelection: () => {
@@ -546,6 +591,7 @@ export const gameStore = createStore<GameState>((set, get) => {
     },
 
     toggleWall: (edgeKey) => {
+      if (constructionLocked()) return;
       const { walls, doors, wallPhase } = get();
       if (wallPhase !== 'walls') return;
       if (doors[edgeKey]) return;
@@ -560,6 +606,7 @@ export const gameStore = createStore<GameState>((set, get) => {
     },
 
     setDoor: (edgeKey) => {
+      if (constructionLocked()) return;
       const { walls, doors, wallPhase, activeRoomSlot, placedPieces } = get();
       if (wallPhase !== 'door' || !activeRoomSlot) return;
       if (!walls[edgeKey]) return;
@@ -606,17 +653,23 @@ export const gameStore = createStore<GameState>((set, get) => {
       audioManager.playSfx(isToggleOff ? 'remove' : 'place');
     },
 
-    setWallPhase: (phase) => set({ wallPhase: phase, lastError: null }),
+    setWallPhase: (phase) => {
+      if (constructionLocked()) return;
+      set({ wallPhase: phase, lastError: null });
+    },
 
-    toggleFrontDoorMode: () =>
+    toggleFrontDoorMode: () => {
+      if (constructionLocked()) return;
       set({
         frontDoorMode: !get().frontDoorMode,
         windowMode: false,
         demolishMode: false,
         lastError: null,
-      }),
+      });
+    },
 
     setFrontDoor: (edgeKey) => {
+      if (constructionLocked()) return;
       const { scenario, placedPieces } = get();
       const forced = scenario?.rules?.front_door?.forced_cells ?? [];
       if (forced.length > 0) {
@@ -710,22 +763,26 @@ export const gameStore = createStore<GameState>((set, get) => {
       audioManager.playSfx('place');
     },
 
-    toggleWindowMode: () =>
+    toggleWindowMode: () => {
+      if (constructionLocked()) return;
       set({
         windowMode: !get().windowMode,
         frontDoorMode: false,
         demolishMode: false,
         lastError: null,
-      }),
+      });
+    },
 
-    toggleDemolishMode: () =>
+    toggleDemolishMode: () => {
+      if (constructionLocked()) return;
       set({
         demolishMode: !get().demolishMode,
         frontDoorMode: false,
         windowMode: false,
         selectedOption: null,
         lastError: null,
-      }),
+      });
+    },
 
     demolishAtCell: ([targetR, targetC]) => {
       const { placedPieces, placedCardKeys, completedRoomSlots, activeRoomSlot } = get();
@@ -894,6 +951,7 @@ export const gameStore = createStore<GameState>((set, get) => {
     },
 
     toggleWindow: (edgeKey) => {
+      if (constructionLocked()) return;
       // Caller already validated the edge is on the building exterior; we
       // double-check by re-deriving from scenario data.
       const { scenario, windows } = get();
@@ -931,6 +989,7 @@ export const gameStore = createStore<GameState>((set, get) => {
     unfinishGame: () => mutate(() => set({ gameFinished: false })),
 
     completeRoom: () => {
+      if (constructionLocked()) return false;
       const { activeRoomSlot, doors, scenario, placedPieces, walls, frontDoorEdge } = get();
       if (!activeRoomSlot) return false;
       const myDoors = Object.values(doors).filter((r) => r === activeRoomSlot).length;
