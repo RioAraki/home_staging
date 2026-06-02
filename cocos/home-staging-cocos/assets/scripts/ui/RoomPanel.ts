@@ -95,10 +95,12 @@ export class RoomPanel extends Component {
         isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
       );
     }
-    // Rotate (above) + Place (below), stacked to the right of the options.
-    this.makeButton(CONFIRM_X, 46, '旋转', new Color(70, 120, 200, 255), !!sel,
+    // Skip / Rotate / Place stacked (top→bottom) to the right of the options.
+    this.makeButton(CONFIRM_X, 88, '跳过', new Color(150, 140, 120, 255), true,
+      () => gameStore.getState().skipCard(card.slot, card.slotIdx));
+    this.makeButton(CONFIRM_X, 0, '旋转', new Color(70, 120, 200, 255), !!sel,
       () => gameStore.getState().rotateSelection(1));
-    this.makeButton(CONFIRM_X, -46, '放置', new Color(80, 160, 90, 255), !!sel,
+    this.makeButton(CONFIRM_X, -88, '放置', new Color(80, 160, 90, 255), !!sel,
       () => this.input?.tryPlaceAtGhost());
   }
 

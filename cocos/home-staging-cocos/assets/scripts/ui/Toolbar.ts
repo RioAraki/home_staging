@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Button, Color, UITransform } from 'cc';
+import { _decorator, Component, Label, Button, Color, UITransform, Sprite } from 'cc';
 import { gameStore, getRoomPhase } from '../state/gameStore';
 import { styleButton } from './StyledButton';
 const { ccclass, property } = _decorator;
@@ -40,6 +40,12 @@ export class Toolbar extends Component {
 
     // Undo: styled like the place button but red, and enlarged to match.
     if (this.undoBtn) {
+      // The scene Button has its own dark background Sprite that draws at its
+      // own frame size (peeking out behind our resized red rect) — disable it
+      // and turn off sprite transitions so only the red Graphics shows.
+      const sp = this.undoBtn.node.getComponent(Sprite);
+      if (sp) sp.enabled = false;
+      this.undoBtn.transition = Button.Transition.NONE;
       const ui = this.undoBtn.node.getComponent(UITransform) ?? this.undoBtn.node.addComponent(UITransform);
       ui.setContentSize(120, 60);
       styleButton(this.undoBtn, new Color(200, 70, 60, 255), new Color(120, 30, 25, 255));
