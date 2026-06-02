@@ -29,8 +29,19 @@ export class RoomPanel extends Component {
   start() {
     const c = this.listContent;
     if (c) {
+      // The scene wraps this content node in a ScrollView+Mask (it used to be a
+      // horizontal scrolling card list). The new chooser is two fixed options,
+      // so disable scrolling and center the content inside the masked viewport
+      // — otherwise the left option falls outside the mask and gets clipped.
+      const parent = c.parent;
+      const sv = parent?.getComponent('cc.ScrollView' as any) as any;
+      if (sv) sv.enabled = false;
       const ui = c.getComponent(UITransform) ?? c.addComponent(UITransform);
-      ui.setContentSize(2 * OPT_SIZE + OPT_GAP + 40, OPT_SIZE + 40);
+      const pui = parent?.getComponent(UITransform);
+      if (pui) ui.setContentSize(pui.contentSize.width, pui.contentSize.height);
+      else ui.setContentSize(2 * OPT_SIZE + OPT_GAP + 40, OPT_SIZE + 40);
+      ui.setAnchorPoint(0.5, 0.5);
+      c.setPosition(0, 0, 0);
       c.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
       c.on(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
       c.on(Node.EventType.TOUCH_END, this.onTouchEnd, this);

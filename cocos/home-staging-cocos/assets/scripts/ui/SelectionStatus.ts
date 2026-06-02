@@ -75,15 +75,17 @@ export class SelectionStatus extends Component {
       this.statusLabel.string = `⚠ ${s.lastError}`;
       return;
     }
+    // Keep these short: the label box is wide and centered, so long strings
+    // spread right into the mirror/skip/confirm buttons.
     if (sel) {
-      this.statusLabel.string = `已选 选项${sel.optionIndex}　左右滑动旋转　${sel.rotation * 90}°${sel.mirrored ? ' 镜像' : ''}`;
+      this.statusLabel.string = `选项${sel.optionIndex} ${sel.rotation * 90}°${sel.mirrored ? ' 镜像' : ''}`;
       return;
     }
     if (card) {
-      this.statusLabel.string = '二选一：点一个家具，左右滑动旋转，按「确定」放置';
+      this.statusLabel.string = '点家具→滑动旋转→确定';
       return;
     }
-    this.statusLabel.string = '本房间家具已摆完 — 去造墙 / 门';
+    this.statusLabel.string = '家具摆完，去造墙/门';
   }
 }
 
