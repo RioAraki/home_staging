@@ -158,7 +158,7 @@ export class RoomPanel extends Component {
     outline.color = new Color(0, 0, 0, 230);
     outline.width = 2;
 
-    const url = `cards/options/${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}/spriteFrame`;
+    const url = `cards/vector/${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}/spriteFrame`;
     resources.load(url, SpriteFrame, (err, sf) => {
       if (err || !sf) return;
       sprite.spriteFrame = sf;
@@ -173,8 +173,9 @@ export class RoomPanel extends Component {
       imgUi.setContentSize(w, h);
       const fw = w + FRAME_PAD * 2, fh = h + FRAME_PAD * 2;
       fg.clear();
-      fg.fillColor = selected ? new Color(255, 245, 200, 255) : new Color(250, 245, 235, 255);
-      fg.strokeColor = selected ? new Color(210, 160, 40, 255) : new Color(170, 158, 130, 255);
+      // Dark navy fill so the white line-art reads; lighter stroke when selected.
+      fg.fillColor = new Color(16, 42, 71, 255);
+      fg.strokeColor = selected ? new Color(255, 225, 105, 255) : new Color(120, 150, 185, 255);
       fg.lineWidth = selected ? 4 : 2;
       fg.rect(-fw / 2, -fh / 2, fw, fh);
       fg.fill();

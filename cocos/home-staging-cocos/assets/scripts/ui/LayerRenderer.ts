@@ -1,18 +1,20 @@
 import { Graphics, Color } from 'cc';
-import type { Scenario, CellAttrs, PreDrawnDoor, RoomSlot } from '../core/types';
+import type { Scenario, PreDrawnDoor, RoomSlot } from '../core/types';
 import { layout, edgeX, edgeY } from './viewport';
 
 // ── Design tokens (translated from React blueprint aesthetic) ─────────────────
 // React app lives on a dark navy background; the Cocos port uses a light cream
 // background instead (easier to read on mobile). Colours below are tuned for
 // that light-paper look.
-const COL_INDOOR   = new Color(245, 240, 225, 255);  // warm cream paper
-const COL_OUTDOOR  = new Color(181, 213, 168, 255);  // soft muted green
+const COL_BG       = new Color(16,  42,  71,  255);  // navy blueprint canvas
+const COL_INDOOR   = new Color(255, 255, 255, 16);   // translucent white fill
+const COL_OUTDOOR  = COL_BG;                          // outdoor blends into canvas
 const COL_WATER    = new Color(150, 180, 220, 255);
 const COL_ROAD     = new Color(180, 180, 180, 255);
 const COL_OBSTACLE = new Color(100, 100, 100, 255);
 
-const COL_GRIDLINE = new Color(80, 80, 90, 160);     // visible blueprint pencil
+const COL_INDOOR_BORDER = new Color(255, 255, 255, 242);  // thick white outline
+const COL_GRIDLINE = new Color(255, 255, 255, 46);   // faint white pencil
 const COL_WALL     = new Color(30,  40,  60,  255);  // navy — architectural pen
 const COL_DOOR     = new Color(200, 140,  30, 255);  // warm golden — matches accent
 const COL_WINDOW   = new Color(168, 216, 238, 255);  // #a8d8ee light blue
@@ -30,20 +32,34 @@ export function drawGridBg(g: Graphics, scenario: Scenario) {
   const legend = scenario.grid.legend;
   const { cell, r0, c0, rows, cols, w, h } = layout();
 
-  // Fill cells by terrain — only within the cropped window.
+  const isIndoor = (r: number, c: number): boolean => {
+    if (r < r0 || c < c0 || r >= r0 + rows || c >= c0 + cols) return false;
+    const ch = ascii[r]?.[c] ?? '.';
+    return legend[ch]?.terrain === 'indoor';
+  };
+
+  // 1) Fill the entire crop area with the navy blueprint canvas.
+  g.fillColor = COL_BG;
+  g.rect(edgeX(c0), edgeY(r0 + rows), w, h);
+  g.fill();
+
+  // 2) Overlay indoor cells with a translucent white wash (plus any special
+  //    terrain like water/road/obstacle so those stay visible).
   for (let r = r0; r < r0 + rows; r++) {
     for (let c = c0; c < c0 + cols; c++) {
       const ch = ascii[r]?.[c] ?? '.';
-      const attrs: CellAttrs | undefined = legend[ch];
-      g.fillColor = fillColorFor(attrs?.terrain);
-      // Cocos UI y axis points UP; edgeY(r) is the top of the cell, so the
-      // bottom-left corner is edgeY(r) - cell.
-      g.rect(edgeX(c), edgeY(r) - cell, cell, cell);
-      g.fill();
+      const terrain = legend[ch]?.terrain;
+      if (terrain === 'indoor' || terrain === 'water' ||
+          terrain === 'road' || terrain === 'obstacle') {
+        g.fillColor = fillColorFor(terrain);
+        // edgeY(r) is the top of the cell; bottom-left corner is edgeY(r)-cell.
+        g.rect(edgeX(c), edgeY(r) - cell, cell, cell);
+        g.fill();
+      }
     }
   }
 
-  // Grid lines — very faint to mirror the blueprint's light pencil lines.
+  // 3) Faint white grid lines.
   g.strokeColor = COL_GRIDLINE;
   g.lineWidth = 1;
   for (let c = c0; c <= c0 + cols; c++) {
@@ -55,6 +71,34 @@ export function drawGridBg(g: Graphics, scenario: Scenario) {
     const y = edgeY(r);
     g.moveTo(-w / 2, y);
     g.lineTo(w / 2, y);
+  }
+  g.stroke();
+
+  // 4) Thick white indoor border: for each indoor cell, stroke any side whose
+  //    neighbour is not indoor — this traces the floor-plan outline exactly,
+  //    even for non-rectangular rooms.
+  g.strokeColor = COL_INDOOR_BORDER;
+  g.lineWidth = 5;
+  for (let r = r0; r < r0 + rows; r++) {
+    for (let c = c0; c < c0 + cols; c++) {
+      if (!isIndoor(r, c)) continue;
+      if (!isIndoor(r - 1, c)) {  // top
+        g.moveTo(edgeX(c),     edgeY(r));
+        g.lineTo(edgeX(c + 1), edgeY(r));
+      }
+      if (!isIndoor(r + 1, c)) {  // bottom
+        g.moveTo(edgeX(c),     edgeY(r + 1));
+        g.lineTo(edgeX(c + 1), edgeY(r + 1));
+      }
+      if (!isIndoor(r, c - 1)) {  // left
+        g.moveTo(edgeX(c), edgeY(r));
+        g.lineTo(edgeX(c), edgeY(r + 1));
+      }
+      if (!isIndoor(r, c + 1)) {  // right
+        g.moveTo(edgeX(c + 1), edgeY(r));
+        g.lineTo(edgeX(c + 1), edgeY(r + 1));
+      }
+    }
   }
   g.stroke();
 }

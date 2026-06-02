@@ -34,9 +34,9 @@ describe('computeLayout', () => {
     expect(l.c0).toBe(4);          // 5 - 1
     expect(l.rows).toBe(8);        // (9+1) - (4-1) + 1
     expect(l.cols).toBe(8);        // (10+1) - (5-1) + 1
-    expect(l.cell).toBe(125);      // floor(min(1000/8, 1000/8))
-    expect(l.w).toBe(1000);
-    expect(l.h).toBe(1000);
+    expect(l.cell).toBe(118);      // floor(min((1000-56)/8, (1000-56)/8))
+    expect(l.w).toBe(944);
+    expect(l.h).toBe(944);
   });
 
   it('clamps the crop window to the 16x16 grid', () => {
@@ -51,7 +51,7 @@ describe('computeLayout', () => {
   it('picks the limiting dimension for cell size', () => {
     const sc = scenarioWithIndoor(4, 9, 5, 10); // 8x8 crop after margin
     const l = computeLayout(sc, 500, 1000);     // width-limited
-    expect(l.cell).toBe(62);                    // floor(500/8)
+    expect(l.cell).toBe(55);                    // floor((500-56)/8)
   });
 
   it('falls back to the full grid when there are no indoor cells', () => {

@@ -1,7 +1,7 @@
-import { _decorator, Component, Graphics, Node, UITransform, view } from 'cc';
+import { _decorator, Component, Graphics, Node, UITransform, view, Label, Color } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn } from './LayerRenderer';
-import { computeLayout, setLayout, layout } from './viewport';
+import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
 const { ccclass, property } = _decorator;
 
@@ -15,6 +15,7 @@ export class FloorPlan extends Component {
   @property(Node) windowsLayer!: Node;
 
   private unsub?: () => void;
+  private labelsNode?: Node;
 
   start() {
     this.renderAll();
@@ -59,10 +60,47 @@ export class FloorPlan extends Component {
     if (g) drawGridBg(g, s.scenario);
     const pg = this.preDrawnLayer?.getComponent(Graphics);
     if (pg) drawPreDrawn(pg, s.scenario);
+    this.buildLabels();
     this.rebuildPlacedLayer();
     this.redrawWalls();
     this.redrawDoors();
     this.redrawWindows();
+  }
+
+  /** Rebuild the A–P (columns) / 1–16 (rows) axis labels in the grid margins. */
+  private buildLabels() {
+    if (!this.labelsNode || !this.labelsNode.isValid) {
+      this.labelsNode = new Node('Labels');
+      this.node.addChild(this.labelsNode);
+    }
+    this.labelsNode.removeAllChildren();
+
+    const { cell, r0, c0, rows, cols } = layout();
+    const fontSize = Math.round(Math.max(12, Math.min(22, cell * 0.4)));
+    const white = new Color(255, 255, 255, 255);
+
+    const addLabel = (text: string, x: number, y: number) => {
+      const n = new Node('axis');
+      this.labelsNode!.addChild(n);
+      n.setPosition(x, y, 0);
+      const lbl = n.addComponent(Label);
+      lbl.string = text;
+      lbl.fontSize = fontSize;
+      lbl.lineHeight = fontSize;
+      lbl.isItalic = true;
+      lbl.color = white;
+      lbl.horizontalAlign = Label.HorizontalAlign.CENTER;
+      lbl.verticalAlign = Label.VerticalAlign.CENTER;
+    };
+
+    // Column letters (A, B, …) above the grid top.
+    for (let c = c0; c < c0 + cols; c++) {
+      addLabel(String.fromCharCode(65 + c), edgeX(c) + cell / 2, edgeY(r0) + LABEL_GAP * 0.6);
+    }
+    // Row numbers (1, 2, …) left of the grid.
+    for (let r = r0; r < r0 + rows; r++) {
+      addLabel(`${r + 1}`, edgeX(c0) - LABEL_GAP * 0.6, edgeY(r) - cell / 2);
+    }
   }
 
   private rebuildPlacedLayer() {

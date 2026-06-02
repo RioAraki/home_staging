@@ -1,9 +1,12 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, resources, UIOpacity, UITransform, Color } from 'cc';
+import { _decorator, Component, Node, Graphics, Color } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
 import { layout, edgeX, edgeY, FULL_GRID_ROWS, FULL_GRID_COLS } from './viewport';
 const { ccclass, property } = _decorator;
+
+const COL_GHOST_FILL   = new Color(255, 225, 105, 90);
+const COL_GHOST_STROKE = new Color(255, 225, 105, 255);
 
 @ccclass('GhostPiece')
 export class GhostPiece extends Component {
@@ -14,6 +17,8 @@ export class GhostPiece extends Component {
   private origin: [number, number] = [8, 8];
 
   start() {
+    // Legacy sprite ghost is replaced by Graphics drawing — hide it.
+    if (this.sprite) this.sprite.active = false;
     this.refresh();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.selectedOption !== prev.selectedOption) this.refresh();
@@ -28,59 +33,81 @@ export class GhostPiece extends Component {
       Math.max(0, Math.min(FULL_GRID_ROWS - 1, r)),
       Math.max(0, Math.min(FULL_GRID_COLS - 1, c)),
     ];
-    this.updatePosition();
+    this.draw();
   }
 
   getOrigin(): [number, number] { return this.origin; }
 
+  private graphics(): Graphics {
+    return this.node.getComponent(Graphics) ?? this.node.addComponent(Graphics);
+  }
+
   private flashRed() {
-    const sp = this.sprite?.getComponent(Sprite);
-    if (!sp) return;
-    const orig = sp.color.clone();
-    sp.color = new Color(255, 100, 100, 255);
-    this.scheduleOnce(() => { sp.color = orig; }, 0.2);
-  }
-
-  private refresh() {
-    const s = gameStore.getState();
-    const sel = s.selectedOption;
-    if (!sel || !this.sprite) { if (this.node) this.node.active = false; return; }
-    this.node.active = true;
-
-    const sf = this.sprite.getComponent(Sprite) ?? this.sprite.addComponent(Sprite);
-    sf.sizeMode = Sprite.SizeMode.CUSTOM;
-    const url = `cards/options/${String(sel.number).padStart(2, '0')}_${sel.variant}_opt${sel.optionIndex}/spriteFrame`;
-    resources.load(url, SpriteFrame, (err, frame) => { if (!err) sf.spriteFrame = frame; });
-
-    const card = cardByNumberVariant(sel.number, sel.variant);
-    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
-    if (!opt) return;
-    const cell = layout().cell;
-    const ui = this.sprite.getComponent(UITransform) ?? this.sprite.addComponent(UITransform);
-    // Size to the UN-rotated footprint and rotate the node itself, so the
-    // artwork visibly turns (rather than being squashed into a new bbox).
-    ui.setContentSize(opt.bbox[1] * cell, opt.bbox[0] * cell);
-    this.sprite.angle = -90 * sel.rotation;
-    this.sprite.setScale(sel.mirrored ? -1 : 1, 1, 1);
-    this.updatePosition();
-
-    const op = this.sprite.getComponent(UIOpacity) ?? this.sprite.addComponent(UIOpacity);
-    op.opacity = 150;
-  }
-
-  private updatePosition() {
+    const g = this.graphics();
+    // Brief red overlay over the current ghost footprint.
     const s = gameStore.getState();
     const sel = s.selectedOption;
     if (!sel) return;
     const card = cardByNumberVariant(sel.number, sel.variant);
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return;
-    // Footprint centre uses the ROTATED bbox; the node is sized to the
-    // un-rotated bbox and spun, so its centre coincides with the footprint.
     const t = transformOption(opt, sel.rotation, sel.mirrored);
     const cell = layout().cell;
-    const x = edgeX(this.origin[1]) + (t.bbox[1] * cell) / 2;
-    const y = edgeY(this.origin[0]) - (t.bbox[0] * cell) / 2;
-    this.sprite.setPosition(x, y, 0);
+    g.clear();
+    g.fillColor = new Color(255, 100, 100, 120);
+    for (const [r, c] of t.shape) {
+      const ar = this.origin[0] + r, ac = this.origin[1] + c;
+      g.rect(edgeX(ac), edgeY(ar) - cell, cell, cell);
+      g.fill();
+    }
+    this.scheduleOnce(() => { this.draw(); }, 0.2);
+  }
+
+  private refresh() {
+    const s = gameStore.getState();
+    const sel = s.selectedOption;
+    if (!sel) { if (this.node) this.node.active = false; return; }
+    this.node.active = true;
+    this.draw();
+  }
+
+  /** Draw yellow occupied cells + yellow open-space dots for the selection. */
+  private draw() {
+    const s = gameStore.getState();
+    const sel = s.selectedOption;
+    const g = this.graphics();
+    g.clear();
+    if (!sel) return;
+
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    if (!opt) return;
+
+    const t = transformOption(opt, sel.rotation, sel.mirrored);
+    const cell = layout().cell;
+    const [or, oc] = this.origin;
+
+    // Occupied cells: translucent yellow fill + yellow border.
+    g.fillColor = COL_GHOST_FILL;
+    g.strokeColor = COL_GHOST_STROKE;
+    g.lineWidth = 2;
+    for (const [r, c] of t.shape) {
+      const x = edgeX(oc + c);
+      const y = edgeY(or + r) - cell;
+      g.rect(x, y, cell, cell);
+      g.fill();
+      g.rect(x, y, cell, cell);
+      g.stroke();
+    }
+
+    // Open-space cells: filled yellow dot at the cell centre.
+    const radius = Math.max(2, cell * 0.09);
+    g.fillColor = COL_GHOST_STROKE;
+    for (const [r, c] of t.open_spaces) {
+      const cx = edgeX(oc + c) + cell / 2;
+      const cy = edgeY(or + r) - cell / 2;
+      g.circle(cx, cy, radius);
+      g.fill();
+    }
   }
 }

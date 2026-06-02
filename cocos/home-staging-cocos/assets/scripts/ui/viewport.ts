@@ -9,6 +9,9 @@ export const FULL_GRID_COLS = 16;
  *  until a scenario actually needs it. */
 export const MAP_CROP_MARGIN = 1;
 
+/** Pixels reserved on each side of the grid for the A–P / 1–16 axis labels. */
+export const LABEL_GAP = 28;
+
 /** Fraction of a cell, measured from each grid line, that counts as an "edge"
  *  tap (wall/door) rather than a cell tap. Was a fixed 12px at cell=40. */
 const EDGE_SLOP_RATIO = 0.3;
@@ -65,7 +68,10 @@ export function computeLayout(scenario: Scenario, availW: number, availH: number
 
   const rows = r1 - r0 + 1;
   const cols = c1 - c0 + 1;
-  const cell = Math.max(1, Math.floor(Math.min(availW / cols, availH / rows)));
+  const cell = Math.max(1, Math.floor(Math.min(
+    (availW - 2 * LABEL_GAP) / cols,
+    (availH - 2 * LABEL_GAP) / rows,
+  )));
   return makeLayout(cell, r0, c0, rows, cols);
 }
 
