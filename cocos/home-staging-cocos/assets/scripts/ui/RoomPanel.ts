@@ -1,20 +1,20 @@
 import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
-  Graphics, Color, Label, EventTouch, director,
+  Graphics, Color, Label, LabelOutline, EventTouch, director,
 } from 'cc';
 import { gameStore, currentCard } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { InputHandler } from './InputHandler';
 const { ccclass, property } = _decorator;
 
-const PX_PER_CELL = 28;       // shared cells→px scale so footprints are comparable
-const SLOT_W = 150;           // fixed hit/layout slot per option
-const SLOT_H = 160;
+const PX_PER_CELL = 42;       // shared cells→px scale so footprints are comparable
+const SLOT_W = 220;           // fixed hit/layout slot per option
+const SLOT_H = 180;
 const FRAME_PAD = 8;
 const SWIPE_THRESHOLD = 30;   // px of horizontal drag that counts as a rotate
-const OPT1_X = -190;
-const OPT2_X = -10;
-const CONFIRM_X = 195;
+const OPT1_X = -240;
+const OPT2_X = 20;
+const CONFIRM_X = 260;
 
 /**
  * Bottom chooser: the active room's current card shown as its two options,
@@ -153,14 +153,18 @@ export class RoomPanel extends Component {
       fg.stroke();
     });
 
-    // Name label below the footprint.
+    // Name overlaid on top of the image (added last → renders above it),
+    // near the top edge, with a dark outline so it reads over any artwork.
     const nameNode = new Node('name');
     node.addChild(nameNode);
-    nameNode.setPosition(0, -SLOT_H / 2 + 12, 0);
+    nameNode.setPosition(0, SLOT_H / 2 - 16, 0);
     const nameLabel = nameNode.addComponent(Label);
     nameLabel.string = name;
     nameLabel.fontSize = 18;
-    nameLabel.color = selected ? new Color(150, 90, 20, 255) : new Color(70, 60, 45, 255);
+    nameLabel.color = new Color(255, 255, 255, 255);
+    const outline = nameNode.addComponent(LabelOutline);
+    outline.color = new Color(0, 0, 0, 220);
+    outline.width = 2;
   }
 
   private makeConfirm(x: number, enabled: boolean) {
