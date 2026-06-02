@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Button, Color } from 'cc';
+import { _decorator, Component, Label, Button, Color, UITransform } from 'cc';
 import { gameStore, getRoomPhase } from '../state/gameStore';
 import { styleButton } from './StyledButton';
 const { ccclass, property } = _decorator;
@@ -29,11 +29,23 @@ export class Toolbar extends Component {
     if (this.frontDoorBtn) this.frontDoorBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().toggleFrontDoorMode());
     if (this.windowBtn)    this.windowBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().toggleWindowMode());
     if (this.demolishBtn)  this.demolishBtn.node.on(Button.EventType.CLICK,  () => gameStore.getState().toggleDemolishMode());
-    if (this.finishBtn)    this.finishBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().finishGame());
+    // No "finish/settle" button anymore — the game auto-settles when the last
+    // room is sealed (see gameStore.completeRoom).
+    if (this.finishBtn) this.finishBtn.node.active = false;
     if (this.undoBtn) this.undoBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().undo());
-    // Paint styled rounded-rect backgrounds on every button
-    [this.phaseBtn, this.completeBtn, this.frontDoorBtn, this.windowBtn,
-     this.demolishBtn, this.finishBtn, this.undoBtn].forEach(styleButton);
+
+    // Paint styled rounded-rect backgrounds.
+    [this.phaseBtn, this.completeBtn, this.frontDoorBtn, this.windowBtn, this.demolishBtn]
+      .forEach((b) => styleButton(b));
+
+    // Undo: styled like the place button but red, and enlarged to match.
+    if (this.undoBtn) {
+      const ui = this.undoBtn.node.getComponent(UITransform) ?? this.undoBtn.node.addComponent(UITransform);
+      ui.setContentSize(120, 60);
+      styleButton(this.undoBtn, new Color(200, 70, 60, 255), new Color(120, 30, 25, 255));
+      const lbl = this.undoBtn.node.getComponentInChildren(Label);
+      if (lbl) { lbl.color = new Color(255, 255, 255, 255); lbl.string = '撤销'; }
+    }
     this.refresh();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.wallPhase       !== prev.wallPhase ||

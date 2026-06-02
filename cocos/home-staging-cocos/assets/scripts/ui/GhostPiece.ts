@@ -55,10 +55,13 @@ export class GhostPiece extends Component {
     const card = cardByNumberVariant(sel.number, sel.variant);
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return;
-    const t = transformOption(opt, sel.rotation, sel.mirrored);
     const cell = layout().cell;
     const ui = this.sprite.getComponent(UITransform) ?? this.sprite.addComponent(UITransform);
-    ui.setContentSize(t.bbox[1] * cell, t.bbox[0] * cell);
+    // Size to the UN-rotated footprint and rotate the node itself, so the
+    // artwork visibly turns (rather than being squashed into a new bbox).
+    ui.setContentSize(opt.bbox[1] * cell, opt.bbox[0] * cell);
+    this.sprite.angle = -90 * sel.rotation;
+    this.sprite.setScale(sel.mirrored ? -1 : 1, 1, 1);
     this.updatePosition();
 
     const op = this.sprite.getComponent(UIOpacity) ?? this.sprite.addComponent(UIOpacity);
@@ -72,6 +75,8 @@ export class GhostPiece extends Component {
     const card = cardByNumberVariant(sel.number, sel.variant);
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return;
+    // Footprint centre uses the ROTATED bbox; the node is sized to the
+    // un-rotated bbox and spun, so its centre coincides with the footprint.
     const t = transformOption(opt, sel.rotation, sel.mirrored);
     const cell = layout().cell;
     const x = edgeX(this.origin[1]) + (t.bbox[1] * cell) / 2;

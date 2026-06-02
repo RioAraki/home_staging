@@ -95,7 +95,11 @@ export class RoomPanel extends Component {
         isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
       );
     }
-    this.makeConfirm(CONFIRM_X, !!sel);
+    // Rotate (above) + Place (below), stacked to the right of the options.
+    this.makeButton(CONFIRM_X, 46, '旋转', new Color(70, 120, 200, 255), !!sel,
+      () => gameStore.getState().rotateSelection(1));
+    this.makeButton(CONFIRM_X, -46, '放置', new Color(80, 160, 90, 255), !!sel,
+      () => this.input?.tryPlaceAtGhost());
   }
 
   private makeOption(
@@ -176,27 +180,27 @@ export class RoomPanel extends Component {
     });
   }
 
-  private makeConfirm(x: number, enabled: boolean) {
-    const node = new Node('confirm');
+  private makeButton(
+    x: number, y: number, label: string, fill: Color, enabled: boolean, onTap: () => void,
+  ) {
+    const node = new Node(label);
     this.listContent.addChild(node);
-    node.setPosition(x, 0, 0);
+    node.setPosition(x, y, 0);
     node.addComponent(UITransform).setContentSize(110, 64);
 
     const g = node.addComponent(Graphics);
-    g.fillColor = enabled ? new Color(80, 160, 90, 255) : new Color(170, 170, 170, 255);
+    g.fillColor = enabled ? fill : new Color(170, 170, 170, 255);
     g.roundRect(-55, -32, 110, 64, 10);
     g.fill();
 
     const lblNode = new Node('label');
     node.addChild(lblNode);
     const lbl = lblNode.addComponent(Label);
-    lbl.string = '确定';
+    lbl.string = label;
     lbl.fontSize = 26;
     lbl.color = new Color(255, 255, 255, 255);
 
-    node.on(Node.EventType.TOUCH_END, () => {
-      if (enabled) this.input?.tryPlaceAtGhost();
-    });
+    node.on(Node.EventType.TOUCH_END, () => { if (enabled) onTap(); });
   }
 
   private showHint(text: string) {

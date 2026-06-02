@@ -22,7 +22,11 @@ export class PlacedPiece extends Component {
 
     const cell = layout().cell;
     const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
-    ui.setContentSize(t.bbox[1] * cell, t.bbox[0] * cell);
+    // Size to the un-rotated footprint and rotate/mirror the node, so the
+    // artwork visibly turns. Centre uses the rotated bbox.
+    ui.setContentSize(opt.bbox[1] * cell, opt.bbox[0] * cell);
+    this.node.angle = -90 * p.rotation;
+    this.node.setScale(p.mirrored ? -1 : 1, 1, 1);
 
     const x = edgeX(p.origin[1]) + (t.bbox[1] * cell) / 2;
     const y = edgeY(p.origin[0]) - (t.bbox[0] * cell) / 2;

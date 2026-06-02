@@ -1012,10 +1012,14 @@ export const gameStore = createStore<GameState>((set, get) => {
       mutate(() => {
         const nextCompleted = new Set(get().completedRoomSlots);
         nextCompleted.add(activeRoomSlot);
+        // Auto-settle: once every room in the scenario is sealed the game is
+        // over — there is no separate "finish" button anymore.
+        const allSealed = !!scenario && scenario.rooms.every((r) => nextCompleted.has(r.slot));
         set({
           completedRoomSlots: nextCompleted,
           activeRoomSlot: null,
           wallPhase: 'walls',
+          gameFinished: allSealed ? true : get().gameFinished,
           lastError: null,
         });
       });
