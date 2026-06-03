@@ -3,19 +3,24 @@ import { gameStore, type SelectedOption } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { validatePlacement } from '../core/validation';
 import { transformOption } from '../core/geometry';
-import { hitTestLocal, type HitResult } from './viewport';
+import { hitTestLocal, cellAtLocal, type HitResult } from './viewport';
 import { GhostPiece } from './GhostPiece';
 const { ccclass, property } = _decorator;
 
 export type { HitResult };
+
+/** Movement (px) beyond which a touch is treated as a drag, not a tap. */
+const DRAG_THRESHOLD = 10;
 
 @ccclass('InputHandler')
 export class InputHandler extends Component {
   @property(Node)       floorPlan!: Node;
   @property(GhostPiece) ghost!: GhostPiece;
 
-  /** True once the current touch sequence has moved (a drag, not a tap). */
+  /** True once the current touch sequence has moved past the threshold. */
   private movedDuringDrag = false;
+  private startX = 0;
+  private startY = 0;
 
   onLoad() {
     this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
@@ -30,6 +35,8 @@ export class InputHandler extends Component {
       // move/end, so a tap meant to rotate doesn't jump the piece.
       e.propagationStopped = true;
       this.movedDuringDrag = false;
+      const p = e.getUILocation();
+      this.startX = p.x; this.startY = p.y;
       return;
     }
     const hit = this.hitTest(e);
@@ -61,8 +68,13 @@ export class InputHandler extends Component {
   private onTouchMove(e: EventTouch) {
     if (!gameStore.getState().selectedOption) return;
     e.propagationStopped = true;
-    this.movedDuringDrag = true;
-    this.moveGhost(e);   // drag → ghost follows the finger
+    if (!this.movedDuringDrag) {
+      const p = e.getUILocation();
+      if (Math.hypot(p.x - this.startX, p.y - this.startY) > DRAG_THRESHOLD) {
+        this.movedDuringDrag = true;
+      }
+    }
+    if (this.movedDuringDrag) this.moveGhost(e);   // drag → ghost follows finger
   }
 
   private onTouchEnd(e: EventTouch) {
@@ -73,14 +85,14 @@ export class InputHandler extends Component {
     if (this.movedDuringDrag) { this.movedDuringDrag = false; return; }  // was a drag
 
     // It was a TAP on the plan.
-    const hit = this.hitTest(e);
-    if (hit.kind !== 'cell') return;
+    const c = this.cellAt(e);
+    if (!c) return;
     if (!this.ghost.isPositioned()) {
-      this.moveGhost(e);                 // first tap: drop the ghost here
-    } else if (this.tapOnGhost(hit.row, hit.col, sel)) {
-      s.rotateSelection(1);              // tap the piece → rotate
+      this.moveGhost(e);                  // first tap: drop the ghost here
+    } else if (this.tapOnGhost(c.row, c.col, sel)) {
+      s.rotateSelection(1);               // tap the piece → rotate
     } else {
-      this.moveGhost(e);                 // tap elsewhere → move it there
+      this.moveGhost(e);                  // tap elsewhere → move it there
     }
   }
 
@@ -131,8 +143,10 @@ export class InputHandler extends Component {
   dragGhost(e: EventTouch) { this.moveGhost(e); }
 
   private moveGhost(e: EventTouch) {
-    const hit = this.hitTest(e);
-    if (hit.kind !== 'cell') return;
+    // Use the containing cell (NO edge-slop dead-zone) so the ghost tracks the
+    // finger everywhere on the grid, not only in each cell's central 16%.
+    const c = this.cellAt(e);
+    if (!c) return;
     const sel = gameStore.getState().selectedOption;
     if (!sel) return;
     // Centre the piece under the finger so it tracks the touch naturally.
@@ -141,7 +155,17 @@ export class InputHandler extends Component {
     const t = opt ? transformOption(opt, sel.rotation, sel.mirrored) : null;
     const offR = t ? Math.floor(t.bbox[0] / 2) : 0;
     const offC = t ? Math.floor(t.bbox[1] / 2) : 0;
-    this.ghost.setOrigin(hit.row - offR, hit.col - offC);
+    this.ghost.setOrigin(c.row - offR, c.col - offC);
+  }
+
+  /** FloorPlan-local point → world-aware grid cell (no edge dead-zone). */
+  private cellAt(e: EventTouch): { row: number; col: number } | null {
+    if (!this.floorPlan) return null;
+    const ui = this.floorPlan.getComponent(UITransform);
+    if (!ui) return null;
+    const world = new Vec3(e.getUILocation().x, e.getUILocation().y, 0);
+    const local = ui.convertToNodeSpaceAR(world);
+    return cellAtLocal(local.x, local.y);
   }
 
   hitTest(e: EventTouch): HitResult {

@@ -1,6 +1,6 @@
 import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
-  Graphics, Color, Label, LabelOutline, EventTouch, director,
+  Graphics, Color, Label, EventTouch, director, input, Input,
 } from 'cc';
 import { gameStore, currentCard } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
@@ -72,7 +72,19 @@ export class RoomPanel extends Component {
     });
   }
 
-  onDestroy() { this.unsub?.(); }
+  onDestroy() {
+    this.unsub?.();
+    input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+  }
+
+  /** Forward a global touch-move (during a tray drag) to the plan's ghost. */
+  private onGlobalMove(e: EventTouch) {
+    this.getInput()?.dragGhost(e);
+  }
+
+  private onGlobalEnd() {
+    input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+  }
 
   private rebuild() {
     const c = this.listContent;
@@ -123,11 +135,15 @@ export class RoomPanel extends Component {
     // Touch-down picks this option up; drag it onto the floor plan (the ghost
     // follows the finger). Rotation is via the 旋转 button. The ghost stays
     // hidden until the finger reaches the plan, so a tap no longer auto-hovers.
+    // Touch-down picks the option up and begins a drag. Cocos does NOT deliver
+    // node move events once the finger leaves the small tray slot, so we listen
+    // on the GLOBAL input for the rest of the drag and forward it to the plan.
     node.on(Node.EventType.TOUCH_START, () => {
       gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
-    });
-    node.on(Node.EventType.TOUCH_MOVE, (e: EventTouch) => {
-      this.getInput()?.dragGhost(e);
+      input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+      input.on(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+      input.once(Input.EventType.TOUCH_END, this.onGlobalEnd, this);
+      input.once(Input.EventType.TOUCH_CANCEL, this.onGlobalEnd, this);
     });
 
     // Frame (drawn to the real footprint once we know the cell size).
@@ -158,9 +174,9 @@ export class RoomPanel extends Component {
     nameLabel.string = name;
     nameLabel.fontSize = 22;
     nameLabel.color = selected ? new Color(255, 240, 200, 255) : new Color(255, 255, 255, 255);
-    const outline = nameNode.addComponent(LabelOutline);
-    outline.color = new Color(0, 0, 0, 230);
-    outline.width = 2;
+    nameLabel.enableOutline = true;
+    nameLabel.outlineColor = new Color(0, 0, 0, 230);
+    nameLabel.outlineWidth = 2;
 
     const url = `cards/vector/${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}/spriteFrame`;
     resources.load(url, SpriteFrame, (err, sf) => {

@@ -87,6 +87,17 @@ export function edgeY(r: number): number {
   return _layout.h / 2 - (r - _layout.r0) * _layout.cell;
 }
 
+/** The grid cell containing a FloorPlan-local point, ignoring the edge-slop
+ *  dead-zone that hitTestLocal uses for wall/door taps. Used for furniture
+ *  positioning, where ANY touch inside the grid should map to a cell. */
+export function cellAtLocal(localX: number, localY: number): { row: number; col: number } | null {
+  const { cell, r0, c0, w, h } = _layout;
+  const x = localX + w / 2;
+  const y = h / 2 - localY;
+  if (x < 0 || y < 0 || x >= w || y >= h) return null;
+  return { row: Math.floor(y / cell) + r0, col: Math.floor(x / cell) + c0 };
+}
+
 export type HitResult =
   | { kind: 'cell'; row: number; col: number }
   | { kind: 'edge'; key: string; row: number; col: number; side: 'top' | 'right' | 'bottom' | 'left' }
