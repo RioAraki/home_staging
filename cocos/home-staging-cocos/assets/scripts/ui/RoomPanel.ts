@@ -146,10 +146,13 @@ export class RoomPanel extends Component {
       input.once(Input.EventType.TOUCH_CANCEL, this.onGlobalEnd, this);
     });
 
-    // Frame (drawn to the real footprint once we know the cell size).
+    // Frame (drawn to the real footprint once we know the cell size). Rotated
+    // and mirrored to match the image, so the border turns with the piece.
     const frame = new Node('frame');
     node.addChild(frame);
     frame.addComponent(UITransform);
+    frame.angle = -90 * rotation;
+    frame.setScale(mirrored ? -1 : 1, 1, 1);
     const fg = frame.addComponent(Graphics);
 
     // Footprint box from the bbox at the shared scale — this is what makes a

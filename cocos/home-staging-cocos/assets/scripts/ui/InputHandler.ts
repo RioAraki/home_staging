@@ -89,8 +89,14 @@ export class InputHandler extends Component {
     if (!c) return;
     if (!this.ghost.isPositioned()) {
       this.moveGhost(e);                  // first tap: drop the ghost here
-    } else if (this.tapOnGhost(c.row, c.col, sel)) {
-      s.rotateSelection(1);               // tap the piece → rotate
+      return;
+    }
+    if (this.tapOnGhost(c.row, c.col, sel)) {
+      // Rotate around the tapped cell so it stays under the finger — the user
+      // can keep tapping the same spot to spin the piece in place.
+      const newOrigin = this.rotateOriginAround(sel, this.ghost.getOrigin(), c.row, c.col);
+      s.rotateSelection(1);
+      this.ghost.setOrigin(newOrigin[0], newOrigin[1]);
     } else {
       this.moveGhost(e);                  // tap elsewhere → move it there
     }
@@ -104,6 +110,41 @@ export class InputHandler extends Component {
     const t = transformOption(opt, sel.rotation, sel.mirrored);
     const [or, oc] = this.ghost.getOrigin();
     return t.shape.some(([r, c]) => or + r === row && oc + c === col);
+  }
+
+  /**
+   * New origin after a +1 rotation that keeps absolute cell (tapRow,tapCol)
+   * fixed — i.e. rotate the piece about the tapped cell. Mirrors the bbox-cell
+   * transform in core/geometry (mirror-before-rotate, CW 90° steps).
+   */
+  private rotateOriginAround(
+    sel: SelectedOption, origin: [number, number], tapRow: number, tapCol: number,
+  ): [number, number] {
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    if (!opt) return origin;
+    const [H, W] = opt.bbox;
+    const cell = (r: number, c: number, rot: number): [number, number] => {
+      const cm = sel.mirrored ? W - 1 - c : c;        // mirror (about vertical axis)
+      switch (((rot % 4) + 4) % 4) {                  // then CW rotate
+        case 1:  return [cm, H - 1 - r];
+        case 2:  return [H - 1 - r, W - 1 - cm];
+        case 3:  return [W - 1 - cm, r];
+        default: return [r, cm];
+      }
+    };
+    // Which original bbox cell sits under the tap right now?
+    const lr = tapRow - origin[0], lc = tapCol - origin[1];
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        const [tr, tc] = cell(r, c, sel.rotation);
+        if (tr === lr && tc === lc) {
+          const [nr, nc] = cell(r, c, sel.rotation + 1);   // where it lands after +1
+          return [tapRow - nr, tapCol - nc];
+        }
+      }
+    }
+    return origin;
   }
 
   /** Called by SelectionStatus's Place button. Validates first. */
