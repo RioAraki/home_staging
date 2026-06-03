@@ -91,25 +91,26 @@ export class InputHandler extends Component {
       this.moveGhost(e);                  // first tap: drop the ghost here
       return;
     }
-    if (this.tapOnGhost(c.row, c.col, sel)) {
-      // Rotate around the tapped cell so it stays under the finger — the user
-      // can keep tapping the same spot to spin the piece in place.
+    if (this.tapOnPiece(c.row, c.col, sel)) {
+      // Tapping any of the piece's cells (occupied OR open-space) rotates it
+      // about the tapped cell, so the cell stays under the finger and repeated
+      // taps spin it in place. Tapping the irregular "missing" cells (or empty
+      // grid) does nothing — moving the piece is drag-only.
       const newOrigin = this.rotateOriginAround(sel, this.ghost.getOrigin(), c.row, c.col);
       s.rotateSelection(1);
       this.ghost.setOrigin(newOrigin[0], newOrigin[1]);
-    } else {
-      this.moveGhost(e);                  // tap elsewhere → move it there
     }
   }
 
-  /** Is grid cell (row,col) one of the ghost's occupied cells right now? */
-  private tapOnGhost(row: number, col: number, sel: SelectedOption): boolean {
+  /** Is grid cell (row,col) one of the ghost's cells — occupied OR open-space? */
+  private tapOnPiece(row: number, col: number, sel: SelectedOption): boolean {
     const card = cardByNumberVariant(sel.number, sel.variant);
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return false;
     const t = transformOption(opt, sel.rotation, sel.mirrored);
     const [or, oc] = this.ghost.getOrigin();
-    return t.shape.some(([r, c]) => or + r === row && oc + c === col);
+    const hit = ([r, c]: [number, number]) => or + r === row && oc + c === col;
+    return t.shape.some(hit) || t.open_spaces.some(hit);
   }
 
   /**
