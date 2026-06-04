@@ -547,7 +547,16 @@ export const gameStore = createStore<GameState>((set, get) => {
         nextRevealed.add(key);
         const nextSkipped = new Set(get().skippedCardKeys);
         nextSkipped.add(key);
-        set({ revealedCardKeys: nextRevealed, skippedCardKeys: nextSkipped, lastError: null });
+        // Clear the in-progress selection for this card so its ghost doesn't
+        // linger on the plan after skipping.
+        const sel = get().selectedOption;
+        const clearSel = !!sel && sel.slot === slot && sel.slotIdx === slotIdx;
+        set({
+          revealedCardKeys: nextRevealed,
+          skippedCardKeys: nextSkipped,
+          selectedOption: clearSel ? null : sel,
+          lastError: null,
+        });
       });
     },
 
