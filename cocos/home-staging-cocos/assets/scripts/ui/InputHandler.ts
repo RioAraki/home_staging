@@ -188,7 +188,12 @@ export class InputHandler extends Component {
     // Use the containing cell (NO edge-slop dead-zone) so the ghost tracks the
     // finger everywhere on the grid, not only in each cell's central 16%.
     const c = this.cellAt(e);
-    if (!c) return;
+    if (!c) {
+      // Dragged off the plan. Once the piece is already on the plan, leaving it
+      // deselects. (Before it's positioned — e.g. mid tray-drag — keep it.)
+      if (this.ghost.isPositioned()) gameStore.getState().clearSelection();
+      return;
+    }
     const sel = gameStore.getState().selectedOption;
     if (!sel) return;
     // Centre the piece under the finger so it tracks the touch naturally.
