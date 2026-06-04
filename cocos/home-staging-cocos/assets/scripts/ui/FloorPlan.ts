@@ -21,8 +21,8 @@ export class FloorPlan extends Component {
     this.renderAll();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.scenario !== prev.scenario) this.renderAll();
-      if (s.placedPieces !== prev.placedPieces) { this.rebuildPlacedLayer(); this.redrawWalls(); }
-      if (s.walls !== prev.walls) this.redrawWalls();
+      if (s.placedPieces !== prev.placedPieces) { this.rebuildPlacedLayer(); this.redrawWalls(); this.redrawDoors(); }
+      if (s.walls !== prev.walls) { this.redrawWalls(); this.redrawDoors(); }
       if (s.doors !== prev.doors) this.redrawDoors();
       if (s.windows !== prev.windows) this.redrawWindows();
       // Wall colour depends on enclosure + phase + active room.
@@ -134,11 +134,13 @@ export class FloorPlan extends Component {
   private redrawDoors() {
     if (!this.doorsLayer) return;
     const g = this.doorsLayer.getComponent(Graphics);
-    if (g) drawDoors(g, gameStore.getState().doors);
+    const s = gameStore.getState();
+    if (g && s.scenario) drawDoors(g, s.doors, s.scenario, s.walls, s.placedPieces);
   }
   private redrawWindows() {
     if (!this.windowsLayer) return;
     const g = this.windowsLayer.getComponent(Graphics);
-    if (g) drawWindows(g, gameStore.getState().windows);
+    const s = gameStore.getState();
+    if (g && s.scenario) drawWindows(g, s.windows, s.scenario);
   }
 }

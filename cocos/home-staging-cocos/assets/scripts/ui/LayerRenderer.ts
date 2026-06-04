@@ -1,5 +1,7 @@
 import { Graphics, Color } from 'cc';
 import type { Scenario, PreDrawnDoor, RoomSlot } from '../core/types';
+import type { PlacedPiece } from '../state/gameStore';
+import { computeRegions, assignRoomsToRegions } from '../core/regions';
 import { layout, edgeX, edgeY } from './viewport';
 
 // ── Design tokens (translated from React blueprint aesthetic) ─────────────────
@@ -16,7 +18,7 @@ const COL_OBSTACLE = new Color(100, 100, 100, 255);
 const COL_INDOOR_BORDER = new Color(255, 255, 255, 242);  // thick white outline
 const COL_GRIDLINE = new Color(255, 255, 255, 46);   // faint white pencil
 const COL_WALL     = new Color(255, 255, 255, 235);  // white architectural line
-const COL_DOOR     = new Color(200, 140,  30, 255);  // warm golden — matches accent
+const COL_DOOR     = new Color(255, 220,  90, 255);  // yellow door
 const COL_WINDOW   = new Color(168, 216, 238, 255);  // #a8d8ee light blue
 const COL_PREDRAWN = new Color(50,  60,  90,  200);  // slightly lighter navy
 
@@ -132,25 +134,116 @@ export function drawWalls(g: Graphics, walls: Record<string, true>, color: Color
   g.stroke();
 }
 
-/**
- * Draw player-placed doors as an architectural arc symbol (45° panel +
- * quarter-circle sweep arc) instead of the old circle stub.
- */
-export function drawDoors(g: Graphics, doors: Record<string, RoomSlot>) {
-  g.clear();
-  const L = layout().cell;
-  for (const key of Object.keys(doors)) {
-    const [type, rs, cs] = key.split(':');
-    const r = parseInt(rs, 10), c = parseInt(cs, 10);
-    drawDoorArc(g, type, r, c, L, COL_DOOR, DOOR_WIDTH);
-  }
+type Outward = 'up' | 'down' | 'left' | 'right';
+
+function makeIsIndoor(scenario: Scenario): (r: number, c: number) => boolean {
+  const ascii = scenario.grid.ascii.replace(/\n+$/, '').split('\n');
+  const legend = scenario.grid.legend;
+  return (r, c) => {
+    const ch = ascii[r]?.[c];
+    return !!ch && legend[ch]?.terrain === 'indoor';
+  };
 }
 
 /**
- * Draw the pre-drawn scenario doors with the same arc symbol but in a
- * slightly different colour so they look "pre-printed" rather than player-drawn.
+ * Architectural door/window symbol: a solid 45° panel + a DASHED quarter-arc
+ * showing the swing, drawn opening OUTWARD (toward `outward`). Hinge is the
+ * top-left endpoint of the edge (same convention as walls).
  */
-function drawPreDrawnDoors(g: Graphics, doors: PreDrawnDoor[], L: number) {
+function drawSwingArc(
+  g: Graphics, type: string, r: number, c: number, L: number,
+  color: Color, lineW: number, outward: Outward,
+) {
+  const hingeX = edgeX(c), hingeY = edgeY(r);
+  let closed: number, open: number;
+  if (type === 'h') {
+    closed = 0;                                          // along the edge (→)
+    open = outward === 'up' ? Math.PI / 4 : -Math.PI / 4;
+  } else {
+    closed = -Math.PI / 2;                               // along the edge (↓)
+    open = outward === 'right' ? -Math.PI / 4 : -3 * Math.PI / 4;
+  }
+  g.strokeColor = color;
+  g.lineWidth = lineW;
+  // Solid panel.
+  g.moveTo(hingeX, hingeY);
+  g.lineTo(hingeX + L * Math.cos(open), hingeY + L * Math.sin(open));
+  g.stroke();
+  // Dashed swing arc (segments with gaps).
+  const steps = 14;
+  for (let i = 0; i < steps; i += 2) {
+    const t0 = closed + (open - closed) * (i / steps);
+    const t1 = closed + (open - closed) * ((i + 1) / steps);
+    g.moveTo(hingeX + L * Math.cos(t0), hingeY + L * Math.sin(t0));
+    g.lineTo(hingeX + L * Math.cos(t1), hingeY + L * Math.sin(t1));
+  }
+  g.stroke();
+}
+
+/** Swing toward the non-indoor side of an edge (used for windows / pre-drawn). */
+function outwardByTerrain(
+  type: string, r: number, c: number, isIndoor: (r: number, c: number) => boolean,
+): Outward {
+  if (type === 'h') {
+    const up = isIndoor(r - 1, c), down = isIndoor(r, c);
+    if (up && !down) return 'down';
+    if (down && !up) return 'up';
+    return 'up';
+  }
+  const left = isIndoor(r, c - 1), right = isIndoor(r, c);
+  if (left && !right) return 'right';
+  if (right && !left) return 'left';
+  return 'right';
+}
+
+/** Swing away from the owner room's region (used for player doors). */
+function outwardByRegion(
+  type: string, r: number, c: number,
+  ownerReg: number | undefined, cellToRegion: Map<string, number>,
+): Outward {
+  if (type === 'h') {
+    if (cellToRegion.get(`${r},${c}`) === ownerReg) return 'up';
+    if (cellToRegion.get(`${r - 1},${c}`) === ownerReg) return 'down';
+    return 'down';
+  }
+  if (cellToRegion.get(`${r},${c}`) === ownerReg) return 'left';
+  if (cellToRegion.get(`${r},${c - 1}`) === ownerReg) return 'right';
+  return 'right';
+}
+
+/** Player doors — yellow, opening outward (away from the owning room). */
+export function drawDoors(
+  g: Graphics, doors: Record<string, RoomSlot>,
+  scenario: Scenario, walls: Record<string, true>, placedPieces: PlacedPiece[],
+) {
+  g.clear();
+  const L = layout().cell;
+  const regionMap = computeRegions(scenario, walls);
+  const roomToRegion = assignRoomsToRegions(placedPieces, regionMap);
+  for (const [key, owner] of Object.entries(doors)) {
+    const [type, rs, cs] = key.split(':');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    const out = outwardByRegion(type, r, c, roomToRegion.get(owner), regionMap.cellToRegion);
+    drawSwingArc(g, type, r, c, L, COL_DOOR, DOOR_WIDTH, out);
+  }
+}
+
+/** Player windows — blue, opening outward (toward the outdoor side). */
+export function drawWindows(g: Graphics, windows: Record<string, true>, scenario: Scenario) {
+  g.clear();
+  const L = layout().cell;
+  const isIndoor = makeIsIndoor(scenario);
+  for (const key of Object.keys(windows)) {
+    const [type, rs, cs] = key.split(':');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    drawSwingArc(g, type, r, c, L, COL_WINDOW, WIN_WIDTH, outwardByTerrain(type, r, c, isIndoor));
+  }
+}
+
+/** Pre-drawn scenario doors — same swing symbol, pre-printed colour. */
+function drawPreDrawnDoors(
+  g: Graphics, doors: PreDrawnDoor[], L: number, isIndoor: (r: number, c: number) => boolean,
+) {
   for (const d of doors) {
     const [r, c] = d.cell;
     let type: string, er: number, ec: number;
@@ -158,67 +251,8 @@ function drawPreDrawnDoors(g: Graphics, doors: PreDrawnDoor[], L: number) {
     else if (d.edge === 'S') { type = 'h'; er = r + 1; ec = c; }
     else if (d.edge === 'W') { type = 'v'; er = r;     ec = c; }
     else                       { type = 'v'; er = r;     ec = c + 1; }
-    drawDoorArc(g, type, er, ec, L, COL_PREDRAWN, DOOR_WIDTH);
+    drawSwingArc(g, type, er, ec, L, COL_PREDRAWN, DOOR_WIDTH, outwardByTerrain(type, er, ec, isIndoor));
   }
-}
-
-function drawDoorArc(
-  g: Graphics,
-  type: string,
-  r: number,
-  c: number,
-  L: number,
-  color: Color,
-  lineW: number,
-) {
-  g.strokeColor = color;
-  g.lineWidth = lineW;
-
-  if (type === 'h') {
-    // Hinge at left endpoint of horizontal edge (Cocos coords).
-    const hingeX = edgeX(c);
-    const hingeY = edgeY(r);
-    // Door panel: 45° angled downward (swings into room below, -y in Cocos).
-    const panelAngle = -Math.PI / 4;
-    const openX = hingeX + L * Math.cos(panelAngle);
-    const openY = hingeY + L * Math.sin(panelAngle);
-    g.moveTo(hingeX, hingeY);
-    g.lineTo(openX, openY);
-    g.stroke();
-    g.arc(hingeX, hingeY, L, 0, panelAngle, true);
-    g.stroke();
-  } else {
-    // Vertical edge: hinge at top endpoint.
-    const hingeX = edgeX(c);
-    const hingeY = edgeY(r);
-    const closedAngle = -Math.PI / 2;   // downward
-    const openAngle   = -Math.PI / 4;   // down-right at 45°
-    const openX = hingeX + L * Math.cos(openAngle);
-    const openY = hingeY + L * Math.sin(openAngle);
-    g.moveTo(hingeX, hingeY);
-    g.lineTo(openX, openY);
-    g.stroke();
-    g.arc(hingeX, hingeY, L, closedAngle, openAngle, false);
-    g.stroke();
-  }
-}
-
-export function drawWindows(g: Graphics, windows: Record<string, true>) {
-  g.clear();
-  g.strokeColor = COL_WINDOW;
-  g.lineWidth = WIN_WIDTH;
-  for (const key of Object.keys(windows)) {
-    const [type, rs, cs] = key.split(':');
-    const r = parseInt(rs, 10), c = parseInt(cs, 10);
-    if (type === 'h') {
-      g.moveTo(edgeX(c),     edgeY(r));
-      g.lineTo(edgeX(c + 1), edgeY(r));
-    } else {
-      g.moveTo(edgeX(c), edgeY(r));
-      g.lineTo(edgeX(c), edgeY(r + 1));
-    }
-  }
-  g.stroke();
 }
 
 /**
@@ -232,8 +266,9 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
   if (!pd) return;
 
   const L = layout().cell;
+  const isIndoor = makeIsIndoor(scenario);
 
-  // Pre-drawn interior walls — same navy colour as player walls but thinner.
+  // Pre-drawn interior walls — same colour as player walls but thinner.
   if (pd.walls_interior?.length) {
     g.strokeColor = COL_WALL;
     g.lineWidth = WALL_WIDTH - 1;
@@ -244,30 +279,24 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
     g.stroke();
   }
 
-  // Pre-drawn doors — arc symbol in pre-drawn navy.
+  // Pre-drawn doors — swing symbol in pre-drawn colour.
   if (pd.doors?.length) {
-    drawPreDrawnDoors(g, pd.doors, L);
+    drawPreDrawnDoors(g, pd.doors, L, isIndoor);
   }
 
-  // Pre-drawn windows — same light-blue as player windows.
+  // Pre-drawn windows — blue swing symbol, opening outward.
   if (pd.windows?.length) {
-    g.strokeColor = COL_WINDOW;
-    g.lineWidth = WIN_WIDTH;
     for (const win of pd.windows) {
       const [r, c] = win.cell;
       const edge = win.edge;
       if (!edge) continue;
-      if (edge === 'N' || edge === 'S') {
-        const ey = edge === 'N' ? r : r + 1;
-        g.moveTo(edgeX(c),     edgeY(ey));
-        g.lineTo(edgeX(c + 1), edgeY(ey));
-      } else {
-        const ex = edge === 'W' ? c : c + 1;
-        g.moveTo(edgeX(ex), edgeY(r));
-        g.lineTo(edgeX(ex), edgeY(r + 1));
-      }
+      let type: string, er: number, ec: number;
+      if      (edge === 'N') { type = 'h'; er = r;     ec = c; }
+      else if (edge === 'S') { type = 'h'; er = r + 1; ec = c; }
+      else if (edge === 'W') { type = 'v'; er = r;     ec = c; }
+      else                     { type = 'v'; er = r;     ec = c + 1; }
+      drawSwingArc(g, type, er, ec, L, COL_WINDOW, WIN_WIDTH, outwardByTerrain(type, er, ec, isIndoor));
     }
-    g.stroke();
   }
 
   // Pre-drawn markers — small filled circle at cell centre.
