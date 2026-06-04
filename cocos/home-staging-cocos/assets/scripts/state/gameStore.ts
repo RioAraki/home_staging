@@ -2,7 +2,7 @@ import { createStore } from './zustandVanilla';
 import type { RoomSlot, Scenario } from '../core/types';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology } from '../core/walls';
-import { frontDoorOpensIntoRoom } from '../core/regions';
+import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
 import { audioManager } from '../platform/audio';
 import { loadAudioSettings } from '../platform/audioSettings';
 import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, type RoomPhase } from './roomFlow';
@@ -993,6 +993,27 @@ export const gameStore = createStore<GameState>((set, get) => {
       if (!exteriorSet.has(edgeKey)) {
         set({ lastError: 'Windows can only be placed on exterior walls.' });
         return;
+      }
+      // Only the active room: the window's indoor-side cell must be in the
+      // active room's region (so you can't add/remove windows on a sealed room).
+      const { placedPieces, walls, activeRoomSlot } = get();
+      const regionMap = computeRegions(scenario, walls);
+      const activeReg = activeRoomSlot
+        ? assignRoomsToRegions(placedPieces, regionMap).get(activeRoomSlot)
+        : undefined;
+      if (activeReg !== undefined) {
+        const [type, rStr, cStr] = edgeKey.split(':');
+        const er = parseInt(rStr, 10), ec = parseInt(cStr, 10);
+        const cells = type === 'h' ? [[er - 1, ec], [er, ec]] : [[er, ec - 1], [er, ec]];
+        let indoorReg: number | undefined;
+        for (const [cr, cc] of cells) {
+          const reg = regionMap.cellToRegion.get(`${cr},${cc}`);
+          if (reg !== undefined) { indoorReg = reg; break; }
+        }
+        if (indoorReg !== activeReg) {
+          set({ lastError: '只能在当前房间开窗' });
+          return;
+        }
       }
       const isRemoving = !!windows[edgeKey];
       mutate(() => {
