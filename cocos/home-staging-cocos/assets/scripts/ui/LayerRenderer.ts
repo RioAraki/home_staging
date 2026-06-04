@@ -15,7 +15,7 @@ const COL_OBSTACLE = new Color(100, 100, 100, 255);
 
 const COL_INDOOR_BORDER = new Color(255, 255, 255, 242);  // thick white outline
 const COL_GRIDLINE = new Color(255, 255, 255, 46);   // faint white pencil
-const COL_WALL     = new Color(30,  40,  60,  255);  // navy — architectural pen
+const COL_WALL     = new Color(255, 255, 255, 235);  // white architectural line
 const COL_DOOR     = new Color(200, 140,  30, 255);  // warm golden — matches accent
 const COL_WINDOW   = new Color(168, 216, 238, 255);  // #a8d8ee light blue
 const COL_PREDRAWN = new Color(50,  60,  90,  200);  // slightly lighter navy

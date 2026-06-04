@@ -17,6 +17,10 @@ export class Toolbar extends Component {
   private unsub?: () => void;
 
   start() {
+    // Top toolbar (phase label + wall/door/window/demolish/complete/undo
+    // buttons) hidden for now — the construction-phase UI will be redesigned
+    // like the furniture phase.
+    this.node.active = false;
     if (this.phaseBtn) {
       this.phaseBtn.node.on(Button.EventType.CLICK, () => {
         const s = gameStore.getState();
