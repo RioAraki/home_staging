@@ -129,7 +129,7 @@ export class FloorPlan extends Component {
     const color = sealing && !isActiveRoomEnclosed(s)
       ? new Color(230, 80, 70, 235)
       : new Color(255, 255, 255, 235);
-    drawWalls(g, s.walls, color, s.doors);
+    drawWalls(g, s.walls, color, s.doors, s.lockedWalls);
   }
   private redrawDoors() {
     if (!this.doorsLayer) return;

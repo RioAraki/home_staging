@@ -58,6 +58,9 @@ interface Undoable {
   placedPieces: PlacedPiece[];
   selectedOption: SelectedOption | null;
   walls: Record<string, true>;
+  /** Edge keys of walls that belong to already-sealed rooms. They render white,
+   *  can't be removed, and can't take the active room's door. */
+  lockedWalls: Set<string>;
   doors: Record<string, RoomSlot>;
   /** Exterior-wall edges marked as windows. Purely decorative unless a bonus
    *  condition references them (e.g. line-of-sight). */
@@ -142,6 +145,7 @@ const blank: Undoable = {
   placedPieces: [],
   selectedOption: null,
   walls: {},
+  lockedWalls: new Set<string>(),
   doors: {},
   windows: {},
   wallPhase: 'walls',
@@ -161,6 +165,7 @@ function snapshot(s: Undoable): Undoable {
     placedPieces: [...s.placedPieces],
     selectedOption: s.selectedOption ? { ...s.selectedOption } : null,
     walls: { ...s.walls },
+    lockedWalls: new Set(s.lockedWalls),
     doors: { ...s.doors },
     windows: { ...s.windows },
     wallPhase: s.wallPhase,
@@ -612,10 +617,11 @@ export const gameStore = createStore<GameState>((set, get) => {
 
     toggleWall: (edgeKey) => {
       if (constructionLocked()) return;
-      const { walls, doors, wallPhase } = get();
+      const { walls, doors, wallPhase, lockedWalls } = get();
       if (wallPhase !== 'walls') return;
       if (doors[edgeKey]) return;
       const isRemoving = !!walls[edgeKey];
+      if (isRemoving && lockedWalls.has(edgeKey)) return;  // sealed room's wall — keep it
       mutate(() => {
         const next = { ...walls };
         if (next[edgeKey]) delete next[edgeKey];
@@ -627,9 +633,14 @@ export const gameStore = createStore<GameState>((set, get) => {
 
     setDoor: (edgeKey) => {
       if (constructionLocked()) return;
-      const { walls, doors, wallPhase, activeRoomSlot, placedPieces } = get();
+      const { walls, doors, wallPhase, activeRoomSlot, placedPieces, lockedWalls } = get();
       if (wallPhase !== 'door' || !activeRoomSlot) return;
       if (!walls[edgeKey]) return;
+      const isToggleOffEarly = doors[edgeKey] === activeRoomSlot;
+      if (!isToggleOffEarly && lockedWalls.has(edgeKey)) {
+        set({ lastError: '门只能开在当前房间的墙上' });
+        return;
+      }
       // Both cells flanking the door must be walkable — a door butted up
       // against a piece's shape is structurally blocked (no one can walk
       // through). Toggling OFF the current door is always allowed.
@@ -1037,11 +1048,15 @@ export const gameStore = createStore<GameState>((set, get) => {
         // without a separate room picker.
         const allSealed = !!scenario && scenario.rooms.every((r) => nextCompleted.has(r.slot));
         const nextRoom = scenario?.rooms.find((r) => !nextCompleted.has(r.slot)) ?? null;
+        // Lock this room's walls — they're done; the next room can't remove
+        // them, recolour them, or put its door on them.
+        const lockedWalls = new Set([...get().lockedWalls, ...Object.keys(get().walls)]);
         set({
           completedRoomSlots: nextCompleted,
           activeRoomSlot: allSealed ? null : (nextRoom?.slot ?? null),
           wallPhase: 'walls',
           windowMode: false,
+          lockedWalls,
           gameFinished: allSealed ? true : get().gameFinished,
           lastError: null,
         });

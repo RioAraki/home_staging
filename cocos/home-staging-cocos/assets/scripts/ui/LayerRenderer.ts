@@ -119,12 +119,10 @@ function fillColorFor(terrain?: string): Color {
 export function drawWalls(
   g: Graphics, walls: Record<string, true>,
   color: Color = COL_WALL, doors: Record<string, RoomSlot> = {},
+  lockedWalls: Set<string> = new Set(),
 ) {
   g.clear();
-  g.strokeColor = color;
-  g.lineWidth = WALL_WIDTH;
-  for (const key of Object.keys(walls)) {
-    if (doors[key]) continue;   // a door is an opening — the wall is gone there
+  const seg = (key: string) => {
     const [type, rs, cs] = key.split(':');
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
     if (type === 'h') {
@@ -134,7 +132,18 @@ export function drawWalls(
       g.moveTo(edgeX(c), edgeY(r));
       g.lineTo(edgeX(c), edgeY(r + 1));
     }
-  }
+  };
+  // A door is an opening — the wall is gone there.
+  const visible = Object.keys(walls).filter((k) => !doors[k]);
+  // Locked walls (sealed rooms) are always white.
+  g.strokeColor = COL_WALL;
+  g.lineWidth = WALL_WIDTH;
+  for (const key of visible) if (lockedWalls.has(key)) seg(key);
+  g.stroke();
+  // Active walls take the phase/enclosure colour.
+  g.strokeColor = color;
+  g.lineWidth = WALL_WIDTH;
+  for (const key of visible) if (!lockedWalls.has(key)) seg(key);
   g.stroke();
 }
 
