@@ -2,7 +2,9 @@ import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
   Graphics, Color, Label, EventTouch, director, input, Input,
 } from 'cc';
-import { gameStore, currentCard, getRoomPhase, type GameState } from '../state/gameStore';
+import {
+  gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed, type GameState,
+} from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { InputHandler } from './InputHandler';
 const { ccclass, property } = _decorator;
@@ -68,7 +70,8 @@ export class RoomPanel extends Component {
           s.skippedCardKeys !== prev.skippedCardKeys ||
           s.selectedOption  !== prev.selectedOption  ||
           s.wallPhase       !== prev.wallPhase       ||
-          s.windowMode      !== prev.windowMode) {
+          s.windowMode      !== prev.windowMode      ||
+          s.walls           !== prev.walls) {
         this.rebuild();
       }
     });
@@ -242,7 +245,9 @@ export class RoomPanel extends Component {
   private buildConstructionControls(s: GameState) {
     const GREEN = new Color(80, 160, 90, 255);
     if (s.wallPhase === 'walls') {
-      this.makeButton(0, 0, '结束砌墙', GREEN, true,
+      // Only allow finishing walls once the room is actually sealed.
+      const enclosed = isActiveRoomEnclosed(s);
+      this.makeButton(0, 0, '结束砌墙', GREEN, enclosed,
         () => gameStore.getState().setWallPhase('door'), 200);
       return;
     }

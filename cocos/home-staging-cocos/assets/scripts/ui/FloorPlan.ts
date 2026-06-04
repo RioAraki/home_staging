@@ -1,5 +1,5 @@
 import { _decorator, Component, Graphics, Node, UITransform, view, Label, Color } from 'cc';
-import { gameStore } from '../state/gameStore';
+import { gameStore, getRoomPhase, isActiveRoomEnclosed } from '../state/gameStore';
 import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn } from './LayerRenderer';
 import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
@@ -21,10 +21,14 @@ export class FloorPlan extends Component {
     this.renderAll();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.scenario !== prev.scenario) this.renderAll();
-      if (s.placedPieces !== prev.placedPieces) this.rebuildPlacedLayer();
+      if (s.placedPieces !== prev.placedPieces) { this.rebuildPlacedLayer(); this.redrawWalls(); }
       if (s.walls !== prev.walls) this.redrawWalls();
       if (s.doors !== prev.doors) this.redrawDoors();
       if (s.windows !== prev.windows) this.redrawWindows();
+      // Wall colour depends on enclosure + phase + active room.
+      if (s.wallPhase !== prev.wallPhase || s.activeRoomSlot !== prev.activeRoomSlot) {
+        this.redrawWalls();
+      }
     });
   }
 
@@ -117,7 +121,15 @@ export class FloorPlan extends Component {
   private redrawWalls() {
     if (!this.wallsLayer) return;
     const g = this.wallsLayer.getComponent(Graphics);
-    if (g) drawWalls(g, gameStore.getState().walls);
+    if (!g) return;
+    const s = gameStore.getState();
+    // Red while the active room is still being walled and isn't sealed yet;
+    // white once it's enclosed (or in any other phase).
+    const sealing = getRoomPhase(s) === 'construction' && s.wallPhase === 'walls';
+    const color = sealing && !isActiveRoomEnclosed(s)
+      ? new Color(230, 80, 70, 235)
+      : new Color(255, 255, 255, 235);
+    drawWalls(g, s.walls, color);
   }
   private redrawDoors() {
     if (!this.doorsLayer) return;

@@ -2,7 +2,7 @@ import { createStore } from './zustandVanilla';
 import type { RoomSlot, Scenario } from '../core/types';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../core/walls';
-import { frontDoorOpensIntoRoom } from '../core/regions';
+import { frontDoorOpensIntoRoom, isRoomEnclosed } from '../core/regions';
 import { audioManager } from '../platform/audio';
 import { loadAudioSettings } from '../platform/audioSettings';
 import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, type RoomPhase } from './roomFlow';
@@ -207,6 +207,12 @@ export function getRoomPhase(s: GameState): RoomPhase {
   const room = activeRoom(s);
   if (!room) return 'furniture';
   return phaseOf(room.furniture_numbers.length, currentCardIndexOf(s));
+}
+
+/** Is the active room sealed by walls (no open edge to the outside)? */
+export function isActiveRoomEnclosed(s: GameState): boolean {
+  if (!s.scenario || !s.activeRoomSlot) return false;
+  return isRoomEnclosed(s.scenario, s.placedPieces, s.walls, s.activeRoomSlot);
 }
 
 /** The card to present right now, or null in construction / no active room. */

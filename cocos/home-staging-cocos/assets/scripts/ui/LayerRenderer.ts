@@ -114,9 +114,9 @@ function fillColorFor(terrain?: string): Color {
   }
 }
 
-export function drawWalls(g: Graphics, walls: Record<string, true>) {
+export function drawWalls(g: Graphics, walls: Record<string, true>, color: Color = COL_WALL) {
   g.clear();
-  g.strokeColor = COL_WALL;
+  g.strokeColor = color;
   g.lineWidth = WALL_WIDTH;
   for (const key of Object.keys(walls)) {
     const [type, rs, cs] = key.split(':');
