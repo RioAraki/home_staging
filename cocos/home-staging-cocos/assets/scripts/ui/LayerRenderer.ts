@@ -24,7 +24,7 @@ const COL_PREDRAWN = new Color(50,  60,  90,  200);  // slightly lighter navy
 
 const WALL_WIDTH   = 5;
 const DOOR_WIDTH   = 3;
-const WIN_WIDTH    = 3;
+const WIN_WIDTH    = 5;
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function drawGridBg(g: Graphics, scenario: Scenario) {
@@ -188,21 +188,23 @@ function drawDoorSymbol(g: Graphics, type: string, r: number, c: number, L: numb
 }
 
 /** Double-leaf (casement) window: two leaves hinged at the edge's endpoints,
- *  each opening outward and meeting in the middle. */
+ *  each swinging exactly 45° outward (so the arc never wraps the long way). */
 function drawWindowSymbol(g: Graphics, type: string, r: number, c: number, L: number, color: Color, outward: Outward) {
   const half = L / 2;
+  const Q = Math.PI / 4;
+  const arcW = 2;
   if (type === 'h') {
     const y = edgeY(r), x1 = edgeX(c), x2 = edgeX(c + 1);
-    const a = outward === 'up' ? Math.PI / 4 : -Math.PI / 4;       // from left endpoint
-    const b = outward === 'up' ? 3 * Math.PI / 4 : -3 * Math.PI / 4; // from right endpoint
-    drawSwingFromHinge(g, x1, y, half, 0, a, color, WIN_WIDTH, WIN_WIDTH - 1);
-    drawSwingFromHinge(g, x2, y, half, Math.PI, b, color, WIN_WIDTH, WIN_WIDTH - 1);
+    const s = outward === 'up' ? 1 : -1;              // swing direction in +y
+    // left leaf closed along +x (0); right leaf closed along -x (π).
+    drawSwingFromHinge(g, x1, y, half, 0, s * Q, color, WIN_WIDTH, arcW);
+    drawSwingFromHinge(g, x2, y, half, Math.PI, Math.PI - s * Q, color, WIN_WIDTH, arcW);
   } else {
     const x = edgeX(c), y1 = edgeY(r), y2 = edgeY(r + 1);
-    const a = outward === 'right' ? -Math.PI / 4 : -3 * Math.PI / 4; // from top endpoint
-    const b = outward === 'right' ? Math.PI / 4 : 3 * Math.PI / 4;   // from bottom endpoint
-    drawSwingFromHinge(g, x, y1, half, -Math.PI / 2, a, color, WIN_WIDTH, WIN_WIDTH - 1);
-    drawSwingFromHinge(g, x, y2, half, Math.PI / 2, b, color, WIN_WIDTH, WIN_WIDTH - 1);
+    const s = outward === 'right' ? 1 : -1;           // swing direction in +x
+    // top leaf closed along -y (-π/2); bottom leaf closed along +y (π/2).
+    drawSwingFromHinge(g, x, y1, half, -Math.PI / 2, -Math.PI / 2 + s * Q, color, WIN_WIDTH, arcW);
+    drawSwingFromHinge(g, x, y2, half, Math.PI / 2, Math.PI / 2 - s * Q, color, WIN_WIDTH, arcW);
   }
 }
 
