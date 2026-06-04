@@ -116,11 +116,15 @@ function fillColorFor(terrain?: string): Color {
   }
 }
 
-export function drawWalls(g: Graphics, walls: Record<string, true>, color: Color = COL_WALL) {
+export function drawWalls(
+  g: Graphics, walls: Record<string, true>,
+  color: Color = COL_WALL, doors: Record<string, RoomSlot> = {},
+) {
   g.clear();
   g.strokeColor = color;
   g.lineWidth = WALL_WIDTH;
   for (const key of Object.keys(walls)) {
+    if (doors[key]) continue;   // a door is an opening — the wall is gone there
     const [type, rs, cs] = key.split(':');
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
     if (type === 'h') {
@@ -146,38 +150,60 @@ function makeIsIndoor(scenario: Scenario): (r: number, c: number) => boolean {
 }
 
 /**
- * Architectural door/window symbol: a solid 45° panel + a DASHED quarter-arc
- * showing the swing, drawn opening OUTWARD (toward `outward`). Hinge is the
- * top-left endpoint of the edge (same convention as walls).
+ * One swing leaf hinged at (hx,hy): a solid panel of length `L` at `open`, plus
+ * a DASHED arc sweeping from `closed` to `open`.
  */
-function drawSwingArc(
-  g: Graphics, type: string, r: number, c: number, L: number,
-  color: Color, lineW: number, outward: Outward,
+function drawSwingFromHinge(
+  g: Graphics, hx: number, hy: number, L: number,
+  closed: number, open: number, color: Color, panelW: number, arcW: number,
 ) {
-  const hingeX = edgeX(c), hingeY = edgeY(r);
-  let closed: number, open: number;
-  if (type === 'h') {
-    closed = 0;                                          // along the edge (→)
-    open = outward === 'up' ? Math.PI / 4 : -Math.PI / 4;
-  } else {
-    closed = -Math.PI / 2;                               // along the edge (↓)
-    open = outward === 'right' ? -Math.PI / 4 : -3 * Math.PI / 4;
-  }
   g.strokeColor = color;
-  g.lineWidth = lineW;
-  // Solid panel.
-  g.moveTo(hingeX, hingeY);
-  g.lineTo(hingeX + L * Math.cos(open), hingeY + L * Math.sin(open));
+  g.lineWidth = panelW;
+  g.moveTo(hx, hy);
+  g.lineTo(hx + L * Math.cos(open), hy + L * Math.sin(open));
   g.stroke();
-  // Dashed swing arc (segments with gaps).
-  const steps = 14;
+  g.lineWidth = arcW;
+  const steps = 10;
   for (let i = 0; i < steps; i += 2) {
     const t0 = closed + (open - closed) * (i / steps);
     const t1 = closed + (open - closed) * ((i + 1) / steps);
-    g.moveTo(hingeX + L * Math.cos(t0), hingeY + L * Math.sin(t0));
-    g.lineTo(hingeX + L * Math.cos(t1), hingeY + L * Math.sin(t1));
+    g.moveTo(hx + L * Math.cos(t0), hy + L * Math.sin(t0));
+    g.lineTo(hx + L * Math.cos(t1), hy + L * Math.sin(t1));
   }
   g.stroke();
+}
+
+/** Single-leaf door, opening outward. Panel is wall-thick (the door fills the
+ *  wall opening), arc thinner. */
+function drawDoorSymbol(g: Graphics, type: string, r: number, c: number, L: number, color: Color, outward: Outward) {
+  if (type === 'h') {
+    const closed = 0;
+    const open = outward === 'up' ? Math.PI / 4 : -Math.PI / 4;
+    drawSwingFromHinge(g, edgeX(c), edgeY(r), L, closed, open, color, WALL_WIDTH, DOOR_WIDTH - 1);
+  } else {
+    const closed = -Math.PI / 2;
+    const open = outward === 'right' ? -Math.PI / 4 : -3 * Math.PI / 4;
+    drawSwingFromHinge(g, edgeX(c), edgeY(r), L, closed, open, color, WALL_WIDTH, DOOR_WIDTH - 1);
+  }
+}
+
+/** Double-leaf (casement) window: two leaves hinged at the edge's endpoints,
+ *  each opening outward and meeting in the middle. */
+function drawWindowSymbol(g: Graphics, type: string, r: number, c: number, L: number, color: Color, outward: Outward) {
+  const half = L / 2;
+  if (type === 'h') {
+    const y = edgeY(r), x1 = edgeX(c), x2 = edgeX(c + 1);
+    const a = outward === 'up' ? Math.PI / 4 : -Math.PI / 4;       // from left endpoint
+    const b = outward === 'up' ? 3 * Math.PI / 4 : -3 * Math.PI / 4; // from right endpoint
+    drawSwingFromHinge(g, x1, y, half, 0, a, color, WIN_WIDTH, WIN_WIDTH - 1);
+    drawSwingFromHinge(g, x2, y, half, Math.PI, b, color, WIN_WIDTH, WIN_WIDTH - 1);
+  } else {
+    const x = edgeX(c), y1 = edgeY(r), y2 = edgeY(r + 1);
+    const a = outward === 'right' ? -Math.PI / 4 : -3 * Math.PI / 4; // from top endpoint
+    const b = outward === 'right' ? Math.PI / 4 : 3 * Math.PI / 4;   // from bottom endpoint
+    drawSwingFromHinge(g, x, y1, half, -Math.PI / 2, a, color, WIN_WIDTH, WIN_WIDTH - 1);
+    drawSwingFromHinge(g, x, y2, half, Math.PI / 2, b, color, WIN_WIDTH, WIN_WIDTH - 1);
+  }
 }
 
 /** Swing toward the non-indoor side of an edge (used for windows / pre-drawn). */
@@ -224,11 +250,11 @@ export function drawDoors(
     const [type, rs, cs] = key.split(':');
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
     const out = outwardByRegion(type, r, c, roomToRegion.get(owner), regionMap.cellToRegion);
-    drawSwingArc(g, type, r, c, L, COL_DOOR, DOOR_WIDTH, out);
+    drawDoorSymbol(g, type, r, c, L, COL_DOOR, out);
   }
 }
 
-/** Player windows — blue, opening outward (toward the outdoor side). */
+/** Player windows — blue, double-leaf, opening outward (toward the outdoor side). */
 export function drawWindows(g: Graphics, windows: Record<string, true>, scenario: Scenario) {
   g.clear();
   const L = layout().cell;
@@ -236,7 +262,7 @@ export function drawWindows(g: Graphics, windows: Record<string, true>, scenario
   for (const key of Object.keys(windows)) {
     const [type, rs, cs] = key.split(':');
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
-    drawSwingArc(g, type, r, c, L, COL_WINDOW, WIN_WIDTH, outwardByTerrain(type, r, c, isIndoor));
+    drawWindowSymbol(g, type, r, c, L, COL_WINDOW, outwardByTerrain(type, r, c, isIndoor));
   }
 }
 
@@ -251,7 +277,7 @@ function drawPreDrawnDoors(
     else if (d.edge === 'S') { type = 'h'; er = r + 1; ec = c; }
     else if (d.edge === 'W') { type = 'v'; er = r;     ec = c; }
     else                       { type = 'v'; er = r;     ec = c + 1; }
-    drawSwingArc(g, type, er, ec, L, COL_PREDRAWN, DOOR_WIDTH, outwardByTerrain(type, er, ec, isIndoor));
+    drawDoorSymbol(g, type, er, ec, L, COL_PREDRAWN, outwardByTerrain(type, er, ec, isIndoor));
   }
 }
 
@@ -295,7 +321,7 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
       else if (edge === 'S') { type = 'h'; er = r + 1; ec = c; }
       else if (edge === 'W') { type = 'v'; er = r;     ec = c; }
       else                     { type = 'v'; er = r;     ec = c + 1; }
-      drawSwingArc(g, type, er, ec, L, COL_WINDOW, WIN_WIDTH, outwardByTerrain(type, er, ec, isIndoor));
+      drawWindowSymbol(g, type, er, ec, L, COL_WINDOW, outwardByTerrain(type, er, ec, isIndoor));
     }
   }
 

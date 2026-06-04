@@ -23,7 +23,7 @@ export class FloorPlan extends Component {
       if (s.scenario !== prev.scenario) this.renderAll();
       if (s.placedPieces !== prev.placedPieces) { this.rebuildPlacedLayer(); this.redrawWalls(); this.redrawDoors(); }
       if (s.walls !== prev.walls) { this.redrawWalls(); this.redrawDoors(); }
-      if (s.doors !== prev.doors) this.redrawDoors();
+      if (s.doors !== prev.doors) { this.redrawDoors(); this.redrawWalls(); }
       if (s.windows !== prev.windows) this.redrawWindows();
       // Wall colour depends on enclosure + phase + active room.
       if (s.wallPhase !== prev.wallPhase || s.activeRoomSlot !== prev.activeRoomSlot) {
@@ -129,7 +129,7 @@ export class FloorPlan extends Component {
     const color = sealing && !isActiveRoomEnclosed(s)
       ? new Color(230, 80, 70, 235)
       : new Color(255, 255, 255, 235);
-    drawWalls(g, s.walls, color);
+    drawWalls(g, s.walls, color, s.doors);
   }
   private redrawDoors() {
     if (!this.doorsLayer) return;
