@@ -315,41 +315,6 @@ export function isRoomAccessible(
   return result.outsideAccessible.has(reg);
 }
 
-/**
- * True iff the room's furniture region is fully sealed by walls — no cell of
- * that region has an un-walled edge to an outdoor / out-of-bounds cell.
- * (Indoor↔indoor region boundaries are already walls by the region definition,
- * so the only way a region can "leak" is to the outside.) A room with no placed
- * furniture is treated as trivially enclosed.
- */
-export function isRoomEnclosed(
-  scenario: Scenario,
-  placedPieces: PlacedPiece[],
-  walls: Record<string, true>,
-  slot: RoomSlot,
-): boolean {
-  const regionMap = computeRegions(scenario, walls);
-  const roomToRegion = assignRoomsToRegions(placedPieces, regionMap);
-  const reg = roomToRegion.get(slot);
-  if (reg === undefined) return true;
-  const indoor = new Set(indoorCells(scenario));
-  for (const k of regionMap.cellsByRegion.get(reg) ?? []) {
-    const [rs, cs] = k.split(',');
-    const r = parseInt(rs, 10), c = parseInt(cs, 10);
-    const nbrs: Array<[number, number, string]> = [
-      [r - 1, c, `h:${r}:${c}`],
-      [r + 1, c, `h:${r + 1}:${c}`],
-      [r, c - 1, `v:${r}:${c}`],
-      [r, c + 1, `v:${r}:${c + 1}`],
-    ];
-    for (const [nr, nc, wallKey] of nbrs) {
-      if (indoor.has(`${nr},${nc}`)) continue;   // indoor neighbour → already a region wall
-      if (!walls[wallKey]) return false;          // open edge to the outside → not sealed
-    }
-  }
-  return true;
-}
-
 /** True iff the front door's interior side falls in the same wall-bounded
  *  region as one of the named room's placed pieces. When this holds, the
  *  room doubles as the entrance lobby (Castle Café's dining area is the

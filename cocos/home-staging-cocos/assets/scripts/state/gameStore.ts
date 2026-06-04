@@ -1,8 +1,8 @@
 import { createStore } from './zustandVanilla';
 import type { RoomSlot, Scenario } from '../core/types';
 import { cardByNumberVariant } from '../core/dataLoader';
-import { exteriorWallEdges as exteriorWallEdgesFromScenario } from '../core/walls';
-import { frontDoorOpensIntoRoom, isRoomEnclosed } from '../core/regions';
+import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology } from '../core/walls';
+import { frontDoorOpensIntoRoom } from '../core/regions';
 import { audioManager } from '../platform/audio';
 import { loadAudioSettings } from '../platform/audioSettings';
 import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, type RoomPhase } from './roomFlow';
@@ -209,10 +209,15 @@ export function getRoomPhase(s: GameState): RoomPhase {
   return phaseOf(room.furniture_numbers.length, currentCardIndexOf(s));
 }
 
-/** Is the active room sealed by walls (no open edge to the outside)? */
+/**
+ * Are the player's walls a closed boundary? Uses the web's topology rule: every
+ * player wall must be anchored at BOTH endpoints to another wall OR the
+ * building's exterior outline (which counts implicitly). This catches gaps and
+ * dangling walls; the exterior boundary needs no explicit player wall.
+ */
 export function isActiveRoomEnclosed(s: GameState): boolean {
   if (!s.scenario || !s.activeRoomSlot) return false;
-  return isRoomEnclosed(s.scenario, s.placedPieces, s.walls, s.activeRoomSlot);
+  return validateWallTopology(s.scenario, s.walls).ok;
 }
 
 /** The card to present right now, or null in construction / no active room. */
