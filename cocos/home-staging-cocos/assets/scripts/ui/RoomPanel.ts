@@ -2,7 +2,7 @@ import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
   Graphics, Color, Label, EventTouch, director, input, Input,
 } from 'cc';
-import { gameStore, currentCard } from '../state/gameStore';
+import { gameStore, currentCard, getRoomPhase, type GameState } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { InputHandler } from './InputHandler';
 const { ccclass, property } = _decorator;
@@ -66,7 +66,9 @@ export class RoomPanel extends Component {
           s.activeRoomSlot  !== prev.activeRoomSlot  ||
           s.placedCardKeys  !== prev.placedCardKeys  ||
           s.skippedCardKeys !== prev.skippedCardKeys ||
-          s.selectedOption  !== prev.selectedOption) {
+          s.selectedOption  !== prev.selectedOption  ||
+          s.wallPhase       !== prev.wallPhase       ||
+          s.windowMode      !== prev.windowMode) {
         this.rebuild();
       }
     });
@@ -94,7 +96,11 @@ export class RoomPanel extends Component {
     const s = gameStore.getState();
     const card = currentCard(s);
     if (!card) {
-      this.showHint(s.activeRoomSlot ? '家具摆完，去造墙 / 门' : '请选择一个房间');
+      if (s.activeRoomSlot && getRoomPhase(s) === 'construction') {
+        this.buildConstructionControls(s);
+      } else {
+        this.showHint('请选择一个房间');
+      }
       return;
     }
 
@@ -208,15 +214,16 @@ export class RoomPanel extends Component {
 
   private makeButton(
     x: number, y: number, label: string, fill: Color, enabled: boolean, onTap: () => void,
+    w = 110,
   ) {
     const node = new Node(label);
     this.listContent.addChild(node);
     node.setPosition(x, y, 0);
-    node.addComponent(UITransform).setContentSize(110, 64);
+    node.addComponent(UITransform).setContentSize(w, 64);
 
     const g = node.addComponent(Graphics);
     g.fillColor = enabled ? fill : new Color(170, 170, 170, 255);
-    g.roundRect(-55, -32, 110, 64, 10);
+    g.roundRect(-w / 2, -32, w, 64, 10);
     g.fill();
 
     const lblNode = new Node('label');
@@ -227,6 +234,30 @@ export class RoomPanel extends Component {
     lbl.color = new Color(255, 255, 255, 255);
 
     node.on(Node.EventType.TOUCH_END, () => { if (enabled) onTap(); });
+  }
+
+  /** Bottom controls during the construction phase (replaces the chooser).
+   *  Step 1 (walls): draw walls on the plan, then 结束砌墙. Step 2 (door/window):
+   *  pick 门/窗 to choose what an edge-tap places, then 完成房间. */
+  private buildConstructionControls(s: GameState) {
+    const GREEN = new Color(80, 160, 90, 255);
+    if (s.wallPhase === 'walls') {
+      this.makeButton(0, 0, '结束砌墙', GREEN, true,
+        () => gameStore.getState().setWallPhase('door'), 200);
+      return;
+    }
+    // Door/window step.
+    const isWindow = s.windowMode;
+    const HL = new Color(70, 120, 200, 255);
+    const DIM = new Color(110, 120, 135, 255);
+    this.makeButton(-220, 0, '门', isWindow ? DIM : HL, true, () => {
+      const st = gameStore.getState(); if (st.windowMode) st.toggleWindowMode();
+    });
+    this.makeButton(-90, 0, '窗', isWindow ? HL : DIM, true, () => {
+      const st = gameStore.getState(); if (!st.windowMode) st.toggleWindowMode();
+    });
+    this.makeButton(110, 0, '完成房间', GREEN, true,
+      () => gameStore.getState().completeRoom(), 180);
   }
 
   private showHint(text: string) {

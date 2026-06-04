@@ -1012,13 +1012,16 @@ export const gameStore = createStore<GameState>((set, get) => {
       mutate(() => {
         const nextCompleted = new Set(get().completedRoomSlots);
         nextCompleted.add(activeRoomSlot);
-        // Auto-settle: once every room in the scenario is sealed the game is
-        // over — there is no separate "finish" button anymore.
+        // Auto-settle once every room is sealed; otherwise auto-advance to the
+        // next un-sealed room so the furniture→construction loop continues
+        // without a separate room picker.
         const allSealed = !!scenario && scenario.rooms.every((r) => nextCompleted.has(r.slot));
+        const nextRoom = scenario?.rooms.find((r) => !nextCompleted.has(r.slot)) ?? null;
         set({
           completedRoomSlots: nextCompleted,
-          activeRoomSlot: null,
+          activeRoomSlot: allSealed ? null : (nextRoom?.slot ?? null),
           wallPhase: 'walls',
+          windowMode: false,
           gameFinished: allSealed ? true : get().gameFinished,
           lastError: null,
         });
