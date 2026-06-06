@@ -6071,6 +6071,44 @@
       ]
     },
     {
+      "number": 99,
+      "variant": "A",
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "浴缸",
+          "name_en": "浴缸",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ]
+    },
+    {
       "number": 98,
       "variant": "A",
       "image": "",
@@ -6113,21 +6151,14 @@
           ],
           "wall_edges": [],
           "printed_markers": 0
-        }
-      ]
-    },
-    {
-      "number": 99,
-      "variant": "A",
-      "image": "",
-      "options": [
+        },
         {
-          "option_index": 1,
-          "name_zh": "浴缸",
-          "name_en": "浴缸",
+          "option_index": 2,
+          "name_zh": "一体直线厨房",
+          "name_en": "一体直线厨房",
           "bbox": [
             2,
-            2
+            3
           ],
           "shape": [
             [
@@ -6137,6 +6168,10 @@
             [
               0,
               1
+            ],
+            [
+              0,
+              2
             ]
           ],
           "open_spaces": [
@@ -6147,6 +6182,10 @@
             [
               1,
               1
+            ],
+            [
+              1,
+              2
             ]
           ],
           "wall_edges": [],

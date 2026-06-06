@@ -70,29 +70,33 @@ def render_furniture(furn: dict) -> Image.Image:
     return canvas
 
 
-def make_furniture_entry(furn: dict, number: int) -> dict:
-    """Build a FurnitureCard JSON entry from a collection furniture object."""
-    rows, cols = furn['bbox']
+def make_option(furn: dict, option_index: int) -> dict:
+    """Build one FurnitureOption from a collection furniture object."""
+    rows, cols  = furn['bbox']
     tile_cells  = {(t['row'], t['col']) for t in furn.get('tiles', [])}
-    open_cells  = {tuple(c) for c in furn.get('open_cells', [])}  # [row,col]
-    # shape = cells that have a tile (may overlap with open_cells for rugs etc.)
-    shape       = sorted(tile_cells)
-    open_spaces = sorted(open_cells)
+    open_cells  = {tuple(c) for c in furn.get('open_cells', [])}
+    return {
+        'option_index':    option_index,
+        'name_zh':         furn['name'],
+        'name_en':         furn['name'],
+        'bbox':            [rows, cols],
+        'shape':           sorted(tile_cells),
+        'open_spaces':     sorted(open_cells),
+        'wall_edges':      [],
+        'printed_markers': 0,
+    }
 
+
+def make_card_entry(opt1_furn: dict, opt2_furn: dict, number: int) -> dict:
+    """One card with two options — the game's 二选一 pattern."""
     return {
         'number':  number,
         'variant': 'A',
         'image':   '',
-        'options': [{
-            'option_index':   1,
-            'name_zh':        furn['name'],
-            'name_en':        furn['name'],
-            'bbox':           [rows, cols],
-            'shape':          shape,
-            'open_spaces':    open_spaces,
-            'wall_edges':     [],
-            'printed_markers': 0,
-        }],
+        'options': [
+            make_option(opt1_furn, 1),
+            make_option(opt2_furn, 2),
+        ],
     }
 
 
@@ -107,8 +111,8 @@ def revert():
             bak.unlink()
             print(f'  restored {p.name}')
             restored += 1
-    for did in DEMO_IDS:
-        png = VEC_DIR / f'{did:02d}_A_opt1.png'
+    for opt in [1, 2]:
+        png = VEC_DIR / f'98_A_opt{opt}.png'
         if png.exists():
             png.unlink()
             print(f'  removed {png.name}')
@@ -142,29 +146,28 @@ def main():
     else:
         chosen = random.sample(collection, min(2, len(collection)))
 
-    print(f'Demo furniture:')
+    print(f'Demo furniture (card #98, opt1 vs opt2):')
     for i, f in enumerate(chosen):
-        print(f'  [{DEMO_IDS[i]:02d}] {f["name"]}  bbox={f["bbox"]}')
+        print(f'  opt{i+1}: {f["name"]}  bbox={f["bbox"]}')
 
-    # render PNGs
+    # render PNGs — both options of card 98
+    CARD_NUM = 98
     VEC_DIR.mkdir(parents=True, exist_ok=True)
-    for furn, did in zip(chosen, DEMO_IDS):
+    for i, furn in enumerate(chosen):
         img = render_furniture(furn)
-        out = VEC_DIR / f'{did:02d}_A_opt1.png'
+        out = VEC_DIR / f'{CARD_NUM:02d}_A_opt{i+1}.png'
         img.save(out)
         print(f'  rendered → {out.name}  ({img.width}×{img.height})')
 
-    # patch furniture_data.json
+    # patch furniture_data.json — one card with two options
     backup(FURN_JSON)
     fdata = load_json(FURN_JSON)
-    # remove any existing demo entries then add fresh
-    fdata['cards'] = [c for c in fdata['cards'] if c['number'] not in DEMO_IDS]
-    for furn, did in zip(chosen, DEMO_IDS):
-        fdata['cards'].append(make_furniture_entry(furn, did))
+    fdata['cards'] = [c for c in fdata['cards'] if c['number'] != CARD_NUM]
+    fdata['cards'].append(make_card_entry(chosen[0], chosen[1], CARD_NUM))
     save_json(FURN_JSON, fdata)
-    print(f'  patched furniture_data.json (+{len(chosen)} entries)')
+    print(f'  patched furniture_data.json (card #{CARD_NUM} with 2 options)')
 
-    # patch maps_data.json — first room of training scenario
+    # patch maps_data.json — first room of training scenario uses only card 98
     backup(MAPS_JSON)
     mdata = load_json(MAPS_JSON)
     training = next((s for s in mdata['scenarios'] if s['id'] == 'training'), None)
@@ -172,10 +175,10 @@ def main():
         print('WARNING: training scenario not found in maps_data.json')
     else:
         if training['rooms']:
-            training['rooms'][0]['furniture_numbers'] = DEMO_IDS[:len(chosen)]
+            training['rooms'][0]['furniture_numbers'] = [CARD_NUM]
             save_json(MAPS_JSON, mdata)
             room_name = training['rooms'][0].get('name_zh', training['rooms'][0]['slot'])
-            print(f'  patched maps_data.json — room "{room_name}" → {DEMO_IDS[:len(chosen)]}')
+            print(f'  patched maps_data.json — room "{room_name}" → [98]')
 
     print('\ndone — refresh Cocos preview (重新打开 scene.scene) to see demo art')
     print('revert anytime:  python tools/demo_patch.py --revert')
