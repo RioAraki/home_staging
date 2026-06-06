@@ -1,0 +1,504 @@
+{
+  "furniture": [
+    {
+      "name": "长沙发",
+      "bbox": [
+        2,
+        4
+      ],
+      "tiles": [
+        {
+          "tile": "sofa_2_l",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "sofa_3_1",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "sofa_3_1",
+          "col": 2,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "sofa_3_2",
+          "col": 3,
+          "row": 0,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "name": "折叠沙发",
+      "bbox": [
+        2,
+        2
+      ],
+      "tiles": [
+        {
+          "tile": "sofa_3_0",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "sofa_2_r",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "带有灯的小五斗橱",
+      "bbox": [
+        2,
+        3
+      ],
+      "tiles": [
+        {
+          "tile": "drawer",
+          "col": 0,
+          "row": 0,
+          "rotation": 270
+        },
+        {
+          "tile": "drawer",
+          "col": 0,
+          "row": 1,
+          "rotation": 270
+        },
+        {
+          "tile": "light",
+          "col": 2,
+          "row": 1,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "带有植物的小五斗橱",
+      "bbox": [
+        2,
+        3
+      ],
+      "tiles": [
+        {
+          "tile": "drawer",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "drawer",
+          "col": 1,
+          "row": 0,
+          "rotation": 0,
+          "mirror": true
+        },
+        {
+          "tile": "grass_0",
+          "col": 2,
+          "row": 0,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "name": "蓝色玫瑰",
+      "bbox": [
+        2,
+        2
+      ],
+      "tiles": [
+        {
+          "tile": "rose_0",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "rose_1",
+          "col": 0,
+          "row": 1,
+          "rotation": 0
+        },
+        {
+          "tile": "rose_2",
+          "col": 1,
+          "row": 1,
+          "rotation": 0
+        }
+      ],
+      "open_cells": []
+    },
+    {
+      "name": "带有植物的小桌子",
+      "bbox": [
+        2,
+        3
+      ],
+      "tiles": [
+        {
+          "tile": "round_chair",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "table",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "round_chair",
+          "col": 2,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "grass_0",
+          "col": 1,
+          "row": 1,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "name": "转角小桌子",
+      "bbox": [
+        2,
+        2
+      ],
+      "tiles": [
+        {
+          "tile": "round_chair",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "table",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "round_chair",
+          "col": 1,
+          "row": 1,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "带有独立灶台的一体厨房",
+      "bbox": [
+        2,
+        3
+      ],
+      "tiles": [
+        {
+          "tile": "kitchen_4",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "kitchen_5",
+          "col": 0,
+          "row": 1,
+          "rotation": 0
+        },
+        {
+          "tile": "kitchen_3",
+          "col": 2,
+          "row": 1,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "一体直线厨房",
+      "bbox": [
+        2,
+        3
+      ],
+      "tiles": [
+        {
+          "tile": "kitchen_0",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "kitchen_1",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "kitchen_2",
+          "col": 2,
+          "row": 0,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "name": "带有洗手设备的马桶",
+      "bbox": [
+        2,
+        2
+      ],
+      "tiles": [
+        {
+          "tile": "counter",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "toilet",
+          "col": 0,
+          "row": 1,
+          "rotation": 90
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "带有置物架的马桶",
+      "bbox": [
+        3,
+        1
+      ],
+      "tiles": [
+        {
+          "tile": "rack",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "toilet",
+          "col": 0,
+          "row": 2,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "并排洗手池",
+      "bbox": [
+        2,
+        2
+      ],
+      "tiles": [
+        {
+          "tile": "sink",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "sink",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "带有浴帘的浴缸",
+      "bbox": [
+        2,
+        2
+      ],
+      "tiles": [
+        {
+          "tile": "bath_0",
+          "col": 0,
+          "row": 0,
+          "rotation": 90
+        },
+        {
+          "tile": "bath_1",
+          "col": 0,
+          "row": 1,
+          "rotation": 90
+        },
+        {
+          "tile": "浴帘",
+          "col": 1,
+          "row": 1,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "浴缸",
+      "bbox": [
+        2,
+        2
+      ],
+      "tiles": [
+        {
+          "tile": "bath_0",
+          "col": 0,
+          "row": 0,
+          "rotation": 0
+        },
+        {
+          "tile": "bath_1",
+          "col": 1,
+          "row": 0,
+          "rotation": 0
+        }
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    }
+  ]
+}
