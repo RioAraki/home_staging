@@ -45,6 +45,7 @@
   .tile-thumb .tname{font-size:10px;color:var(--muted);text-align:center;word-break:break-all;line-height:1.2;}
   #lib-foot{padding:7px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
   #rot-display{font-size:11px;color:var(--muted);text-align:center;}
+  button.mirrored{background:#3a2060;border-color:#7c4dff;color:#c9b8ff;}
 
   /* center: canvas */
   #stage{flex:1;position:relative;overflow:hidden;background:#15181c;}
@@ -102,8 +103,11 @@
       </div>
       <div id="lib-grid"></div>
       <div id="lib-foot">
-        <div id="rot-display">旋转: 0°</div>
-        <button id="btn-rot">旋转 90° (R)</button>
+        <div id="rot-display">旋转: 0° · 正常</div>
+        <div style="display:flex;gap:5px">
+          <button id="btn-rot" style="flex:1">旋转 (R)</button>
+          <button id="btn-mirror" style="flex:1">镜像 (F)</button>
+        </div>
       </div>
     </div>
 
@@ -127,9 +131,10 @@
         <h3>选中格</h3>
         <div id="ci-tile" style="font-size:12px;color:var(--accent);margin:2px 0">—</div>
         <div id="ci-rot" style="font-size:12px;color:var(--muted);margin:2px 0">—</div>
-        <div style="margin-top:6px;display:flex;gap:5px">
+        <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">
           <button id="ci-rot-btn" style="flex:1;font-size:12px">旋转 (E)</button>
-          <button id="ci-del" class="danger" style="flex:1;font-size:12px">删除</button>
+          <button id="ci-mirror-btn" style="flex:1;font-size:12px">镜像 (G)</button>
+          <button id="ci-del" class="danger" style="flex:1 0 100%;font-size:12px;margin-top:3px">删除</button>
         </div>
       </div>
       <!-- furniture list -->
@@ -165,6 +170,7 @@ let cells = new Map();       // "col,row" → {tile, rotation}
 let openCells = new Set();   // "col,row"
 let selectedTile = null;
 let selectedRotation = 0;
+let selectedMirror = false;
 let selectedCell = null;
 let mode = 'place';
 
@@ -220,11 +226,23 @@ function loadTileImage(name) {
   return tileImages[name];
 }
 
-// ── rotation ───────────────────────────────────────────
+// ── rotation / mirror (pending tile) ──────────────────
 document.getElementById('btn-rot').onclick = rotatePending;
+document.getElementById('btn-mirror').onclick = mirrorPending;
+
 function rotatePending() {
   selectedRotation = (selectedRotation + 90) % 360;
-  document.getElementById('rot-display').textContent = `旋转: ${selectedRotation}°`;
+  updatePendingDisplay();
+}
+function mirrorPending() {
+  selectedMirror = !selectedMirror;
+  updatePendingDisplay();
+}
+function updatePendingDisplay() {
+  document.getElementById('rot-display').textContent =
+    `旋转: ${selectedRotation}° · ${selectedMirror ? '镜像' : '正常'}`;
+  document.getElementById('btn-mirror').className =
+    'button' + (selectedMirror ? ' mirrored' : '');
 }
 
 // ── mode ───────────────────────────────────────────────
@@ -277,7 +295,9 @@ document.getElementById('btn-save').onclick = () => {
 function buildFurnitureObj(name) {
   const tilesArr = [...cells].map(([k, v]) => {
     const [c, r] = k.split(',').map(Number);
-    return { tile: v.tile, col: c, row: r, rotation: v.rotation };
+    const obj = { tile: v.tile, col: c, row: r, rotation: v.rotation };
+    if (v.mirror) obj.mirror = true;
+    return obj;
   }).sort((a, b) => a.row - b.row || a.col - b.col);
   const openArr = [...openCells].map(k => {
     const [c, r] = k.split(',').map(Number); return [r, c]; // [row,col]
@@ -319,7 +339,7 @@ function loadFurniture(i) {
   document.getElementById('fh').value = f.bbox[0];
   gridW = f.bbox[1]; gridH = f.bbox[0];
   cells.clear();
-  (f.tiles || []).forEach(t => cells.set(t.col + ',' + t.row, { tile: t.tile, rotation: t.rotation || 0 }));
+  (f.tiles || []).forEach(t => cells.set(t.col + ',' + t.row, { tile: t.tile, rotation: t.rotation || 0, mirror: !!t.mirror }));
   openCells.clear();
   (f.open_cells || []).forEach(([r, c]) => openCells.add(c + ',' + r));
   selectedCell = null; editingIndex = i;
@@ -380,9 +400,9 @@ function render() {
   ctx.fillStyle = '#1e2229'; ctx.fillRect(x0, y0, cw, ch);
 
   // tiles
-  for (const [key, { tile, rotation }] of cells) {
+  for (const [key, { tile, rotation, mirror }] of cells) {
     const [c, r] = key.split(',').map(Number);
-    drawTile(tile, c, r, rotation);
+    drawTile(tile, c, r, rotation, mirror);
   }
   // open cells
   ctx.fillStyle = 'rgba(87,201,139,.38)';
@@ -412,11 +432,14 @@ function render() {
   ctx.strokeStyle = '#3a4049'; ctx.lineWidth = 2; ctx.strokeRect(x0, y0, cw, ch);
 }
 
-function drawTile(name, col, row, rotation) {
+function drawTile(name, col, row, rotation, mirror) {
   const img = loadTileImage(name);
   if (!img?.complete || !img.naturalWidth) return;
   const cx = w2sX(col * CELL + CELL / 2), cy = w2sY(row * CELL + CELL / 2), sz = CELL * scale;
-  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotation * Math.PI / 180);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotation * Math.PI / 180);
+  if (mirror) ctx.scale(-1, 1);
   ctx.drawImage(img, -sz / 2, -sz / 2, sz, sz);
   ctx.restore();
 }
@@ -447,7 +470,7 @@ cv.addEventListener('mousedown', ev => {
     updateProps(); render(); save(); return;
   }
   if (cells.has(key)) { selectedCell = key; updateCellInfo(key); }
-  else if (selectedTile) { cells.set(key, { tile: selectedTile, rotation: selectedRotation }); selectedCell = key; updateCellInfo(key); updateProps(); save(); }
+  else if (selectedTile) { cells.set(key, { tile: selectedTile, rotation: selectedRotation, mirror: selectedMirror }); selectedCell = key; updateCellInfo(key); updateProps(); save(); }
   render();
 });
 cv.addEventListener('contextmenu', ev => {
@@ -470,6 +493,8 @@ window.addEventListener('keydown', ev => {
   if (ev.code === 'Space') { spaceDown = true; cv.style.cursor = 'grab'; ev.preventDefault(); }
   if (ev.key === 'r' || ev.key === 'R') rotatePending();
   if (ev.key === 'e' || ev.key === 'E') rotatePlaced();
+  if (ev.key === 'g' || ev.key === 'G') mirrorPlaced();
+  if (ev.key === 'f' || ev.key === 'F') mirrorPending();
   if (ev.key === 'Delete' || ev.key === 'Backspace') deletePlaced();
 });
 window.addEventListener('keyup', ev => { if (ev.code === 'Space') { spaceDown = false; if (!panning) cv.style.cursor = 'crosshair'; } });
@@ -479,12 +504,19 @@ function rotatePlaced() {
   cells.get(selectedCell).rotation = (cells.get(selectedCell).rotation + 90) % 360;
   updateCellInfo(selectedCell); save(); render();
 }
+function mirrorPlaced() {
+  if (!selectedCell || !cells.has(selectedCell)) return;
+  const c = cells.get(selectedCell);
+  c.mirror = !c.mirror;
+  updateCellInfo(selectedCell); save(); render();
+}
 function deletePlaced() {
   if (!selectedCell) return;
   cells.delete(selectedCell); selectedCell = null; updateCellInfo(null); updateProps(); save(); render();
 }
 
 document.getElementById('ci-rot-btn').onclick = rotatePlaced;
+document.getElementById('ci-mirror-btn').onclick = mirrorPlaced;
 document.getElementById('ci-del').onclick = deletePlaced;
 
 // ── cell info ──────────────────────────────────────────
@@ -492,11 +524,13 @@ function updateCellInfo(key) {
   if (!key || !cells.has(key)) {
     document.getElementById('ci-tile').textContent = '—';
     document.getElementById('ci-rot').textContent = '—';
+    document.getElementById('ci-mirror-btn').className = 'button';
     return;
   }
-  const { tile, rotation } = cells.get(key);
+  const { tile, rotation, mirror } = cells.get(key);
   document.getElementById('ci-tile').textContent = tile;
-  document.getElementById('ci-rot').textContent = `旋转: ${rotation}°`;
+  document.getElementById('ci-rot').textContent = `旋转: ${rotation}° · ${mirror ? '镜像' : '正常'}`;
+  document.getElementById('ci-mirror-btn').className = 'button' + (mirror ? ' mirrored' : '');
 }
 
 function updateProps() {
@@ -523,7 +557,7 @@ function loadLS() {
     if (d.gridW) { gridW = d.gridW; document.getElementById('fw').value = gridW; }
     if (d.gridH) { gridH = d.gridH; document.getElementById('fh').value = gridH; }
     if (d.fname) document.getElementById('fname').value = d.fname;
-    cells = new Map(d.cells || []);
+    cells = new Map((d.cells || []).map(([k, v]) => [k, { ...v, mirror: !!v.mirror }]));
     openCells = new Set(d.openCells || []);
     collection = d.collection || [];
     editingIndex = d.editingIndex ?? -1;
