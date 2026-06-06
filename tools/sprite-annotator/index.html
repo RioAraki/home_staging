@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sprite Sheet 标注工具</title>
+<style>
+  :root { --bg:#1b1f24; --panel:#23272e; --line:#3a4049; --txt:#e6e9ee; --muted:#8b95a1; --accent:#ffb648; --bad:#ff5d5d; --good:#57c98b; }
+  * { box-sizing: border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--txt); font:13px/1.4 system-ui,"Segoe UI",sans-serif; }
+  #app { display:flex; height:100vh; }
+  #stage { position:relative; flex:1; overflow:hidden; background:#15181c; }
+  #cv { position:absolute; inset:0; cursor:crosshair; }
+  #side { width:300px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; }
+  #side h1 { font-size:14px; margin:0; padding:12px 14px; border-bottom:1px solid var(--line); }
+  .sec { padding:10px 14px; border-bottom:1px solid var(--line); }
+  .row { display:flex; gap:6px; align-items:center; margin:4px 0; }
+  label.k { color:var(--muted); width:64px; flex:none; }
+  input[type=text], input[type=number] { background:#171a1f; border:1px solid var(--line); color:var(--txt); border-radius:5px; padding:6px 8px; width:100%; }
+  button { background:#2f3540; border:1px solid var(--line); color:var(--txt); border-radius:5px; padding:6px 10px; cursor:pointer; }
+  button:hover { background:#39414e; }
+  button.primary { background:var(--accent); color:#1b1f24; border-color:var(--accent); font-weight:600; }
+  button.danger { color:var(--bad); }
+  .muted { color:var(--muted); }
+  .accent { color:var(--accent); }
+  .bad { color:var(--bad); }
+  #list { flex:1; overflow:auto; }
+  .item { display:flex; justify-content:space-between; gap:8px; padding:5px 14px; border-bottom:1px solid #2a2f37; cursor:pointer; }
+  .item:hover { background:#2a3038; }
+  .item.conflict { color:var(--bad); }
+  .item .pos { color:var(--muted); font-variant-numeric:tabular-nums; }
+  #hint { position:absolute; left:10px; bottom:10px; background:rgba(0,0,0,.6); padding:6px 10px; border-radius:6px; color:#cfd6df; pointer-events:none; }
+  #drop { position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.7); flex-direction:column; gap:12px; z-index:5; }
+  #drop.show { display:flex; }
+  kbd { background:#11141a; border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:11px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="hint">滚轮缩放 · 按住 <kbd>空格</kbd> 拖动平移 · 点击格子打标 · 方向键移动选择</div>
+    <div id="drop">
+      <div>把 <b>asset.png</b> 拖进来，或点击选择</div>
+      <input type="file" id="file" accept="image/*" />
+    </div>
+  </div>
+  <div id="side">
+    <h1>Sprite 标注工具</h1>
+    <div class="sec">
+      <div class="row"><label class="k">格子</label><input type="number" id="cell" value="100" min="1" /></div>
+      <div class="row muted" id="gridinfo">—</div>
+    </div>
+    <div class="sec">
+      <div class="row"><label class="k">选中</label><span id="selinfo" class="muted">未选择</span></div>
+      <div class="row"><input type="text" id="label" list="labels" placeholder="标签，如 沙发碎片1" autocomplete="off" /></div>
+      <datalist id="labels"></datalist>
+      <div class="row">
+        <button class="primary" id="assign">打标 (Enter)</button>
+        <button class="danger" id="clear">清除</button>
+      </div>
+      <div class="row bad" id="warn" style="display:none"></div>
+    </div>
+    <div class="sec row" style="justify-content:space-between">
+      <span><b id="count">0</b> <span class="muted">已标</span> · <span class="muted">冲突 </span><b id="nconf" class="accent">0</b></span>
+      <span class="muted">/ <b id="total">0</b> 格</span>
+    </div>
+    <div id="list"></div>
+    <div class="sec row" style="gap:6px; flex-wrap:wrap">
+      <button class="primary" id="export">导出 JSON</button>
+      <button id="import">导入</button>
+      <input type="file" id="importfile" accept="application/json" style="display:none" />
+      <button class="danger" id="reset">清空</button>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  const stage = document.getElementById('stage');
+  const els = id => document.getElementById(id);
+  const labelInput = els('label');
+
+  const IMG_DEFAULT = '../../asset/asset.png';
+  const LS_KEY = 'sprite-annotator-v1';
+
+  let img = null, imgW = 0, imgH = 0;
+  let cell = 100, cols = 0, rows = 0;
+  let scale = 1, offX = 0, offY = 0;       // world(px)->screen: s = w*scale + off
+  let hover = null;                         // {col,row}
+  let sel = null;                           // {col,row}
+  let panning = false, spaceDown = false, panStart = null;
+  // annotations keyed by "col,row" -> label
+  let ann = new Map();
+
+  // ---------- persistence ----------
+  function save() {
+    const data = { cell, imageSize:[imgW,imgH], annotations:[...ann].map(([k,label])=>{
+      const [c,r] = k.split(',').map(Number);
+      return { col:c, row:r, x:c*cell, y:r*cell, w:cell, h:cell, label };
+    })};
+    try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e){}
+  }
+  function loadLS() {
+    try {
+      const raw = localStorage.getItem(LS_KEY); if(!raw) return;
+      const d = JSON.parse(raw);
+      if (d.cell) { cell = d.cell; els('cell').value = cell; }
+      ann = new Map((d.annotations||[]).map(a => [a.col+','+a.row, a.label]));
+    } catch(e){}
+  }
+
+  // ---------- image loading ----------
+  function setImage(src) {
+    const im = new Image();
+    im.onload = () => { img = im; imgW = im.naturalWidth; imgH = im.naturalHeight; els('drop').classList.remove('show'); recomputeGrid(); fit(); render(); refreshList(); };
+    im.onerror = () => { els('drop').classList.add('show'); };
+    im.src = src;
+  }
+  function recomputeGrid() {
+    cell = Math.max(1, parseInt(els('cell').value)||100);
+    cols = Math.floor(imgW / cell); rows = Math.floor(imgH / cell);
+    els('gridinfo').textContent = `${imgW}×${imgH}px · ${cols}×${rows} 格 (右${imgW-cols*cell} / 下${imgH-rows*cell}px 忽略)`;
+    els('total').textContent = cols*rows;
+  }
+
+  // ---------- view transform ----------
+  function resize() { cv.width = stage.clientWidth; cv.height = stage.clientHeight; render(); }
+  function fit() {
+    if(!img) return;
+    const s = Math.min(cv.width/imgW, cv.height/imgH) * 0.96;
+    scale = s; offX = (cv.width - imgW*s)/2; offY = (cv.height - imgH*s)/2;
+  }
+  const w2sX = wx => wx*scale + offX, w2sY = wy => wy*scale + offY;
+  const s2wX = sx => (sx-offX)/scale, s2wY = sy => (sy-offY)/scale;
+
+  // ---------- render ----------
+  function render() {
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,cv.width,cv.height);
+    if(!img) return;
+    // image
+    ctx.imageSmoothingEnabled = scale < 3;
+    ctx.drawImage(img, offX, offY, imgW*scale, imgH*scale);
+    // labeled fills
+    ctx.save();
+    for (const [k,label] of ann) {
+      const [c,r] = k.split(',').map(Number);
+      const conflict = conflictKeys.has(k);
+      ctx.fillStyle = conflict ? 'rgba(255,93,93,.35)' : 'rgba(255,182,72,.28)';
+      ctx.fillRect(w2sX(c*cell), w2sY(r*cell), cell*scale, cell*scale);
+      ctx.strokeStyle = conflict ? '#ff5d5d' : '#ffb648';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(w2sX(c*cell)+1, w2sY(r*cell)+1, cell*scale-2, cell*scale-2);
+    }
+    ctx.restore();
+    // grid (only when zoomed enough to be useful)
+    if (cell*scale > 6) {
+      ctx.strokeStyle = 'rgba(120,170,255,.30)'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let c=0;c<=cols;c++){ const x=Math.round(w2sX(c*cell))+.5; ctx.moveTo(x, w2sY(0)); ctx.lineTo(x, w2sY(rows*cell)); }
+      for (let r=0;r<=rows;r++){ const y=Math.round(w2sY(r*cell))+.5; ctx.moveTo(w2sX(0), y); ctx.lineTo(w2sX(cols*cell), y); }
+      ctx.stroke();
+    }
+    // hover
+    if (hover) { ctx.strokeStyle='#7fd0ff'; ctx.lineWidth=2; ctx.strokeRect(w2sX(hover.col*cell), w2sY(hover.row*cell), cell*scale, cell*scale); }
+    // selection
+    if (sel) { ctx.strokeStyle='#57c98b'; ctx.lineWidth=3; ctx.strokeRect(w2sX(sel.col*cell), w2sY(sel.row*cell), cell*scale, cell*scale); }
+    // labels text
+    if (cell*scale > 28) {
+      ctx.font = '11px system-ui'; ctx.textBaseline='top';
+      for (const [k,label] of ann) {
+        const [c,r] = k.split(',').map(Number);
+        const x = w2sX(c*cell)+3, y = w2sY(r*cell)+3;
+        const tw = ctx.measureText(label).width;
+        ctx.fillStyle='rgba(0,0,0,.65)'; ctx.fillRect(x-2,y-2, tw+6, 15);
+        ctx.fillStyle = conflictKeys.has(k) ? '#ff8a8a' : '#ffe6b0';
+        ctx.fillText(label, x, y);
+      }
+    }
+  }
+
+  // ---------- conflicts ----------
+  let conflictKeys = new Set();
+  function recomputeConflicts() {
+    const byLabel = new Map();
+    for (const [k,label] of ann) { (byLabel.get(label) || byLabel.set(label,[]).get(label)).push(k); }
+    conflictKeys = new Set();
+    let n=0;
+    for (const [label,keys] of byLabel) if (keys.length>1) { keys.forEach(k=>conflictKeys.add(k)); n++; }
+    els('nconf').textContent = n;
+  }
+
+  // ---------- list / datalist ----------
+  function refreshList() {
+    recomputeConflicts();
+    els('count').textContent = ann.size;
+    const list = els('list'); list.innerHTML='';
+    const entries = [...ann].sort((a,b)=>a[1].localeCompare(b[1],'zh'));
+    for (const [k,label] of entries) {
+      const [c,r] = k.split(',').map(Number);
+      const div = document.createElement('div');
+      div.className = 'item' + (conflictKeys.has(k)?' conflict':'');
+      div.innerHTML = `<span>${label}</span><span class="pos">${c},${r}</span>`;
+      div.onclick = () => { sel = {col:c,row:r}; labelInput.value=label; updateSel(); centerOn(c,r); render(); };
+      list.appendChild(div);
+    }
+    const dl = els('labels'); dl.innerHTML='';
+    [...new Set([...ann.values()])].forEach(l=>{ const o=document.createElement('option'); o.value=l; dl.appendChild(o); });
+    save();
+  }
+
+  function updateSel() {
+    const warn = els('warn');
+    if (!sel) { els('selinfo').textContent='未选择'; warn.style.display='none'; return; }
+    const k = sel.col+','+sel.row;
+    els('selinfo').innerHTML = `格子 <b>${sel.col},${sel.row}</b> · px(${sel.col*cell},${sel.row*cell})` + (ann.has(k)?` · 已标 <b class="accent">${ann.get(k)}</b>`:'');
+    const v = labelInput.value.trim();
+    const dup = v && [...ann].some(([kk,ll])=>ll===v && kk!==k);
+    warn.style.display = dup ? 'block':'none';
+    if (dup) warn.textContent = `⚠ 标签「${v}」已用于其它格子`;
+  }
+
+  function centerOn(c,r) { // keep selected cell visible if off-screen
+    const sx = w2sX((c+0.5)*cell), sy = w2sY((r+0.5)*cell);
+    if (sx<0||sy<0||sx>cv.width||sy>cv.height) { offX += cv.width/2 - sx; offY += cv.height/2 - sy; }
+  }
+
+  // ---------- mouse ----------
+  function cellAt(ev) {
+    const rect = cv.getBoundingClientRect();
+    const wx = s2wX(ev.clientX-rect.left), wy = s2wY(ev.clientY-rect.top);
+    const c = Math.floor(wx/cell), r = Math.floor(wy/cell);
+    if (c<0||r<0||c>=cols||r>=rows) return null;
+    return {col:c,row:r};
+  }
+  cv.addEventListener('mousemove', ev => {
+    if (panning) { offX = panStart.ox + (ev.clientX-panStart.x); offY = panStart.oy + (ev.clientY-panStart.y); render(); return; }
+    const h = cellAt(ev);
+    if ((h&&!hover) || (!h&&hover) || (h&&hover&&(h.col!==hover.col||h.row!==hover.row))) { hover=h; render(); }
+  });
+  cv.addEventListener('mouseleave', ()=>{ hover=null; render(); });
+  cv.addEventListener('mousedown', ev => {
+    if (ev.button===1 || ev.button===2 || spaceDown) { panning=true; panStart={x:ev.clientX,y:ev.clientY,ox:offX,oy:offY}; cv.style.cursor='grabbing'; ev.preventDefault(); return; }
+    const c = cellAt(ev); if (!c) return;
+    sel = c; labelInput.value = ann.get(c.col+','+c.row) || ''; updateSel(); render(); labelInput.focus(); labelInput.select();
+  });
+  window.addEventListener('mouseup', ()=>{ panning=false; cv.style.cursor = spaceDown?'grab':'crosshair'; });
+  cv.addEventListener('contextmenu', e=>e.preventDefault());
+  cv.addEventListener('wheel', ev => {
+    ev.preventDefault();
+    const rect = cv.getBoundingClientRect(), mx = ev.clientX-rect.left, my = ev.clientY-rect.top;
+    const wx = s2wX(mx), wy = s2wY(my);
+    const factor = ev.deltaY<0 ? 1.15 : 1/1.15;
+    scale = Math.max(0.02, Math.min(40, scale*factor));
+    offX = mx - wx*scale; offY = my - wy*scale;
+    render();
+  }, {passive:false});
+
+  // ---------- keyboard ----------
+  window.addEventListener('keydown', ev => {
+    if (ev.code==='Space' && document.activeElement!==labelInput) { spaceDown=true; cv.style.cursor='grab'; ev.preventDefault(); }
+    if (document.activeElement===labelInput) {
+      if (ev.key==='Enter') { assign(); ev.preventDefault(); }
+      return;
+    }
+    if (!sel) return;
+    let {col,row}=sel, moved=false;
+    if (ev.key==='ArrowRight'&&col<cols-1){col++;moved=true;}
+    if (ev.key==='ArrowLeft'&&col>0){col--;moved=true;}
+    if (ev.key==='ArrowDown'&&row<rows-1){row++;moved=true;}
+    if (ev.key==='ArrowUp'&&row>0){row--;moved=true;}
+    if (moved){ sel={col,row}; labelInput.value=ann.get(col+','+row)||''; updateSel(); centerOn(col,row); render(); ev.preventDefault(); }
+    if ((ev.key==='Delete'||ev.key==='Backspace')) { clearSel(); ev.preventDefault(); }
+  });
+  window.addEventListener('keyup', ev => { if (ev.code==='Space'){ spaceDown=false; if(!panning) cv.style.cursor='crosshair'; } });
+  labelInput.addEventListener('input', updateSel);
+
+  // ---------- actions ----------
+  function assign() {
+    if (!sel) return;
+    const v = labelInput.value.trim();
+    const k = sel.col+','+sel.row;
+    if (!v) { ann.delete(k); } else { ann.set(k, v); }
+    refreshList(); updateSel(); render();
+  }
+  function clearSel() { if(!sel) return; ann.delete(sel.col+','+sel.row); labelInput.value=''; refreshList(); updateSel(); render(); }
+  els('assign').onclick = assign;
+  els('clear').onclick = clearSel;
+  els('cell').onchange = () => { recomputeGrid(); fit(); refreshList(); render(); };
+
+  els('export').onclick = () => {
+    const data = { image:'asset.png', imageSize:[imgW,imgH], cell, cols, rows,
+      annotations:[...ann].map(([k,label])=>{ const [c,r]=k.split(',').map(Number); return {col:c,row:r,x:c*cell,y:r*cell,w:cell,h:cell,label}; })
+        .sort((a,b)=>a.label.localeCompare(b.label,'zh')) };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'annotations.json'; a.click();
+  };
+  els('import').onclick = () => els('importfile').click();
+  els('importfile').onchange = e => {
+    const f = e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => { try {
+      const d = JSON.parse(rd.result);
+      if (d.cell){ cell=d.cell; els('cell').value=cell; recomputeGrid(); }
+      ann = new Map((d.annotations||[]).map(a=>[a.col+','+a.row, a.label]));
+      refreshList(); render();
+    } catch(err){ alert('JSON 解析失败: '+err); } };
+    rd.readAsText(f);
+  };
+  els('reset').onclick = () => { if(confirm('清空所有标注？')){ ann.clear(); sel=null; labelInput.value=''; refreshList(); updateSel(); render(); } };
+
+  // file drop / picker
+  els('file').onchange = e => { const f=e.target.files[0]; if(f) setImage(URL.createObjectURL(f)); };
+  stage.addEventListener('dragover', e=>{ e.preventDefault(); els('drop').classList.add('show'); });
+  stage.addEventListener('drop', e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) setImage(URL.createObjectURL(f)); });
+
+  // ---------- boot ----------
+  window.addEventListener('resize', resize);
+  loadLS(); resize();
+  setImage(IMG_DEFAULT);   // try auto-load; falls back to drop overlay on error
+})();
+</script>
+</body>
+</html>
