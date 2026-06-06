@@ -262,10 +262,24 @@ function setMode(m) {
 document.getElementById('btn-new').onclick = () => {
   const w = parseInt(document.getElementById('fw').value) || 4;
   const h = parseInt(document.getElementById('fh').value) || 2;
-  if (cells.size > 0 && !confirm(`新建 ${w}×${h} 画布，当前未保存的内容会丢失？`)) return;
+  // auto-save current canvas if it has content
+  if (cells.size > 0 || openCells.size > 0) {
+    const name = document.getElementById('fname').value.trim();
+    if (!name) { alert('请先给当前家具起个名字，再新建画布'); return; }
+    const obj = buildFurnitureObj(name);
+    if (editingIndex >= 0) {
+      collection[editingIndex] = obj;
+    } else {
+      const dup = collection.findIndex(f => f.name === name);
+      if (dup >= 0) collection[dup] = obj;
+      else { collection.push(obj); editingIndex = collection.length - 1; }
+    }
+    renderFList();
+  }
   gridW = w; gridH = h;
   cells.clear(); openCells.clear(); selectedCell = null;
   editingIndex = -1;
+  document.getElementById('fname').value = '';
   fit(); updateProps(); updateCellInfo(null); render(); save();
 };
 
