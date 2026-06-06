@@ -8,8 +8,9 @@
 - 与用户全程使用**中文**交流。
 
 ## 工具服务（本地开发）
-- 标注工具：`http://localhost:8777/tools/sprite-annotator/index.html`（由 `python -m http.server 8777` 在项目根目录提供）
+- 标注工具：`http://localhost:8777/tools/sprite-annotator/index.html`
 - 拼装工具：`http://localhost:8777/tools/assembler/index.html`
+- 静态服务器：`python tools/server.py`（替代 `python -m http.server`，增加了 `/api/crop` 接口）
 - 游戏网页：`http://localhost:8778/`（由 `cd app && npx vite --port 8778` 提供）
 
 ## 规则优先级

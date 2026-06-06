@@ -614,6 +614,16 @@ function loadLS() {
 }
 
 init();
+
+// auto-refresh tile library when annotator finishes a crop
+const cropChannel = new BroadcastChannel('tiles-updated');
+cropChannel.onmessage = async () => {
+  await reloadLib();
+  // brief flash on the refresh button to signal auto-update
+  const btn = document.getElementById('btn-reload-lib');
+  btn.textContent = '✓'; btn.style.color = 'var(--sel)';
+  setTimeout(() => { btn.textContent = '↻'; btn.style.color = ''; }, 1500);
+};
 })();
 </script>
 </body>

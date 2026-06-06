@@ -67,7 +67,7 @@
     </div>
     <div id="list"></div>
     <div class="sec row" style="gap:6px; flex-wrap:wrap">
-      <button class="primary" id="export">导出 JSON</button>
+      <button class="primary" id="export">导出并裁切 ✂</button>
       <button id="import">导入</button>
       <input type="file" id="importfile" accept="application/json" style="display:none" />
       <button class="danger" id="reset">清空</button>
@@ -288,12 +288,33 @@
   els('clear').onclick = clearSel;
   els('cell').onchange = () => { recomputeGrid(); fit(); refreshList(); render(); };
 
-  els('export').onclick = () => {
+  const cropChannel = new BroadcastChannel('tiles-updated');
+
+  els('export').onclick = async () => {
+    const btn = els('export');
     const data = { image:'asset.png', imageSize:[imgW,imgH], cell, cols, rows,
       annotations:[...ann].map(([k,label])=>{ const [c,r]=k.split(',').map(Number); return {col:c,row:r,x:c*cell,y:r*cell,w:cell,h:cell,label}; })
         .sort((a,b)=>a.label.localeCompare(b.label,'zh')) };
-    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'annotations.json'; a.click();
+
+    btn.textContent = '裁切中…'; btn.disabled = true;
+    try {
+      const resp = await fetch('/api/crop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const result = await resp.json();
+      if (!result.ok) throw new Error(result.error);
+      cropChannel.postMessage({ tiles: result.tiles });
+      btn.textContent = `✓ 完成 (${result.tiles.length} 块)`;
+      setTimeout(() => { btn.textContent = '导出并裁切 ✂'; btn.disabled = false; }, 2000);
+    } catch(e) {
+      // fallback: plain download if server endpoint not available
+      const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'annotations.json'; a.click();
+      btn.textContent = '导出并裁切 ✂'; btn.disabled = false;
+      console.warn('server /api/crop unavailable, fell back to download:', e.message);
+    }
   };
   els('import').onclick = () => els('importfile').click();
   els('importfile').onchange = e => {
