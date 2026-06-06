@@ -63,3 +63,9 @@ print(f"\ndone: {written} tiles -> {out_dir}")
 dups = [k for k, v in seen.items() if v > 1]
 if dups:
     print(f"{len(dups)} duplicated label(s): {', '.join(dups)}")
+
+# always regenerate tiles.json from the full directory contents
+all_tiles = sorted([p.stem for p in out_dir.glob("*.png")])
+tiles_json = out_dir / "tiles.json"
+tiles_json.write_text(json.dumps(all_tiles, ensure_ascii=False, indent=2), encoding="utf-8")
+print(f"tiles.json updated: {len(all_tiles)} tiles")
