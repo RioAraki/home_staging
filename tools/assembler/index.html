@@ -100,6 +100,7 @@
       <div id="lib-top">
         <span>碎片库</span>
         <input type="text" id="lib-search" placeholder="搜索…" />
+        <button id="btn-reload-lib" title="重新加载碎片库" style="padding:3px 7px;font-size:12px;flex-shrink:0">↻</button>
       </div>
       <div id="lib-grid"></div>
       <div id="lib-foot">
@@ -188,9 +189,7 @@ const stage = document.getElementById('stage');
 
 // ── init ───────────────────────────────────────────────
 async function init() {
-  const resp = await fetch(TILES_JSON);
-  tileNames = await resp.json();
-  renderLib();
+  await reloadLib();
   loadLS();
   resize();
   fit();
@@ -198,6 +197,23 @@ async function init() {
   updateProps();
   renderFList();
 }
+
+async function reloadLib() {
+  const btn = document.getElementById('btn-reload-lib');
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    const resp = await fetch(TILES_JSON + '?t=' + Date.now()); // bust cache
+    tileNames = await resp.json();
+    tileImages = {}; // clear image cache so new tiles get re-fetched
+    renderLib();
+  } catch(e) {
+    alert('无法加载 tiles.json，请确认 http-server 正在运行且 crop.py 已执行');
+  } finally {
+    btn.textContent = '↻'; btn.disabled = false;
+  }
+}
+
+document.getElementById('btn-reload-lib').onclick = reloadLib;
 
 // ── tile library ───────────────────────────────────────
 let libFilter = '';
