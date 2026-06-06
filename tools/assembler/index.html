@@ -5,141 +5,145 @@
 <title>家具拼装工具</title>
 <style>
   :root {
-    --bg: #1b1f24; --panel: #23272e; --line: #3a4049;
-    --txt: #e6e9ee; --muted: #8b95a1; --accent: #ffb648;
-    --open: rgba(87,201,139,.45); --placed: rgba(255,182,72,.15);
-    --hover: rgba(100,160,255,.35); --sel: #57c98b;
-    --bad: #ff5d5d;
+    --bg:#1b1f24; --panel:#23272e; --line:#3a4049;
+    --txt:#e6e9ee; --muted:#8b95a1; --accent:#ffb648;
+    --sel:#57c98b; --bad:#ff5d5d; --open:rgba(87,201,139,.40);
+    --hover-place:rgba(100,160,255,.30); --hover-open:rgba(87,201,139,.25);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: var(--bg); color: var(--txt); font: 13px/1.4 system-ui,"Segoe UI",sans-serif; }
-  #app { display: flex; flex-direction: column; height: 100vh; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;background:var(--bg);color:var(--txt);font:13px/1.4 system-ui,"Segoe UI",sans-serif;}
+  #app{display:flex;flex-direction:column;height:100vh;}
 
-  /* ── top bar ── */
-  #topbar {
-    display: flex; align-items: center; gap: 10px; padding: 8px 14px;
-    background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; flex-wrap: wrap;
-  }
-  #topbar h1 { font-size: 14px; margin-right: 6px; }
-  #topbar label { color: var(--muted); font-size: 12px; }
-  #topbar input[type=text] { background: #171a1f; border: 1px solid var(--line); color: var(--txt); border-radius: 5px; padding: 5px 8px; width: 140px; }
-  #topbar input[type=number] { background: #171a1f; border: 1px solid var(--line); color: var(--txt); border-radius: 5px; padding: 5px 6px; width: 52px; }
-  .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
-  button { background: #2f3540; border: 1px solid var(--line); color: var(--txt); border-radius: 5px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
-  button:hover { background: #39414e; }
-  button.primary { background: var(--accent); color: #1b1f24; border-color: var(--accent); font-weight: 600; }
-  button.active { background: var(--sel); color: #1b1f24; border-color: var(--sel); font-weight: 600; }
-  button.danger { color: var(--bad); }
+  /* top bar */
+  #topbar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-shrink:0;flex-wrap:wrap;}
+  #topbar h1{font-size:14px;margin-right:4px;}
+  .sep{width:1px;height:22px;background:var(--line);margin:0 2px;}
+  label.lbl{color:var(--muted);font-size:12px;}
+  input[type=text]{background:#171a1f;border:1px solid var(--line);color:var(--txt);border-radius:5px;padding:5px 8px;}
+  input[type=number]{background:#171a1f;border:1px solid var(--line);color:var(--txt);border-radius:5px;padding:5px 6px;width:48px;}
+  button{background:#2f3540;border:1px solid var(--line);color:var(--txt);border-radius:5px;padding:5px 11px;cursor:pointer;font-size:13px;}
+  button:hover{background:#39414e;}
+  button.primary{background:var(--accent);color:#1b1f24;border-color:var(--accent);font-weight:600;}
+  button.green{background:var(--sel);color:#1b1f24;border-color:var(--sel);font-weight:600;}
+  button.active{background:var(--sel);color:#1b1f24;border-color:var(--sel);font-weight:600;}
+  button.danger{color:var(--bad);}
+  button:disabled{opacity:.4;cursor:default;}
 
-  /* ── main area ── */
-  #main { display: flex; flex: 1; overflow: hidden; }
+  /* main */
+  #main{display:flex;flex:1;overflow:hidden;}
 
-  /* ── left: tile library ── */
-  #lib {
-    width: 230px; background: var(--panel); border-right: 1px solid var(--line);
-    display: flex; flex-direction: column; flex-shrink: 0;
-  }
-  #lib-header { padding: 8px 12px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  #lib-header span { font-size: 12px; color: var(--muted); }
-  #lib-search { flex: 1; background: #171a1f; border: 1px solid var(--line); color: var(--txt); border-radius: 5px; padding: 4px 7px; font-size: 12px; }
-  #lib-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 8px; }
-  .tile-thumb {
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 6px 4px; border-radius: 6px; border: 2px solid transparent;
-    cursor: pointer; background: #1e2229; transition: border-color .12s;
-  }
-  .tile-thumb:hover { border-color: var(--line); background: #262c35; }
-  .tile-thumb.selected { border-color: var(--accent); background: #2c2718; }
-  .tile-thumb img { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; display: block; }
-  .tile-thumb .tname { font-size: 10px; color: var(--muted); text-align: center; word-break: break-all; line-height: 1.2; }
-  #lib-footer { padding: 8px 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-  #rot-display { text-align: center; font-size: 11px; color: var(--muted); }
+  /* left: tile library */
+  #lib{width:220px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;}
+  #lib-top{padding:7px 10px;border-bottom:1px solid var(--line);display:flex;gap:6px;align-items:center;flex-shrink:0;}
+  #lib-top span{color:var(--muted);font-size:12px;white-space:nowrap;}
+  #lib-search{flex:1;background:#171a1f;border:1px solid var(--line);color:var(--txt);border-radius:5px;padding:4px 7px;font-size:12px;}
+  #lib-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:3px;padding:6px;}
+  .tile-thumb{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 3px;border-radius:6px;border:2px solid transparent;cursor:pointer;background:#1e2229;}
+  .tile-thumb:hover{border-color:var(--line);background:#262c35;}
+  .tile-thumb.selected{border-color:var(--accent);background:#2c2718;}
+  .tile-thumb img{width:68px;height:68px;object-fit:contain;image-rendering:pixelated;display:block;}
+  .tile-thumb .tname{font-size:10px;color:var(--muted);text-align:center;word-break:break-all;line-height:1.2;}
+  #lib-foot{padding:7px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+  #rot-display{font-size:11px;color:var(--muted);text-align:center;}
 
-  /* ── center: canvas ── */
-  #stage { flex: 1; position: relative; overflow: hidden; background: #15181c; }
-  #cv { position: absolute; top: 0; left: 0; }
-  #hint { position: absolute; bottom: 8px; left: 10px; background: rgba(0,0,0,.6); padding: 5px 10px; border-radius: 6px; color: #cfd6df; pointer-events: none; font-size: 11px; }
+  /* center: canvas */
+  #stage{flex:1;position:relative;overflow:hidden;background:#15181c;}
+  #cv{position:absolute;top:0;left:0;cursor:crosshair;}
+  #hint{position:absolute;bottom:8px;left:10px;background:rgba(0,0,0,.6);padding:4px 9px;border-radius:5px;color:#cfd6df;pointer-events:none;font-size:11px;}
 
-  /* ── right: properties ── */
-  #props { width: 200px; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; flex-shrink: 0; }
-  .prop-sec { padding: 10px 12px; border-bottom: 1px solid var(--line); }
-  .prop-sec h3 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
-  .kv { display: flex; justify-content: space-between; margin: 3px 0; font-size: 12px; }
-  .kv .k { color: var(--muted); }
-  .kv .v { font-weight: 500; }
-  #open-list { max-height: 120px; overflow-y: auto; font-size: 11px; color: var(--muted); }
-  #open-list .oc { display: flex; justify-content: space-between; padding: 2px 0; }
-  #open-list .oc button { padding: 1px 5px; font-size: 10px; }
-  #cell-info { padding: 10px 12px; flex: 1; }
-  #cell-info h3 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
-  #ci-tile, #ci-rot { font-size: 12px; margin: 3px 0; }
-  #ci-tile { color: var(--accent); }
+  /* right: props + furniture list */
+  #right{width:240px;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;}
+  .rsec{padding:9px 12px;border-bottom:1px solid var(--line);}
+  .rsec h3{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .kv{display:flex;justify-content:space-between;margin:3px 0;font-size:12px;}
+  .kv .k{color:var(--muted);}
+
+  /* furniture list */
+  #flist-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+  #flist-head{padding:8px 12px 5px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  #flist-head h3{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+  #flist-head span{font-size:11px;color:var(--muted);}
+  #flist{flex:1;overflow-y:auto;}
+  .fitem{padding:7px 12px;border-bottom:1px solid #2a2f37;cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .fitem:hover{background:#2a3038;}
+  .fitem.active{background:#2a2718;border-left:3px solid var(--accent);}
+  .fitem.active{padding-left:9px;}
+  .fitem .fi-name{flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .fitem .fi-bbox{font-size:11px;color:var(--muted);white-space:nowrap;}
+  .fitem .fi-del{padding:2px 6px;font-size:11px;opacity:.6;}
+  .fitem .fi-del:hover{opacity:1;color:var(--bad);}
+  #flist-foot{padding:8px 10px;border-top:1px solid var(--line);display:flex;gap:6px;flex-shrink:0;}
+  #flist-foot button{flex:1;font-size:12px;padding:6px 8px;}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- top bar -->
   <div id="topbar">
     <h1>家具拼装</h1>
     <div class="sep"></div>
-    <label>名称</label>
-    <input type="text" id="fname" placeholder="如 长沙发_opt1" value="furniture_opt1" />
-    <div class="sep"></div>
-    <label>宽 W</label>
-    <input type="number" id="fw" value="4" min="1" max="20" />
-    <label>高 H</label>
-    <input type="number" id="fh" value="2" min="1" max="20" />
+    <label class="lbl">名称</label>
+    <input type="text" id="fname" placeholder="如 长沙发_opt1" style="width:140px" value="furniture_opt1" />
+    <label class="lbl">W</label><input type="number" id="fw" value="4" min="1" max="20" />
+    <label class="lbl">H</label><input type="number" id="fh" value="2" min="1" max="20" />
     <button id="btn-new">新建画布</button>
     <div class="sep"></div>
     <button id="btn-place" class="active">🪑 摆放</button>
     <button id="btn-open">✅ 开放格</button>
     <div class="sep"></div>
-    <button id="btn-export" class="primary">导出 JSON</button>
-    <button id="btn-import">载入</button>
-    <input type="file" id="importfile" accept="application/json" style="display:none" />
-    <button id="btn-clear" class="danger">清空</button>
+    <button id="btn-save" class="green">保存到列表</button>
   </div>
 
   <div id="main">
-    <!-- left library -->
+    <!-- left: tile library -->
     <div id="lib">
-      <div id="lib-header">
+      <div id="lib-top">
         <span>碎片库</span>
         <input type="text" id="lib-search" placeholder="搜索…" />
       </div>
       <div id="lib-grid"></div>
-      <div id="lib-footer">
+      <div id="lib-foot">
         <div id="rot-display">旋转: 0°</div>
         <button id="btn-rot">旋转 90° (R)</button>
       </div>
     </div>
 
-    <!-- canvas stage -->
+    <!-- center: canvas -->
     <div id="stage">
       <canvas id="cv"></canvas>
-      <div id="hint">左键放置 · 右键删除 · R 旋转 · 滚轮缩放 · 空格拖动</div>
+      <div id="hint">左键放置 · 右键删除 · R 旋转待放碎片 · E 旋转已放碎片 · 空格拖动 · 滚轮缩放</div>
     </div>
 
-    <!-- right props -->
-    <div id="props">
-      <div class="prop-sec">
-        <h3>画布</h3>
-        <div class="kv"><span class="k">bbox</span><span class="v" id="p-bbox">—</span></div>
-        <div class="kv"><span class="k">已摆</span><span class="v" id="p-placed">0</span></div>
-        <div class="kv"><span class="k">开放格</span><span class="v" id="p-open">0</span></div>
+    <!-- right -->
+    <div id="right">
+      <!-- current canvas info -->
+      <div class="rsec">
+        <h3>当前画布</h3>
+        <div class="kv"><span class="k">bbox</span><span id="p-bbox">—</span></div>
+        <div class="kv"><span class="k">已摆碎片</span><span id="p-placed">0</span></div>
+        <div class="kv"><span class="k">开放格</span><span id="p-open">0</span></div>
       </div>
-      <div class="prop-sec">
+      <!-- selected cell info -->
+      <div class="rsec">
         <h3>选中格</h3>
-        <div id="ci-tile">—</div>
-        <div id="ci-rot" style="color:var(--muted)">—</div>
-        <div style="margin-top:6px;display:flex;gap:6px">
-          <button id="ci-rot-btn" style="flex:1">旋转</button>
-          <button id="ci-del" class="danger" style="flex:1">删除</button>
+        <div id="ci-tile" style="font-size:12px;color:var(--accent);margin:2px 0">—</div>
+        <div id="ci-rot" style="font-size:12px;color:var(--muted);margin:2px 0">—</div>
+        <div style="margin-top:6px;display:flex;gap:5px">
+          <button id="ci-rot-btn" style="flex:1;font-size:12px">旋转 (E)</button>
+          <button id="ci-del" class="danger" style="flex:1;font-size:12px">删除</button>
         </div>
       </div>
-      <div class="prop-sec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
-        <h3>开放格列表</h3>
-        <div id="open-list"></div>
+      <!-- furniture list -->
+      <div id="flist-wrap">
+        <div id="flist-head">
+          <h3>家具列表</h3>
+          <span id="fcount">0 件</span>
+        </div>
+        <div id="flist"></div>
+        <div id="flist-foot">
+          <button id="btn-export" class="primary">导出 JSON</button>
+          <button id="btn-import">载入</button>
+          <input type="file" id="importfile" accept="application/json" style="display:none" />
+        </div>
       </div>
     </div>
   </div>
@@ -149,19 +153,25 @@
 (() => {
 const TILES_BASE = 'http://localhost:8777/asset/tiles/';
 const TILES_JSON = TILES_BASE + 'tiles.json';
-const LS_KEY = 'assembler-v1';
-const CELL = 100;  // display pixels per grid unit
+const LS_KEY = 'assembler-v2';
+const CELL = 100;
 
-// ── state ──────────────────────────────────────────────────────
+// ── state ──────────────────────────────────────────────
 let tileNames = [];
-let tileImages = {};          // name → HTMLImageElement
+let tileImages = {};
+
 let gridW = 4, gridH = 2;
-let cells = new Map();        // "col,row" → { tile, rotation }
-let openCells = new Set();    // "col,row"
+let cells = new Map();       // "col,row" → {tile, rotation}
+let openCells = new Set();   // "col,row"
 let selectedTile = null;
 let selectedRotation = 0;
 let selectedCell = null;
-let mode = 'place';           // 'place' | 'open'
+let mode = 'place';
+
+// collection: array of saved furniture objects
+let collection = [];
+let editingIndex = -1;       // index in collection being edited (-1 = new)
+
 let scale = 1, offX = 0, offY = 0;
 let panning = false, spaceDown = false, panStart = null;
 let hover = null;
@@ -170,7 +180,7 @@ const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 const stage = document.getElementById('stage');
 
-// ── load tile list ──────────────────────────────────────────────
+// ── init ───────────────────────────────────────────────
 async function init() {
   const resp = await fetch(TILES_JSON);
   tileNames = await resp.json();
@@ -179,70 +189,180 @@ async function init() {
   resize();
   fit();
   render();
+  updateProps();
+  renderFList();
 }
 
-// ── library ─────────────────────────────────────────────────────
+// ── tile library ───────────────────────────────────────
 let libFilter = '';
-document.getElementById('lib-search').oninput = e => { libFilter = e.target.value.toLowerCase(); renderLib(); };
-
+document.getElementById('lib-search').oninput = e => {
+  libFilter = e.target.value.toLowerCase(); renderLib();
+};
 function renderLib() {
   const grid = document.getElementById('lib-grid');
   grid.innerHTML = '';
   tileNames.filter(n => n.toLowerCase().includes(libFilter)).forEach(name => {
     const div = document.createElement('div');
     div.className = 'tile-thumb' + (name === selectedTile ? ' selected' : '');
-    div.innerHTML = `<img src="${TILES_BASE}${name}.png" loading="lazy" /><div class="tname">${name}</div>`;
+    div.innerHTML = `<img src="${TILES_BASE}${name}.png" loading="lazy"/><div class="tname">${name}</div>`;
     div.onclick = () => { selectedTile = name; renderLib(); };
     grid.appendChild(div);
   });
 }
-
 function loadTileImage(name) {
-  if (tileImages[name]) return tileImages[name];
-  const img = new Image();
-  img.onload = () => { tileImages[name] = img; render(); };
-  img.src = `${TILES_BASE}${name}.png`;
-  tileImages[name] = img;
-  return img;
+  if (tileImages[name]?.complete && tileImages[name].naturalWidth) return tileImages[name];
+  if (!tileImages[name]) {
+    const img = new Image();
+    img.onload = () => { tileImages[name] = img; render(); };
+    img.src = `${TILES_BASE}${name}.png`;
+    tileImages[name] = img;
+  }
+  return tileImages[name];
 }
 
-// ── rotation ─────────────────────────────────────────────────────
-document.getElementById('btn-rot').onclick = rotateSelected;
-function rotateSelected() {
+// ── rotation ───────────────────────────────────────────
+document.getElementById('btn-rot').onclick = rotatePending;
+function rotatePending() {
   selectedRotation = (selectedRotation + 90) % 360;
   document.getElementById('rot-display').textContent = `旋转: ${selectedRotation}°`;
 }
 
-// ── mode buttons ─────────────────────────────────────────────────
+// ── mode ───────────────────────────────────────────────
 document.getElementById('btn-place').onclick = () => setMode('place');
-document.getElementById('btn-open').onclick = () => setMode('open');
+document.getElementById('btn-open').onclick  = () => setMode('open');
 function setMode(m) {
   mode = m;
   document.getElementById('btn-place').className = 'button' + (m === 'place' ? ' active' : '');
-  document.getElementById('btn-open').className = 'button' + (m === 'open' ? ' active' : '');
-  document.getElementById('btn-place').classList.toggle('active', m === 'place');
-  document.getElementById('btn-open').classList.toggle('active', m === 'open');
+  document.getElementById('btn-open').className  = 'button' + (m === 'open'  ? ' active' : '');
+  ['btn-place','btn-open'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.toggle('active', (id === 'btn-place') === (m === 'place'));
+  });
 }
 
-// ── new canvas ────────────────────────────────────────────────────
+// ── new canvas ─────────────────────────────────────────
 document.getElementById('btn-new').onclick = () => {
   const w = parseInt(document.getElementById('fw').value) || 4;
   const h = parseInt(document.getElementById('fh').value) || 2;
-  if (w !== gridW || h !== gridH || cells.size > 0) {
-    if (cells.size > 0 && !confirm(`新建 ${w}×${h} 画布，当前数据会清空？`)) return;
-    gridW = w; gridH = h;
-    cells.clear(); openCells.clear(); selectedCell = null;
-    fit(); updateProps(); render(); save();
-  }
+  if (cells.size > 0 && !confirm(`新建 ${w}×${h} 画布，当前未保存的内容会丢失？`)) return;
+  gridW = w; gridH = h;
+  cells.clear(); openCells.clear(); selectedCell = null;
+  editingIndex = -1;
+  fit(); updateProps(); updateCellInfo(null); render(); save();
 };
 
-// ── view ──────────────────────────────────────────────────────────
-function resize() {
-  cv.width = stage.clientWidth; cv.height = stage.clientHeight; render();
+// ── save to collection ────────────────────────────────
+document.getElementById('btn-save').onclick = () => {
+  const name = document.getElementById('fname').value.trim();
+  if (!name) { alert('请先输入家具名称'); return; }
+  const obj = buildFurnitureObj(name);
+  if (editingIndex >= 0) {
+    collection[editingIndex] = obj;
+  } else {
+    // check duplicate name
+    const dup = collection.findIndex(f => f.name === name);
+    if (dup >= 0) {
+      if (!confirm(`列表中已有「${name}」，覆盖？`)) return;
+      collection[dup] = obj;
+      editingIndex = dup;
+    } else {
+      collection.push(obj);
+      editingIndex = collection.length - 1;
+    }
+  }
+  renderFList();
+  save();
+};
+
+function buildFurnitureObj(name) {
+  const tilesArr = [...cells].map(([k, v]) => {
+    const [c, r] = k.split(',').map(Number);
+    return { tile: v.tile, col: c, row: r, rotation: v.rotation };
+  }).sort((a, b) => a.row - b.row || a.col - b.col);
+  const openArr = [...openCells].map(k => {
+    const [c, r] = k.split(',').map(Number); return [r, c]; // [row,col]
+  }).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  return { name, bbox: [gridH, gridW], tiles: tilesArr, open_cells: openArr };
 }
+
+// ── furniture list ─────────────────────────────────────
+function renderFList() {
+  document.getElementById('fcount').textContent = `${collection.length} 件`;
+  const list = document.getElementById('flist');
+  list.innerHTML = '';
+  collection.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'fitem' + (i === editingIndex ? ' active' : '');
+    div.innerHTML = `
+      <span class="fi-name" title="${f.name}">${f.name}</span>
+      <span class="fi-bbox">${f.bbox[1]}×${f.bbox[0]}</span>
+      <button class="fi-del" title="删除">✕</button>`;
+    div.querySelector('.fi-del').onclick = e => {
+      e.stopPropagation();
+      if (!confirm(`删除「${f.name}」？`)) return;
+      if (editingIndex === i) {
+        cells.clear(); openCells.clear(); selectedCell = null;
+        editingIndex = -1; updateProps(); updateCellInfo(null); render();
+      } else if (editingIndex > i) editingIndex--;
+      collection.splice(i, 1);
+      renderFList(); save();
+    };
+    div.onclick = () => loadFurniture(i);
+    list.appendChild(div);
+  });
+}
+
+function loadFurniture(i) {
+  const f = collection[i];
+  document.getElementById('fname').value = f.name;
+  document.getElementById('fw').value = f.bbox[1];
+  document.getElementById('fh').value = f.bbox[0];
+  gridW = f.bbox[1]; gridH = f.bbox[0];
+  cells.clear();
+  (f.tiles || []).forEach(t => cells.set(t.col + ',' + t.row, { tile: t.tile, rotation: t.rotation || 0 }));
+  openCells.clear();
+  (f.open_cells || []).forEach(([r, c]) => openCells.add(c + ',' + r));
+  selectedCell = null; editingIndex = i;
+  fit(); updateProps(); updateCellInfo(null); render(); renderFList();
+}
+
+// ── export / import ────────────────────────────────────
+document.getElementById('btn-export').onclick = () => {
+  if (collection.length === 0) { alert('列表为空，请先保存至少一件家具'); return; }
+  const data = { furniture: collection };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'furniture_collection.json';
+  a.click();
+};
+
+document.getElementById('btn-import').onclick = () => document.getElementById('importfile').click();
+document.getElementById('importfile').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const d = JSON.parse(rd.result);
+      const list = d.furniture || (Array.isArray(d) ? d : null);
+      if (!list) { alert('格式不对，需要 { "furniture": [...] }'); return; }
+      if (collection.length > 0 && !confirm(`载入会替换当前 ${collection.length} 件家具，继续？`)) return;
+      collection = list;
+      editingIndex = -1; cells.clear(); openCells.clear(); selectedCell = null;
+      renderFList(); updateProps(); updateCellInfo(null); render(); save();
+    } catch (err) { alert('解析失败: ' + err); }
+  };
+  rd.readAsText(f);
+  e.target.value = '';
+};
+
+// ── canvas / view ──────────────────────────────────────
+function resize() { cv.width = stage.clientWidth; cv.height = stage.clientHeight; render(); }
+window.addEventListener('resize', resize);
+
 function fit() {
-  const s = Math.min(cv.width / (gridW * CELL), cv.height / (gridH * CELL)) * 0.9;
-  scale = Math.max(0.2, s);
+  const s = Math.min(cv.width / (gridW * CELL), cv.height / (gridH * CELL)) * 0.88;
+  scale = Math.max(0.1, s);
   offX = (cv.width - gridW * CELL * scale) / 2;
   offY = (cv.height - gridH * CELL * scale) / 2;
 }
@@ -251,79 +371,65 @@ const w2sY = wy => wy * scale + offY;
 const s2wX = sx => (sx - offX) / scale;
 const s2wY = sy => (sy - offY) / scale;
 
-// ── render ────────────────────────────────────────────────────────
+// ── render ─────────────────────────────────────────────
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, cv.width, cv.height);
+  const x0 = w2sX(0), y0 = w2sY(0), cw = gridW * CELL * scale, ch = gridH * CELL * scale;
 
-  // checkerboard bg for canvas area
-  const x0 = w2sX(0), y0 = w2sY(0);
-  const cw = gridW * CELL * scale, ch = gridH * CELL * scale;
-  ctx.fillStyle = '#1e2229';
-  ctx.fillRect(x0, y0, cw, ch);
+  ctx.fillStyle = '#1e2229'; ctx.fillRect(x0, y0, cw, ch);
 
-  // placed tiles
+  // tiles
   for (const [key, { tile, rotation }] of cells) {
     const [c, r] = key.split(',').map(Number);
     drawTile(tile, c, r, rotation);
   }
-
-  // open cells overlay
+  // open cells
   ctx.fillStyle = 'rgba(87,201,139,.38)';
   for (const key of openCells) {
     const [c, r] = key.split(',').map(Number);
     ctx.fillRect(w2sX(c * CELL), w2sY(r * CELL), CELL * scale, CELL * scale);
   }
-
-  // grid lines
-  ctx.strokeStyle = 'rgba(160,180,220,.25)'; ctx.lineWidth = 1; ctx.beginPath();
+  // grid
+  ctx.strokeStyle = 'rgba(160,180,220,.22)'; ctx.lineWidth = 1; ctx.beginPath();
   for (let c = 0; c <= gridW; c++) { const x = Math.round(w2sX(c * CELL)) + .5; ctx.moveTo(x, y0); ctx.lineTo(x, y0 + ch); }
-  for (let rr = 0; rr <= gridH; rr++) { const y = Math.round(w2sY(rr * CELL)) + .5; ctx.moveTo(x0, y); ctx.lineTo(x0 + cw, y); }
+  for (let r = 0; r <= gridH; r++) { const y = Math.round(w2sY(r * CELL)) + .5; ctx.moveTo(x0, y); ctx.lineTo(x0 + cw, y); }
   ctx.stroke();
-
   // hover
   if (hover) {
-    ctx.fillStyle = mode === 'open' ? 'rgba(87,201,139,.25)' : 'rgba(100,160,255,.25)';
+    ctx.fillStyle = mode === 'open' ? 'rgba(87,201,139,.22)' : 'rgba(100,160,255,.22)';
     ctx.fillRect(w2sX(hover.col * CELL), w2sY(hover.row * CELL), CELL * scale, CELL * scale);
-    ctx.strokeStyle = mode === 'open' ? '#57c98b' : '#7fd0ff';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = mode === 'open' ? '#57c98b' : '#7fd0ff'; ctx.lineWidth = 2;
     ctx.strokeRect(w2sX(hover.col * CELL), w2sY(hover.row * CELL), CELL * scale, CELL * scale);
   }
-
   // selected cell
   if (selectedCell) {
     const [c, r] = selectedCell.split(',').map(Number);
     ctx.strokeStyle = '#ffb648'; ctx.lineWidth = 3;
     ctx.strokeRect(w2sX(c * CELL) + 1, w2sY(r * CELL) + 1, CELL * scale - 2, CELL * scale - 2);
   }
-
-  // canvas border
-  ctx.strokeStyle = '#3a4049'; ctx.lineWidth = 2;
-  ctx.strokeRect(x0, y0, cw, ch);
+  // border
+  ctx.strokeStyle = '#3a4049'; ctx.lineWidth = 2; ctx.strokeRect(x0, y0, cw, ch);
 }
 
 function drawTile(name, col, row, rotation) {
   const img = loadTileImage(name);
-  if (!img.complete || !img.naturalWidth) return;
-  const cx = w2sX(col * CELL + CELL / 2), cy = w2sY(row * CELL + CELL / 2);
-  const sz = CELL * scale;
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(rotation * Math.PI / 180);
+  if (!img?.complete || !img.naturalWidth) return;
+  const cx = w2sX(col * CELL + CELL / 2), cy = w2sY(row * CELL + CELL / 2), sz = CELL * scale;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotation * Math.PI / 180);
   ctx.drawImage(img, -sz / 2, -sz / 2, sz, sz);
   ctx.restore();
 }
 
-// ── cell from mouse ───────────────────────────────────────────────
+// ── mouse ──────────────────────────────────────────────
 function cellAt(ev) {
   const rect = cv.getBoundingClientRect();
-  const wx = s2wX(ev.clientX - rect.left), wy = s2wY(ev.clientY - rect.top);
-  const c = Math.floor(wx / CELL), r = Math.floor(wy / CELL);
+  const c = Math.floor(s2wX(ev.clientX - rect.left) / CELL);
+  const r = Math.floor(s2wY(ev.clientY - rect.top) / CELL);
   if (c < 0 || r < 0 || c >= gridW || r >= gridH) return null;
   return { col: c, row: r };
 }
 
-// ── mouse events ─────────────────────────────────────────────────
 cv.addEventListener('mousemove', ev => {
   if (panning) { offX = panStart.ox + (ev.clientX - panStart.x); offY = panStart.oy + (ev.clientY - panStart.y); render(); return; }
   const h = cellAt(ev);
@@ -331,72 +437,57 @@ cv.addEventListener('mousemove', ev => {
   if (!same) { hover = h; render(); }
 });
 cv.addEventListener('mouseleave', () => { hover = null; render(); });
-
 cv.addEventListener('mousedown', ev => {
-  if (ev.button === 1 || ev.button === 2 || spaceDown) {
-    if (ev.button !== 2) { panning = true; panStart = { x: ev.clientX, y: ev.clientY, ox: offX, oy: offY }; cv.style.cursor = 'grabbing'; }
-    ev.preventDefault(); return;
-  }
+  if (ev.button === 1 || spaceDown) { panning = true; panStart = { x: ev.clientX, y: ev.clientY, ox: offX, oy: offY }; cv.style.cursor = 'grabbing'; ev.preventDefault(); return; }
   if (ev.button !== 0) return;
   const cell = cellAt(ev); if (!cell) return;
   const key = cell.col + ',' + cell.row;
-
   if (mode === 'open') {
     if (openCells.has(key)) openCells.delete(key); else openCells.add(key);
     updateProps(); render(); save(); return;
   }
-
-  // place mode: click existing cell = select; click empty + tile selected = place
-  if (cells.has(key)) {
-    selectedCell = key;
-    updateCellInfo(key);
-  } else if (selectedTile) {
-    cells.set(key, { tile: selectedTile, rotation: selectedRotation });
-    selectedCell = key;
-    updateCellInfo(key);
-    updateProps(); save();
-  }
+  if (cells.has(key)) { selectedCell = key; updateCellInfo(key); }
+  else if (selectedTile) { cells.set(key, { tile: selectedTile, rotation: selectedRotation }); selectedCell = key; updateCellInfo(key); updateProps(); save(); }
   render();
 });
-
 cv.addEventListener('contextmenu', ev => {
-  ev.preventDefault();
-  if (panning) return;
+  ev.preventDefault(); if (panning) return;
   const cell = cellAt(ev); if (!cell) return;
   const key = cell.col + ',' + cell.row;
   if (cells.has(key)) { cells.delete(key); if (selectedCell === key) { selectedCell = null; updateCellInfo(null); } updateProps(); save(); render(); }
 });
-
-window.addEventListener('mouseup', () => { panning = false; cv.style.cursor = spaceDown ? 'grab' : 'default'; });
+window.addEventListener('mouseup', () => { panning = false; cv.style.cursor = spaceDown ? 'grab' : 'crosshair'; });
 cv.addEventListener('wheel', ev => {
   ev.preventDefault();
   const rect = cv.getBoundingClientRect(), mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
-  const wx = s2wX(mx), wy = s2wY(my);
-  const f = ev.deltaY < 0 ? 1.15 : 1 / 1.15;
-  scale = Math.max(0.1, Math.min(20, scale * f));
-  offX = mx - wx * scale; offY = my - wy * scale;
-  render();
+  const wx = s2wX(mx), wy = s2wY(my), f = ev.deltaY < 0 ? 1.15 : 1 / 1.15;
+  scale = Math.max(0.1, Math.min(20, scale * f)); offX = mx - wx * scale; offY = my - wy * scale; render();
 }, { passive: false });
 
+// ── keyboard ───────────────────────────────────────────
 window.addEventListener('keydown', ev => {
-  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  if (document.activeElement?.tagName === 'INPUT') return;
   if (ev.code === 'Space') { spaceDown = true; cv.style.cursor = 'grab'; ev.preventDefault(); }
-  if (ev.key === 'r' || ev.key === 'R') { rotateSelected(); ev.preventDefault(); }
-  if ((ev.key === 'Delete' || ev.key === 'Backspace') && selectedCell) {
-    cells.delete(selectedCell); selectedCell = null; updateCellInfo(null); updateProps(); save(); render();
-  }
-  // rotate placed tile in selected cell
-  if (ev.key === 'e' || ev.key === 'E') {
-    if (selectedCell && cells.has(selectedCell)) {
-      const c = cells.get(selectedCell);
-      c.rotation = (c.rotation + 90) % 360;
-      updateCellInfo(selectedCell); save(); render();
-    }
-  }
+  if (ev.key === 'r' || ev.key === 'R') rotatePending();
+  if (ev.key === 'e' || ev.key === 'E') rotatePlaced();
+  if (ev.key === 'Delete' || ev.key === 'Backspace') deletePlaced();
 });
-window.addEventListener('keyup', ev => { if (ev.code === 'Space') { spaceDown = false; if (!panning) cv.style.cursor = 'default'; } });
+window.addEventListener('keyup', ev => { if (ev.code === 'Space') { spaceDown = false; if (!panning) cv.style.cursor = 'crosshair'; } });
 
-// ── cell info panel ───────────────────────────────────────────────
+function rotatePlaced() {
+  if (!selectedCell || !cells.has(selectedCell)) return;
+  cells.get(selectedCell).rotation = (cells.get(selectedCell).rotation + 90) % 360;
+  updateCellInfo(selectedCell); save(); render();
+}
+function deletePlaced() {
+  if (!selectedCell) return;
+  cells.delete(selectedCell); selectedCell = null; updateCellInfo(null); updateProps(); save(); render();
+}
+
+document.getElementById('ci-rot-btn').onclick = rotatePlaced;
+document.getElementById('ci-del').onclick = deletePlaced;
+
+// ── cell info ──────────────────────────────────────────
 function updateCellInfo(key) {
   if (!key || !cells.has(key)) {
     document.getElementById('ci-tile').textContent = '—';
@@ -407,93 +498,38 @@ function updateCellInfo(key) {
   document.getElementById('ci-tile').textContent = tile;
   document.getElementById('ci-rot').textContent = `旋转: ${rotation}°`;
 }
-document.getElementById('ci-rot-btn').onclick = () => {
-  if (!selectedCell || !cells.has(selectedCell)) return;
-  const c = cells.get(selectedCell);
-  c.rotation = (c.rotation + 90) % 360;
-  updateCellInfo(selectedCell); save(); render();
-};
-document.getElementById('ci-del').onclick = () => {
-  if (!selectedCell) return;
-  cells.delete(selectedCell); selectedCell = null; updateCellInfo(null); updateProps(); save(); render();
-};
 
-// ── props panel ───────────────────────────────────────────────────
 function updateProps() {
   document.getElementById('p-bbox').textContent = `${gridW}×${gridH}`;
   document.getElementById('p-placed').textContent = cells.size;
   document.getElementById('p-open').textContent = openCells.size;
-  const list = document.getElementById('open-list');
-  list.innerHTML = [...openCells].sort().map(k => {
-    const [c, r] = k.split(',');
-    return `<div class="oc"><span>col${c} row${r}</span><button onclick="toggleOpen('${k}')">×</button></div>`;
-  }).join('');
 }
-window.toggleOpen = key => { openCells.delete(key); updateProps(); render(); save(); };
 
-// ── export ────────────────────────────────────────────────────────
-document.getElementById('btn-export').onclick = () => {
-  const name = document.getElementById('fname').value.trim() || 'furniture';
-  const tilesArr = [...cells].map(([k, v]) => {
-    const [c, r] = k.split(',').map(Number);
-    return { tile: v.tile, col: c, row: r, rotation: v.rotation };
-  }).sort((a, b) => a.row - b.row || a.col - b.col);
-  const openArr = [...openCells].map(k => {
-    const [c, r] = k.split(',').map(Number); return [r, c]; // [row, col] matches furniture_data.yaml
-  }).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  const json = { name, bbox: [gridH, gridW], tiles: tilesArr, open_cells: openArr };
-  const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${name}.json`; a.click();
-};
-
-// ── import ────────────────────────────────────────────────────────
-document.getElementById('btn-import').onclick = () => document.getElementById('importfile').click();
-document.getElementById('importfile').onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    try {
-      const d = JSON.parse(rd.result);
-      if (d.bbox) { gridH = d.bbox[0]; gridW = d.bbox[1]; document.getElementById('fh').value = gridH; document.getElementById('fw').value = gridW; }
-      if (d.name) document.getElementById('fname').value = d.name;
-      cells.clear(); openCells.clear();
-      (d.tiles || []).forEach(t => cells.set(t.col + ',' + t.row, { tile: t.tile, rotation: t.rotation || 0 }));
-      (d.open_cells || []).forEach(([r, c]) => openCells.add(c + ',' + r));
-      selectedCell = null; updateCellInfo(null); updateProps(); fit(); render(); save();
-    } catch (err) { alert('解析失败: ' + err); }
-  };
-  rd.readAsText(f);
-};
-
-// ── clear ─────────────────────────────────────────────────────────
-document.getElementById('btn-clear').onclick = () => {
-  if (!confirm('清空所有碎片和开放格？')) return;
-  cells.clear(); openCells.clear(); selectedCell = null; updateCellInfo(null); updateProps(); render(); save();
-};
-
-// ── localStorage ─────────────────────────────────────────────────
+// ── localStorage ───────────────────────────────────────
 function save() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
-      name: document.getElementById('fname').value, gridW, gridH,
+      gridW, gridH, editingIndex,
+      fname: document.getElementById('fname').value,
       cells: [...cells], openCells: [...openCells],
+      collection,
     }));
-  } catch (e) {}
+  } catch(e) {}
 }
 function loadLS() {
   try {
     const raw = localStorage.getItem(LS_KEY); if (!raw) return;
     const d = JSON.parse(raw);
-    if (d.name) document.getElementById('fname').value = d.name;
     if (d.gridW) { gridW = d.gridW; document.getElementById('fw').value = gridW; }
     if (d.gridH) { gridH = d.gridH; document.getElementById('fh').value = gridH; }
+    if (d.fname) document.getElementById('fname').value = d.fname;
     cells = new Map(d.cells || []);
     openCells = new Set(d.openCells || []);
-    updateProps();
-  } catch (e) {}
+    collection = d.collection || [];
+    editingIndex = d.editingIndex ?? -1;
+  } catch(e) {}
 }
 
-window.addEventListener('resize', () => { resize(); });
 init();
 })();
 </script>
