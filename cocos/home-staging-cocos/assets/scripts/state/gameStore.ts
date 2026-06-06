@@ -4,7 +4,7 @@ import { cardByNumberVariant } from '../core/dataLoader';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology } from '../core/walls';
 import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
 import { audioManager } from '../platform/audio';
-import { loadAudioSettings } from '../platform/audioSettings';
+import { loadAudioSettings, saveAudioSettings } from '../platform/audioSettings';
 import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, type RoomPhase } from './roomFlow';
 
 // PersistedState is unused in v1; declare a stub for type compat.
@@ -246,6 +246,14 @@ function doorEdgeKey(cell: [number, number], edge: 'N' | 'S' | 'E' | 'W'): strin
   }
 }
 
+/** Is grid cell (r,c) an indoor cell in this scenario? */
+function isIndoorCell(scenario: Scenario, r: number, c: number): boolean {
+  if (r < 0 || c < 0) return false;
+  const rows = scenario.grid.ascii.replace(/\n+$/, '').split('\n');
+  const ch = rows[r]?.[c];
+  return !!ch && scenario.grid.legend[ch]?.terrain === 'indoor';
+}
+
 /** The two cells separated by an edge key ("h:r:c" = horizontal edge between
  *  rows r-1 and r at column c; "v:r:c" = vertical edge between columns c-1
  *  and c at row r). Used to derive which room "owns" a wall / window. */
@@ -313,9 +321,17 @@ export const gameStore = createStore<GameState>((set, get) => {
     apply();
   };
 
-  /** Walls/doors/windows/front-door/demolish are locked until the active
-   *  room's furniture is all placed or skipped (the 'construction' phase). */
+  /** Walls/doors/windows/demolish are locked until the active room's furniture
+   *  is all placed or skipped (the 'construction' phase). */
   const constructionLocked = () => getRoomPhase(get()) !== 'construction';
+
+  /** The front door (大门) may be set while building a room (construction
+   *  phase) OR in the final stage after every room is sealed — that final
+   *  stage is where the player places 大门 before 结算. */
+  const frontDoorLocked = () => {
+    const s = get();
+    return getRoomPhase(s) !== 'construction' && !allRoomsSealed(s);
+  };
 
   return {
     ...blank,
@@ -617,11 +633,27 @@ export const gameStore = createStore<GameState>((set, get) => {
 
     toggleWall: (edgeKey) => {
       if (constructionLocked()) return;
-      const { walls, doors, wallPhase, lockedWalls } = get();
+      const { walls, doors, wallPhase, lockedWalls, scenario } = get();
       if (wallPhase !== 'walls') return;
       if (doors[edgeKey]) return;
       const isRemoving = !!walls[edgeKey];
       if (isRemoving && lockedWalls.has(edgeKey)) return;  // sealed room's wall — keep it
+      // A player wall is an INTERIOR partition: both cells it separates must be
+      // indoor. This forbids drawing on the building's exterior outline (one
+      // side outdoor — already a wall) or out in the open (both sides outdoor).
+      if (!isRemoving && scenario) {
+        const [a, b] = edgeAdjacentCells(edgeKey);
+        const aIn = isIndoorCell(scenario, a[0], a[1]);
+        const bIn = isIndoorCell(scenario, b[0], b[1]);
+        if (!aIn || !bIn) {
+          set({
+            lastError: aIn || bIn
+              ? '不能和外墙重叠——内墙只能画在两格室内之间'
+              : '不能在房间外面砌墙',
+          });
+          return;
+        }
+      }
       mutate(() => {
         const next = { ...walls };
         if (next[edgeKey]) delete next[edgeKey];
@@ -690,7 +722,7 @@ export const gameStore = createStore<GameState>((set, get) => {
     },
 
     toggleFrontDoorMode: () => {
-      if (constructionLocked()) return;
+      if (frontDoorLocked()) return;
       set({
         frontDoorMode: !get().frontDoorMode,
         windowMode: false,
@@ -700,7 +732,7 @@ export const gameStore = createStore<GameState>((set, get) => {
     },
 
     setFrontDoor: (edgeKey) => {
-      if (constructionLocked()) return;
+      if (frontDoorLocked()) return;
       const { scenario, placedPieces } = get();
       const forced = scenario?.rules?.front_door?.forced_cells ?? [];
       if (forced.length > 0) {
@@ -1030,11 +1062,13 @@ export const gameStore = createStore<GameState>((set, get) => {
     setBgmMuted: (muted) => {
       set({ bgmMuted: muted });
       audioManager.setBgmMuted(muted);
+      saveAudioSettings({ bgmMuted: muted, sfxMuted: get().sfxMuted });
     },
 
     setSfxMuted: (muted) => {
       set({ sfxMuted: muted });
       audioManager.setSfxMuted(muted);
+      saveAudioSettings({ bgmMuted: get().bgmMuted, sfxMuted: muted });
     },
 
     finishGame: () => mutate(() => set({ gameFinished: true, lastError: null })),
@@ -1061,12 +1095,25 @@ export const gameStore = createStore<GameState>((set, get) => {
         });
         return false;
       }
+      // Require the room to be enclosed: walls must divide the indoor area into
+      // distinct regions. If the whole interior is still one region (no walls
+      // separate this room from the rest), the room is not properly sealed.
+      // Exception: single-room scenarios need no interior walls.
+      if (scenario && scenario.rooms.length > 1) {
+        const regionMap = computeRegions(scenario, walls);
+        if (regionMap.regions.size < 2) {
+          set({ lastError: '请先用墙将房间封闭，再完成该房间。' });
+          return false;
+        }
+      }
       mutate(() => {
         const nextCompleted = new Set(get().completedRoomSlots);
         nextCompleted.add(activeRoomSlot);
-        // Auto-settle once every room is sealed; otherwise auto-advance to the
-        // next un-sealed room so the furniture→construction loop continues
-        // without a separate room picker.
+        // Once every room is sealed we DON'T auto-settle — instead we drop the
+        // active room (activeRoomSlot → null), which puts the bottom panel into
+        // its final "放大门 → 结算" stage. Scoring happens only when the player
+        // presses 结算 (finishGame). Otherwise auto-advance to the next un-sealed
+        // room so the furniture→construction loop continues without a picker.
         const allSealed = !!scenario && scenario.rooms.every((r) => nextCompleted.has(r.slot));
         const nextRoom = scenario?.rooms.find((r) => !nextCompleted.has(r.slot)) ?? null;
         // Lock this room's walls — they're done; the next room can't remove
@@ -1078,7 +1125,6 @@ export const gameStore = createStore<GameState>((set, get) => {
           wallPhase: 'walls',
           windowMode: false,
           lockedWalls,
-          gameFinished: allSealed ? true : get().gameFinished,
           lastError: null,
         });
       });
@@ -1106,6 +1152,19 @@ export const gameStore = createStore<GameState>((set, get) => {
 });
 
 // ────────────────────── selectors ──────────────────────
+
+/** Every room in the scenario is sealed — the game is in its final
+ *  "放大门 → 结算" stage (no active room left to build). */
+export function allRoomsSealed(s: GameState): boolean {
+  if (!s.scenario) return false;
+  return s.scenario.rooms.every((r) => s.completedRoomSlots.has(r.slot));
+}
+
+/** The scenario fixes the front door to a single pre-drawn position — the
+ *  player can't re-place it. */
+export function frontDoorFixed(s: GameState): boolean {
+  return !!s.scenario && autoFrontDoor(s.scenario) !== null;
+}
 
 export function isRoomReadyToSeal(
   scenario: Scenario,
