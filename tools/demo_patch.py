@@ -11,7 +11,7 @@ Revert:
     python tools/demo_patch.py --revert
 """
 
-import json, sys, shutil, random
+import json, sys, shutil, random, uuid as _uuid
 from pathlib import Path
 from PIL import Image
 
@@ -100,6 +100,66 @@ def make_card_entry(opt1_furn: dict, opt2_furn: dict, number: int) -> dict:
     }
 
 
+# ── sprite meta (trimType=none) ───────────────────────────────────────────
+
+def write_sprite_meta(png_path: Path):
+    """Write / update the Cocos .meta file so trimType=none (no stretch distortion)."""
+    meta_path = Path(str(png_path) + '.meta')
+    W, H = Image.open(png_path).size
+    hw, hh = W / 2, H / 2
+
+    if meta_path.exists():
+        d = json.loads(meta_path.read_text(encoding='utf-8'))
+        uid = d.get('uuid', str(_uuid.uuid4()).replace('-', '')[:32])
+    else:
+        uid = str(_uuid.uuid4()).replace('-', '')[:32]
+        d = {
+            'ver': '1.0.27', 'importer': 'image', 'imported': True,
+            'uuid': uid, 'files': ['.json', '.png'],
+            'userData': {'type': 'sprite-frame', 'fixAlphaTransparencyArtifacts': False,
+                         'hasAlpha': True, 'redirect': f'{uid}@6c48a'},
+            'subMetas': {},
+        }
+
+    tex_uuid = f'{uid}@6c48a'
+    sf_uuid  = f'{uid}@f9941'
+
+    d['subMetas']['6c48a'] = {
+        'importer': 'texture', 'uuid': tex_uuid,
+        'displayName': png_path.stem, 'id': '6c48a', 'name': 'texture',
+        'userData': {
+            'wrapModeS': 'clamp-to-edge', 'wrapModeT': 'clamp-to-edge',
+            'imageUuidOrDatabaseUri': uid, 'isUuid': True, 'visible': False,
+            'minfilter': 'linear', 'magfilter': 'linear', 'mipfilter': 'none', 'anisotropy': 0,
+        },
+        'ver': '1.0.22', 'imported': True, 'files': ['.json'], 'subMetas': {},
+    }
+    d['subMetas']['f9941'] = {
+        'importer': 'sprite-frame', 'uuid': sf_uuid,
+        'displayName': png_path.stem, 'id': 'f9941', 'name': 'spriteFrame',
+        'userData': {
+            'trimType': 'none', 'trimThreshold': 1,
+            'rotated': False, 'offsetX': 0, 'offsetY': 0,
+            'trimX': 0, 'trimY': 0, 'width': W, 'height': H,
+            'rawWidth': W, 'rawHeight': H,
+            'borderTop': 0, 'borderBottom': 0, 'borderLeft': 0, 'borderRight': 0,
+            'packable': True, 'pixelsToUnit': 100, 'pivotX': 0.5, 'pivotY': 0.5,
+            'meshType': 0,
+            'vertices': {
+                'rawPosition': [-hw, -hh, 0,  hw, -hh, 0,  -hw, hh, 0,  hw, hh, 0],
+                'indexes':     [0, 1, 2, 2, 1, 3],
+                'uv':          [0, H, W, H, 0, 0, W, 0],
+                'nuv':         [0, 0, 1, 0, 0, 1, 1, 1],
+                'minPos':      [-hw, -hh, 0],
+                'maxPos':      [hw, hh, 0],
+            },
+            'isUuid': True, 'imageUuidOrDatabaseUri': tex_uuid, 'atlasUuid': '',
+        },
+        'ver': '1.0.12', 'imported': True, 'files': ['.json'], 'subMetas': {},
+    }
+    meta_path.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
 # ── revert ─────────────────────────────────────────────────────────────────
 
 def revert():
@@ -157,6 +217,7 @@ def main():
         img = render_furniture(furn)
         out = VEC_DIR / f'{CARD_NUM:02d}_A_opt{i+1}.png'
         img.save(out)
+        write_sprite_meta(out)
         print(f'  rendered → {out.name}  ({img.width}×{img.height})')
 
     # patch furniture_data.json — one card with two options
