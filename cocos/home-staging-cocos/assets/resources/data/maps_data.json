@@ -17,7 +17,13 @@
           "name_zh": "起居室",
           "name_en": "Living room",
           "furniture_numbers": [
-            98
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104
           ]
         },
         {

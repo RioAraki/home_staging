@@ -160,6 +160,9 @@ def write_sprite_meta(png_path: Path):
     meta_path.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding='utf-8')
 
 
+DEMO_BASE = 98   # first demo card number; cards 98, 99, 100, … are all demo slots
+
+
 # ── revert ─────────────────────────────────────────────────────────────────
 
 def revert():
@@ -171,11 +174,15 @@ def revert():
             bak.unlink()
             print(f'  restored {p.name}')
             restored += 1
-    for opt in [1, 2]:
-        png = VEC_DIR / f'98_A_opt{opt}.png'
-        if png.exists():
-            png.unlink()
-            print(f'  removed {png.name}')
+    # remove any demo PNGs (98_A_opt1.png … 120_A_opt2.png range)
+    removed = 0
+    for num in range(DEMO_BASE, DEMO_BASE + 30):
+        for opt in [1, 2]:
+            png = VEC_DIR / f'{num:02d}_A_opt{opt}.png'
+            if png.exists():
+                png.unlink(); removed += 1
+    if removed:
+        print(f'  removed {removed} demo PNG(s)')
     if restored == 0:
         print('nothing to revert (no backups found)')
     else:
@@ -192,43 +199,40 @@ def main():
     if not collection:
         print('furniture_collection.json is empty'); return
 
-    # pick 2
-    names = sys.argv[1:]
-    if names:
-        chosen = []
-        for name in names:
-            f = next((x for x in collection if x['name'] == name), None)
-            if not f:
-                available = [x['name'] for x in collection]
-                print(f'ERROR: "{name}" not found. Available:\n  ' + '\n  '.join(available))
-                return
-            chosen.append(f)
-    else:
-        chosen = random.sample(collection, min(2, len(collection)))
+    # Pair up the whole collection sequentially → one card per pair.
+    # Odd last item gets paired with the first item.
+    pairs = []
+    items = list(collection)
+    while len(items) >= 2:
+        pairs.append((items.pop(0), items.pop(0)))
+    if items:   # one left over
+        pairs.append((items[0], collection[0]))
 
-    print(f'Demo furniture (card #98, opt1 vs opt2):')
-    for i, f in enumerate(chosen):
-        print(f'  opt{i+1}: {f["name"]}  bbox={f["bbox"]}')
+    card_nums = list(range(DEMO_BASE, DEMO_BASE + len(pairs)))
+    print(f'Creating {len(pairs)} demo cards ({card_nums[0]}–{card_nums[-1]}):')
+    for i, (a, b) in enumerate(pairs):
+        print(f'  card {card_nums[i]:02d}: opt1={a["name"]}  opt2={b["name"]}')
 
-    # render PNGs — both options of card 98
-    CARD_NUM = 98
+    # render PNGs
     VEC_DIR.mkdir(parents=True, exist_ok=True)
-    for i, furn in enumerate(chosen):
-        img = render_furniture(furn)
-        out = VEC_DIR / f'{CARD_NUM:02d}_A_opt{i+1}.png'
-        img.save(out)
-        write_sprite_meta(out)
-        print(f'  rendered → {out.name}  ({img.width}×{img.height})')
+    for (a, b), num in zip(pairs, card_nums):
+        for opt_idx, furn in enumerate([a, b], start=1):
+            img = render_furniture(furn)
+            out = VEC_DIR / f'{num:02d}_A_opt{opt_idx}.png'
+            img.save(out)
+            write_sprite_meta(out)
+        print(f'  rendered {num:02d}_A_opt1.png + opt2.png')
 
-    # patch furniture_data.json — one card with two options
+    # patch furniture_data.json
     backup(FURN_JSON)
     fdata = load_json(FURN_JSON)
-    fdata['cards'] = [c for c in fdata['cards'] if c['number'] != CARD_NUM]
-    fdata['cards'].append(make_card_entry(chosen[0], chosen[1], CARD_NUM))
+    fdata['cards'] = [c for c in fdata['cards'] if c['number'] not in card_nums]
+    for (a, b), num in zip(pairs, card_nums):
+        fdata['cards'].append(make_card_entry(a, b, num))
     save_json(FURN_JSON, fdata)
-    print(f'  patched furniture_data.json (card #{CARD_NUM} with 2 options)')
+    print(f'  patched furniture_data.json (+{len(pairs)} demo cards)')
 
-    # patch maps_data.json — first room of training scenario uses only card 98
+    # patch maps_data.json — all demo cards go into room I
     backup(MAPS_JSON)
     mdata = load_json(MAPS_JSON)
     training = next((s for s in mdata['scenarios'] if s['id'] == 'training'), None)
@@ -236,12 +240,12 @@ def main():
         print('WARNING: training scenario not found in maps_data.json')
     else:
         if training['rooms']:
-            training['rooms'][0]['furniture_numbers'] = [CARD_NUM]
+            training['rooms'][0]['furniture_numbers'] = card_nums
             save_json(MAPS_JSON, mdata)
             room_name = training['rooms'][0].get('name_zh', training['rooms'][0]['slot'])
-            print(f'  patched maps_data.json — room "{room_name}" → [98]')
+            print(f'  patched maps_data.json — room "{room_name}" → {card_nums}')
 
-    print('\ndone — refresh Cocos preview (重新打开 scene.scene) to see demo art')
+    print(f'\ndone — {len(pairs)} 轮二选一，等 Cocos 编译后运行预览')
     print('revert anytime:  python tools/demo_patch.py --revert')
 
 
