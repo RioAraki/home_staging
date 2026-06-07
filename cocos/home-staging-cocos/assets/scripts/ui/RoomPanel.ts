@@ -3,7 +3,8 @@ import {
   Graphics, Color, Label, EventTouch, director, input, Input,
 } from 'cc';
 import {
-  gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed, type GameState,
+  gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed,
+  allRoomsSealed, frontDoorFixed, type GameState,
 } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { InputHandler } from './InputHandler';
@@ -64,14 +65,19 @@ export class RoomPanel extends Component {
     this.getInput();
     this.rebuild();
     this.unsub = gameStore.subscribe((s, prev) => {
-      if (s.scenario        !== prev.scenario        ||
-          s.activeRoomSlot  !== prev.activeRoomSlot  ||
-          s.placedCardKeys  !== prev.placedCardKeys  ||
-          s.skippedCardKeys !== prev.skippedCardKeys ||
-          s.selectedOption  !== prev.selectedOption  ||
-          s.wallPhase       !== prev.wallPhase       ||
-          s.windowMode      !== prev.windowMode      ||
-          s.walls           !== prev.walls) {
+      if (s.scenario           !== prev.scenario           ||
+          s.activeRoomSlot     !== prev.activeRoomSlot     ||
+          s.placedCardKeys     !== prev.placedCardKeys     ||
+          s.skippedCardKeys    !== prev.skippedCardKeys    ||
+          s.selectedOption     !== prev.selectedOption     ||
+          s.wallPhase          !== prev.wallPhase          ||
+          s.windowMode         !== prev.windowMode         ||
+          s.walls              !== prev.walls              ||
+          s.completedRoomSlots !== prev.completedRoomSlots ||
+          s.frontDoorEdge      !== prev.frontDoorEdge      ||
+          s.frontDoorMode      !== prev.frontDoorMode      ||
+          s.gameFinished       !== prev.gameFinished ||
+          s.past.length        !== prev.past.length) {
         this.rebuild();
       }
     });
@@ -99,11 +105,14 @@ export class RoomPanel extends Component {
     const s = gameStore.getState();
     const card = currentCard(s);
     if (!card) {
-      if (s.activeRoomSlot && getRoomPhase(s) === 'construction') {
+      if (allRoomsSealed(s) && !s.gameFinished) {
+        this.buildFinishControls(s);
+      } else if (s.activeRoomSlot && getRoomPhase(s) === 'construction') {
         this.buildConstructionControls(s);
       } else {
         this.showHint('请选择一个房间');
       }
+      this.addUndoButton(s);
       return;
     }
 
@@ -129,6 +138,13 @@ export class RoomPanel extends Component {
       () => gameStore.getState().rotateSelection(1));
     this.makeButton(CONFIRM_X, -88, '放置', new Color(80, 160, 90, 255), !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
+    this.addUndoButton(s);
+  }
+
+  private addUndoButton(s: GameState) {
+    const canUndo = s.past.length > 0;
+    this.makeButton(-CONFIRM_X, -88, '撤销', new Color(180, 80, 60, 255), canUndo,
+      () => gameStore.getState().undo());
   }
 
   private makeOption(
@@ -265,9 +281,37 @@ export class RoomPanel extends Component {
       () => gameStore.getState().completeRoom(), 180);
   }
 
-  private showHint(text: string) {
+  /** Final stage, shown once every room is sealed: place the building's
+   *  front door (大门), then settle. Scoring runs ONLY when 结算 is pressed. */
+  private buildFinishControls(s: GameState) {
+    const GREEN = new Color(80, 160, 90, 255);
+    const BLUE = new Color(70, 120, 200, 255);
+    if (!s.frontDoorEdge) {
+      // Front door not placed yet — toggle front-door mode and let the player
+      // tap an exterior edge (handled by InputHandler → setFrontDoor).
+      const label = s.frontDoorMode ? '点外墙设置大门…' : '放大门';
+      this.makeButton(0, 30, label, BLUE, true,
+        () => gameStore.getState().toggleFrontDoorMode(), 240);
+      this.showHint('设置大门后即可结算', -40);
+      return;
+    }
+    // Front door placed → offer 结算. A fixed (scenario-pre-drawn) front door
+    // can't be moved; otherwise allow re-placing it.
+    if (frontDoorFixed(s)) {
+      this.makeButton(0, 0, '结算', GREEN, true,
+        () => gameStore.getState().finishGame(), 200);
+    } else {
+      this.makeButton(-120, 0, '重设大门', BLUE, true,
+        () => gameStore.getState().toggleFrontDoorMode(), 160);
+      this.makeButton(110, 0, '结算', GREEN, true,
+        () => gameStore.getState().finishGame(), 180);
+    }
+  }
+
+  private showHint(text: string, y = 0) {
     const node = new Node('hint');
     this.listContent.addChild(node);
+    node.setPosition(0, y, 0);
     const hint = node.addComponent(Label);
     hint.string = text;
     hint.fontSize = 22;
