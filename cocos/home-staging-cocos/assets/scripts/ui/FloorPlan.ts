@@ -1,8 +1,12 @@
 import { _decorator, Component, Graphics, Node, UITransform, view, Label, Color } from 'cc';
 import { gameStore, getRoomPhase, isActiveRoomEnclosed } from '../state/gameStore';
-import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn } from './LayerRenderer';
+import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn, drawCellWash } from './LayerRenderer';
+import { analyseAccessibility, isRoomAccessible } from '../core/regions';
+import type { RoomSlot } from '../core/types';
 import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
+import { cardByNumberVariant } from '../core/dataLoader';
+import { transformOption } from '../core/geometry';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloorPlan')
@@ -16,15 +20,22 @@ export class FloorPlan extends Component {
 
   private unsub?: () => void;
   private labelsNode?: Node;
+  private blockedLayer?: Node;
+  private inaccessibleLayer?: Node;
 
   start() {
     this.renderAll();
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.scenario !== prev.scenario) this.renderAll();
-      if (s.placedPieces !== prev.placedPieces) { this.rebuildPlacedLayer(); this.redrawWalls(); this.redrawDoors(); }
-      if (s.walls !== prev.walls) { this.redrawWalls(); this.redrawDoors(); }
-      if (s.doors !== prev.doors) { this.redrawDoors(); this.redrawWalls(); }
+      if (s.placedPieces !== prev.placedPieces) { this.rebuildPlacedLayer(); this.redrawWalls(); this.redrawDoors(); this.redrawBlocked(); this.redrawInaccessibleOpen(); }
+      if (s.walls !== prev.walls) { this.redrawWalls(); this.redrawDoors(); this.redrawBlocked(); this.redrawInaccessibleOpen(); }
+      if (s.doors !== prev.doors) { this.redrawDoors(); this.redrawWalls(); this.redrawBlocked(); this.redrawInaccessibleOpen(); }
       if (s.windows !== prev.windows) this.redrawWindows();
+      // The front door punches a gap in the exterior wall (grid bg) and draws
+      // its symbol in the doors layer — redraw both when it changes.
+      if (s.frontDoorEdge !== prev.frontDoorEdge) { this.redrawGrid(); this.redrawDoors(); }
+      // Sealing/un-sealing a room can block a previously-built room.
+      if (s.completedRoomSlots !== prev.completedRoomSlots) this.redrawBlocked();
       // Wall colour depends on enclosure + phase + active room.
       if (s.wallPhase !== prev.wallPhase || s.activeRoomSlot !== prev.activeRoomSlot) {
         this.redrawWalls();
@@ -60,8 +71,7 @@ export class FloorPlan extends Component {
     const s = gameStore.getState();
     if (!s.scenario) return;
     this.applyLayout();
-    const g = this.gridBg?.getComponent(Graphics);
-    if (g) drawGridBg(g, s.scenario);
+    this.redrawGrid();
     const pg = this.preDrawnLayer?.getComponent(Graphics);
     if (pg) drawPreDrawn(pg, s.scenario);
     this.buildLabels();
@@ -69,6 +79,14 @@ export class FloorPlan extends Component {
     this.redrawWalls();
     this.redrawDoors();
     this.redrawWindows();
+    this.redrawBlocked();
+    this.redrawInaccessibleOpen();
+  }
+
+  private redrawGrid() {
+    const s = gameStore.getState();
+    const g = this.gridBg?.getComponent(Graphics);
+    if (g && s.scenario) drawGridBg(g, s.scenario, s.frontDoorEdge);
   }
 
   /** Rebuild the A–P (columns) / 1–16 (rows) axis labels in the grid margins. */
@@ -135,12 +153,182 @@ export class FloorPlan extends Component {
     if (!this.doorsLayer) return;
     const g = this.doorsLayer.getComponent(Graphics);
     const s = gameStore.getState();
-    if (g && s.scenario) drawDoors(g, s.doors, s.scenario, s.walls, s.placedPieces);
+    if (g && s.scenario) drawDoors(g, s.doors, s.scenario, s.walls, s.placedPieces, s.frontDoorEdge);
+  }
+
+  /** Lazily create the blocked-room overlay layer, just below the placed
+   *  pieces so a red wash tints the floor but not the furniture art. */
+  private ensureBlockedLayer(): Graphics | null {
+    if (!this.blockedLayer || !this.blockedLayer.isValid) {
+      this.blockedLayer = new Node('BlockedLayer');
+      this.node.addChild(this.blockedLayer);
+      this.blockedLayer.addComponent(Graphics);
+      if (this.placedLayer && this.placedLayer.isValid) {
+        this.blockedLayer.setSiblingIndex(this.placedLayer.getSiblingIndex());
+      }
+    }
+    return this.blockedLayer.getComponent(Graphics);
+  }
+
+  /** Red-wash every cell of any SEALED room that's now blocked — its door
+   *  opens into another room (default "rooms must be independent" rule), or
+   *  it's cut off from the front door. Mirrors the web's problem-room overlay. */
+  private redrawBlocked() {
+    const g = this.ensureBlockedLayer();
+    if (!g) return;
+    const s = gameStore.getState();
+    if (!s.scenario) { g.clear(); return; }
+    // Only SEALED rooms count as "rooms" for this analysis. A room still being
+    // built has its furniture sitting in the not-yet-subdivided corridor; if we
+    // counted it, a finished room whose door correctly opens into that corridor
+    // would look like it opens "into" the in-progress room and be wrongly
+    // flagged. Walls/doors of unsealed work stay in — only their room identity
+    // is withheld until the room is sealed.
+    const sealedPieces = s.placedPieces.filter((p) => s.completedRoomSlots.has(p.roomSlot));
+    const access = analyseAccessibility(
+      s.scenario, sealedPieces, s.walls, s.doors, s.frontDoorEdge,
+    );
+    const problem = new Set<RoomSlot>();
+    for (const issue of access.doorIssues) {
+      // doorIssues are now only about sealed rooms; ignore any that reference a
+      // room with no sealed pieces (e.g. an in-progress room's stray door).
+      if (s.completedRoomSlots.has(issue.roomSlot)) problem.add(issue.roomSlot);
+    }
+    // Once the front door exists, also flag sealed rooms unreachable from it.
+    if (s.frontDoorEdge) {
+      for (const room of s.scenario.rooms) {
+        if (s.completedRoomSlots.has(room.slot) && !isRoomAccessible(access, room.slot)) {
+          problem.add(room.slot);
+        }
+      }
+    }
+    const cells: string[] = [];
+    for (const slot of problem) {
+      // Only flag rooms the player has finished — a room still being built is
+      // expected to be "open" and shouldn't flash red mid-placement.
+      if (!s.completedRoomSlots.has(slot)) continue;
+      const reg = access.roomToRegion.get(slot);
+      if (reg === undefined) continue;
+      for (const k of access.regionMap.cellsByRegion.get(reg) ?? []) cells.push(k);
+    }
+    drawCellWash(g, cells);
   }
   private redrawWindows() {
     if (!this.windowsLayer) return;
     const g = this.windowsLayer.getComponent(Graphics);
     const s = gameStore.getState();
     if (g && s.scenario) drawWindows(g, s.windows, s.scenario);
+  }
+
+  // ── Inaccessible open-space overlay ──────────────────────────────────────
+
+  private ensureInaccessibleLayer(): Graphics | null {
+    if (!this.inaccessibleLayer || !this.inaccessibleLayer.isValid) {
+      this.inaccessibleLayer = new Node('InaccessibleOpenLayer');
+      this.node.addChild(this.inaccessibleLayer);
+      this.inaccessibleLayer.addComponent(Graphics);
+      // render above placed pieces so dots are always visible
+      if (this.placedLayer && this.placedLayer.isValid) {
+        this.inaccessibleLayer.setSiblingIndex(this.placedLayer.getSiblingIndex() + 1);
+      }
+    }
+    return this.inaccessibleLayer.getComponent(Graphics);
+  }
+
+  /** Red wash on every open-space cell that is walkable but unreachable
+   *  from any door (pre-drawn + player + front door) via walkable floor.
+   *  This fires every time furniture is placed/removed. */
+  private redrawInaccessibleOpen() {
+    const g = this.ensureInaccessibleLayer();
+    if (!g) return;
+    const s = gameStore.getState();
+    if (!s.scenario) { g.clear(); return; }
+
+    // ── 1. build blocked (non-carpet shape) and all open_spaces ──────────
+    const CARPET = 33;
+    const allBlocked = new Set<string>();
+    const allOpenSpaces = new Set<string>();
+    for (const p of s.placedPieces) {
+      const card = cardByNumberVariant(p.number, p.variant);
+      const opt = card?.options.find(o => o.option_index === p.optionIndex);
+      if (!opt) continue;
+      const t = transformOption(opt, p.rotation, p.mirrored);
+      const [or, oc] = p.origin;
+      for (const [sr, sc] of t.shape) {
+        if (p.number !== CARPET) allBlocked.add(`${or + sr},${oc + sc}`);
+      }
+      for (const [sr, sc] of t.open_spaces) allOpenSpaces.add(`${or + sr},${oc + sc}`);
+    }
+    if (allOpenSpaces.size === 0) { g.clear(); return; }
+
+    // ── 2. walkable = indoor cells not blocked ────────────────────────────
+    const walkable = new Set<string>();
+    const ascii = s.scenario.grid.ascii.replace(/\n+$/, '').split('\n');
+    const legend = s.scenario.grid.legend;
+    for (let r = 0; r < ascii.length; r++) {
+      for (let c = 0; c < (ascii[r]?.length ?? 0); c++) {
+        const ch = ascii[r][c];
+        if (ch && legend[ch]?.terrain === 'indoor') {
+          const k = `${r},${c}`;
+          if (!allBlocked.has(k)) walkable.add(k);
+        }
+      }
+    }
+
+    // ── 3. BFS seeds: cells adjacent to any door ─────────────────────────
+    const seeds = new Set<string>();
+    const adjFromEdge = (ek: string) => {
+      const [type, rs, cs] = ek.split(':');
+      const r = parseInt(rs, 10), c = parseInt(cs, 10);
+      const pairs: [number,number][] = type === 'h' ? [[r-1,c],[r,c]] : [[r,c-1],[r,c]];
+      for (const [pr, pc] of pairs) {
+        const k = `${pr},${pc}`;
+        if (walkable.has(k)) seeds.add(k);
+      }
+    };
+    for (const ek of Object.keys(s.doors)) adjFromEdge(ek);
+    if (s.frontDoorEdge) adjFromEdge(s.frontDoorEdge);
+    for (const d of (s.scenario.pre_drawn?.doors ?? [])) {
+      const [dr, dc] = d.cell;
+      const ek = d.edge === 'N' ? `h:${dr}:${dc}`
+               : d.edge === 'S' ? `h:${dr + 1}:${dc}`
+               : d.edge === 'W' ? `v:${dr}:${dc}`
+               :                  `v:${dr}:${dc + 1}`;
+      adjFromEdge(ek);
+    }
+    // fallback: walkable cells bordering outdoor
+    if (seeds.size === 0) {
+      for (const k of walkable) {
+        const [r, c] = k.split(',').map(Number);
+        let borderOut = false;
+        for (const [nr, nc] of [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]) {
+          const ch = ascii[nr]?.[nc];
+          if (!ch || legend[ch]?.terrain !== 'indoor') { borderOut = true; break; }
+        }
+        if (borderOut) seeds.add(k);
+      }
+    }
+
+    // ── 4. BFS through walkable ───────────────────────────────────────────
+    const reachable = new Set<string>(seeds);
+    const queue = [...seeds];
+    while (queue.length) {
+      const curr = queue.shift()!;
+      const [r, c] = curr.split(',').map(Number);
+      for (const [nr, nc] of [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]) {
+        const nk = `${nr},${nc}`;
+        if (walkable.has(nk) && !reachable.has(nk)) {
+          reachable.add(nk);
+          queue.push(nk);
+        }
+      }
+    }
+
+    // ── 5. inaccessible = open_spaces walkable but not reachable ─────────
+    const inaccessible: string[] = [];
+    for (const k of allOpenSpaces) {
+      if (walkable.has(k) && !reachable.has(k)) inaccessible.push(k);
+    }
+    drawCellWash(g, inaccessible, new Color(255, 60, 60, 140));
   }
 }
