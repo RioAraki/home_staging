@@ -21,8 +21,12 @@ export class GameBootstrap extends Component {
     if (!training) { console.error('[bootstrap] training scenario missing'); return; }
 
     gameStore.getState().initRun(training);
+    // Sequential flow needs an active room; auto-select the first one.
+    // (Room-to-room navigation UI is a separate follow-up.)
+    const firstRoom = training.rooms[0];
+    if (firstRoom) gameStore.getState().selectRoom(firstRoom.slot);
     console.log('[bootstrap] store initialized for training:',
-      gameStore.getState().scenario?.title_en);
+      gameStore.getState().scenario?.title_en, 'room:', gameStore.getState().activeRoomSlot);
 
     audioManager.init();
     audioManager.setBgmMuted(gameStore.getState().bgmMuted);

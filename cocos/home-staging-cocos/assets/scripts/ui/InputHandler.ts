@@ -1,23 +1,26 @@
 import { _decorator, Component, EventTouch, Node, Vec3, UITransform } from 'cc';
-import { gameStore } from '../state/gameStore';
+import { gameStore, type SelectedOption } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { validatePlacement } from '../core/validation';
 import { transformOption } from '../core/geometry';
-import { CELL_SIZE, GRID_ROWS, GRID_COLS } from './LayerRenderer';
+import { hitTestLocal, cellAtLocal, type HitResult } from './viewport';
 import { GhostPiece } from './GhostPiece';
 const { ccclass, property } = _decorator;
 
-const EDGE_SLOP = 12;
+export type { HitResult };
 
-export type HitResult =
-  | { kind: 'cell'; row: number; col: number }
-  | { kind: 'edge'; key: string; row: number; col: number; side: 'top'|'right'|'bottom'|'left' }
-  | { kind: 'outside' };
+/** Movement (px) beyond which a touch is treated as a drag, not a tap. */
+const DRAG_THRESHOLD = 10;
 
 @ccclass('InputHandler')
 export class InputHandler extends Component {
   @property(Node)       floorPlan!: Node;
   @property(GhostPiece) ghost!: GhostPiece;
+
+  /** True once the current touch sequence has moved past the threshold. */
+  private movedDuringDrag = false;
+  private startX = 0;
+  private startY = 0;
 
   onLoad() {
     this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
@@ -28,8 +31,12 @@ export class InputHandler extends Component {
   private onTouchStart(e: EventTouch) {
     const s = gameStore.getState();
     if (s.selectedOption) {
+      // Defer: decide tap (rotate / first-position) vs drag (reposition) on
+      // move/end, so a tap meant to rotate doesn't jump the piece.
       e.propagationStopped = true;
-      this.moveGhost(e);
+      this.movedDuringDrag = false;
+      const p = e.getUILocation();
+      this.startX = p.x; this.startY = p.y;
       return;
     }
     const hit = this.hitTest(e);
@@ -61,17 +68,84 @@ export class InputHandler extends Component {
   private onTouchMove(e: EventTouch) {
     if (!gameStore.getState().selectedOption) return;
     e.propagationStopped = true;
-    this.moveGhost(e);
+    if (!this.movedDuringDrag) {
+      const p = e.getUILocation();
+      if (Math.hypot(p.x - this.startX, p.y - this.startY) > DRAG_THRESHOLD) {
+        this.movedDuringDrag = true;
+      }
+    }
+    if (this.movedDuringDrag) this.moveGhost(e);   // drag → ghost follows finger
   }
 
   private onTouchEnd(e: EventTouch) {
     const s = gameStore.getState();
-    if (!s.selectedOption) return;
+    const sel = s.selectedOption;
+    if (!sel) return;
     e.propagationStopped = true;
-    // NOTE: Do NOT auto-place on touch end. Ghost just stays where the user
-    // dragged it. They confirm via the "✓ 放置" button in SelectionStatus.
-    // Rationale: with auto-place, players can't rotate/mirror because any
-    // touch up commits placement.
+    if (this.movedDuringDrag) { this.movedDuringDrag = false; return; }  // was a drag
+
+    // It was a TAP on the plan.
+    const c = this.cellAt(e);
+    if (!c) return;
+    if (!this.ghost.isPositioned()) {
+      this.moveGhost(e);                  // first tap: drop the ghost here
+      return;
+    }
+    if (this.tapOnPiece(c.row, c.col, sel)) {
+      // Tapping any of the piece's cells (occupied OR open-space) rotates it
+      // about the tapped cell, so the cell stays under the finger and repeated
+      // taps spin it in place. Tapping the irregular "missing" cells (or empty
+      // grid) does nothing — moving the piece is drag-only.
+      const newOrigin = this.rotateOriginAround(sel, this.ghost.getOrigin(), c.row, c.col);
+      s.rotateSelection(1);
+      this.ghost.setOrigin(newOrigin[0], newOrigin[1]);
+    }
+  }
+
+  /** Is grid cell (row,col) one of the ghost's cells — occupied OR open-space? */
+  private tapOnPiece(row: number, col: number, sel: SelectedOption): boolean {
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    if (!opt) return false;
+    const t = transformOption(opt, sel.rotation, sel.mirrored);
+    const [or, oc] = this.ghost.getOrigin();
+    const hit = ([r, c]: [number, number]) => or + r === row && oc + c === col;
+    return t.shape.some(hit) || t.open_spaces.some(hit);
+  }
+
+  /**
+   * New origin after a +1 rotation that keeps absolute cell (tapRow,tapCol)
+   * fixed — i.e. rotate the piece about the tapped cell. Mirrors the bbox-cell
+   * transform in core/geometry (mirror-before-rotate, CW 90° steps).
+   */
+  private rotateOriginAround(
+    sel: SelectedOption, origin: [number, number], tapRow: number, tapCol: number,
+  ): [number, number] {
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    if (!opt) return origin;
+    const [H, W] = opt.bbox;
+    const cell = (r: number, c: number, rot: number): [number, number] => {
+      const cm = sel.mirrored ? W - 1 - c : c;        // mirror (about vertical axis)
+      switch (((rot % 4) + 4) % 4) {                  // then CW rotate
+        case 1:  return [cm, H - 1 - r];
+        case 2:  return [H - 1 - r, W - 1 - cm];
+        case 3:  return [W - 1 - cm, r];
+        default: return [r, cm];
+      }
+    };
+    // Which original bbox cell sits under the tap right now?
+    const lr = tapRow - origin[0], lc = tapCol - origin[1];
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        const [tr, tc] = cell(r, c, sel.rotation);
+        if (tr === lr && tc === lc) {
+          const [nr, nc] = cell(r, c, sel.rotation + 1);   // where it lands after +1
+          return [tapRow - nr, tapCol - nc];
+        }
+      }
+    }
+    return origin;
   }
 
   /** Called by SelectionStatus's Place button. Validates first. */
@@ -83,6 +157,10 @@ export class InputHandler extends Component {
     const opt = card?.options.find(o => o.option_index === sel.optionIndex);
     if (!opt) return;
 
+    if (!this.ghost.isPositioned()) {
+      s.setError('把家具拖到户型图上再放置');
+      return;
+    }
     const origin = this.ghost.getOrigin();
     const transformed = transformOption(opt, sel.rotation, sel.mirrored);
     const result = validatePlacement(
@@ -101,11 +179,40 @@ export class InputHandler extends Component {
     s.placeSelected(origin);
   }
 
+  /** Public: drag the ghost to follow a touch — used when dragging an option
+   *  out of the bottom tray onto the plan (the tray node captures that touch,
+   *  so RoomPanel forwards the move events here). */
+  dragGhost(e: EventTouch) { this.moveGhost(e); }
+
   private moveGhost(e: EventTouch) {
-    const hit = this.hitTest(e);
-    if (hit.kind === 'cell') {
-      this.ghost.setOrigin(hit.row, hit.col);
+    // Use the containing cell (NO edge-slop dead-zone) so the ghost tracks the
+    // finger everywhere on the grid, not only in each cell's central 16%.
+    const c = this.cellAt(e);
+    if (!c) {
+      // Dragged off the plan. Once the piece is already on the plan, leaving it
+      // deselects. (Before it's positioned — e.g. mid tray-drag — keep it.)
+      if (this.ghost.isPositioned()) gameStore.getState().clearSelection();
+      return;
     }
+    const sel = gameStore.getState().selectedOption;
+    if (!sel) return;
+    // Centre the piece under the finger so it tracks the touch naturally.
+    const card = cardByNumberVariant(sel.number, sel.variant);
+    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    const t = opt ? transformOption(opt, sel.rotation, sel.mirrored) : null;
+    const offR = t ? Math.floor(t.bbox[0] / 2) : 0;
+    const offC = t ? Math.floor(t.bbox[1] / 2) : 0;
+    this.ghost.setOrigin(c.row - offR, c.col - offC);
+  }
+
+  /** FloorPlan-local point → world-aware grid cell (no edge dead-zone). */
+  private cellAt(e: EventTouch): { row: number; col: number } | null {
+    if (!this.floorPlan) return null;
+    const ui = this.floorPlan.getComponent(UITransform);
+    if (!ui) return null;
+    const world = new Vec3(e.getUILocation().x, e.getUILocation().y, 0);
+    const local = ui.convertToNodeSpaceAR(world);
+    return cellAtLocal(local.x, local.y);
   }
 
   hitTest(e: EventTouch): HitResult {
@@ -114,35 +221,6 @@ export class InputHandler extends Component {
     if (!ui) return { kind: 'outside' };
     const world = new Vec3(e.getUILocation().x, e.getUILocation().y, 0);
     const local = ui.convertToNodeSpaceAR(world);
-    const W = GRID_COLS * CELL_SIZE;
-    const H = GRID_ROWS * CELL_SIZE;
-    const x = local.x + W / 2;
-    const y = H / 2 - local.y;
-    if (x < 0 || y < 0 || x >= W || y >= H) return { kind: 'outside' };
-    const cellX = Math.floor(x / CELL_SIZE);
-    const cellY = Math.floor(y / CELL_SIZE);
-    const lx = x - cellX * CELL_SIZE;
-    const ly = y - cellY * CELL_SIZE;
-    const distTop    = ly;
-    const distBottom = CELL_SIZE - ly;
-    const distLeft   = lx;
-    const distRight  = CELL_SIZE - lx;
-    const minDist = Math.min(distTop, distBottom, distLeft, distRight);
-
-    if (minDist >= EDGE_SLOP) {
-      return { kind: 'cell', row: cellY, col: cellX };
-    }
-    let side: 'top'|'right'|'bottom'|'left';
-    if      (minDist === distTop)    side = 'top';
-    else if (minDist === distBottom) side = 'bottom';
-    else if (minDist === distLeft)   side = 'left';
-    else                              side = 'right';
-
-    let key: string;
-    if      (side === 'top')    key = `h:${cellY}:${cellX}`;
-    else if (side === 'bottom') key = `h:${cellY + 1}:${cellX}`;
-    else if (side === 'left')   key = `v:${cellY}:${cellX}`;
-    else                         key = `v:${cellY}:${cellX + 1}`;
-    return { kind: 'edge', key, row: cellY, col: cellX, side };
+    return hitTestLocal(local.x, local.y);
   }
 }

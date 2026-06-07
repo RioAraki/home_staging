@@ -1,9 +1,16 @@
-import { _decorator, Component, Label, Button, Node } from 'cc';
-import { gameStore } from '../state/gameStore';
+import { _decorator, Component, Label, Button } from 'cc';
 import { InputHandler } from './InputHandler';
-import { styleButton } from './StyledButton';
 const { ccclass, property } = _decorator;
 
+/**
+ * Simplified for now: the bottom action buttons (mirror / skip / confirm) and
+ * the instructional status text are hidden to keep the screen clean. Placement
+ * is committed by lifting the finger after dragging the ghost on the plan
+ * (see InputHandler). Rotation is a horizontal swipe in the chooser.
+ *
+ * The component and its @property bindings are kept so the scene wiring stays
+ * valid; we just hide everything it used to drive.
+ */
 @ccclass('SelectionStatus')
 export class SelectionStatus extends Component {
   @property(Label) statusLabel!: Label;
@@ -13,47 +20,10 @@ export class SelectionStatus extends Component {
   @property(Button) placeBtn!: Button;
   @property(InputHandler) inputHandler!: InputHandler;
 
-  private unsub?: () => void;
-
   start() {
-    if (this.rotateBtn) this.rotateBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().rotateSelection());
-    if (this.mirrorBtn) this.mirrorBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().mirrorSelection());
-    if (this.cancelBtn) this.cancelBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().clearSelection());
-    if (this.placeBtn)  this.placeBtn.node.on(Button.EventType.CLICK,  () => this.inputHandler?.tryPlaceAtGhost());
-    [this.rotateBtn, this.mirrorBtn, this.cancelBtn, this.placeBtn].forEach(styleButton);
-    this.refresh();
-    this.unsub = gameStore.subscribe((s, prev) => {
-      if (s.selectedOption !== prev.selectedOption ||
-          s.lastError      !== prev.lastError      ||
-          s.jokerUsed      !== prev.jokerUsed) {
-        this.refresh();
-      }
-    });
-  }
-
-  onDestroy() { this.unsub?.(); }
-
-  private refresh() {
-    const s = gameStore.getState();
-    const sel = s.selectedOption;
-    const hasSel = !!sel;
-
-    if (this.rotateBtn) this.rotateBtn.interactable = hasSel;
-    if (this.cancelBtn) this.cancelBtn.interactable = hasSel;
-    if (this.placeBtn)  this.placeBtn.interactable  = hasSel;
-    if (this.mirrorBtn) {
-      this.mirrorBtn.interactable = hasSel && !(s.jokerUsed && !sel!.mirrored);
+    for (const b of [this.rotateBtn, this.mirrorBtn, this.cancelBtn, this.placeBtn]) {
+      if (b) b.node.active = false;
     }
-
-    if (!this.statusLabel) return;
-    if (s.lastError) {
-      this.statusLabel.string = `⚠ ${s.lastError}`;
-      return;
-    }
-    if (sel) {
-      this.statusLabel.string = `已选 #${sel.number}${sel.variant} 选项${sel.optionIndex} 旋转${sel.rotation * 90}°${sel.mirrored ? ' 镜像' : ''}`;
-      return;
-    }
-    this.statusLabel.string = '点卡片 → 点选项';
+    if (this.statusLabel) this.statusLabel.string = '';
   }
 }

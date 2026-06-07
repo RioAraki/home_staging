@@ -280,5 +280,85 @@ export function validatePlacement(
     return { valid: false, reason, badCells: badOpen };
   }
 
+  // Connectivity check: placing this piece must not disconnect any room
+  // entrance from the rest of the walkable floor. We gather one cell on
+  // each side of every door (pre-drawn scenario doors + player doors +
+  // front door) and verify they all remain reachable from each other via
+  // indoor cells that aren't covered by non-carpet furniture shape.
+  //
+  // Carpet shape cells ARE walkable, so they're excluded from allBlocked.
+  const allBlocked = new Set(placed.nonCarpetShape);
+  if (!newIsCarpet) {
+    for (const [r, c] of absShape) allBlocked.add(`${r},${c}`);
+  }
+
+  // Build the set of walkable indoor cells after this hypothetical placement.
+  const walkable = new Set<string>();
+  const asciiLines = scenario.grid.ascii.replace(/\n+$/, '').split('\n');
+  const gridLegend = scenario.grid.legend;
+  for (let r = 0; r < asciiLines.length; r++) {
+    for (let c = 0; c < (asciiLines[r]?.length ?? 0); c++) {
+      const ch = asciiLines[r]?.[c];
+      if (ch && gridLegend[ch]?.terrain === 'indoor') {
+        const k = `${r},${c}`;
+        if (!allBlocked.has(k)) walkable.add(k);
+      }
+    }
+  }
+
+  // Collect one walkable cell on each side of each door edge.
+  const adjFromEdge = (edgeKey: string) => {
+    const [type, rStr, cStr] = edgeKey.split(':');
+    const r = parseInt(rStr, 10), c = parseInt(cStr, 10);
+    const pairs: [number, number][] = type === 'h'
+      ? [[r - 1, c], [r, c]]
+      : [[r, c - 1], [r, c]];
+    for (const [pr, pc] of pairs) {
+      const k = `${pr},${pc}`;
+      if (walkable.has(k)) connDoorCells.add(k);
+    }
+  };
+  const connDoorCells = new Set<string>();
+  // player + front door edges are already in doorAdjacentCells; re-derive
+  // from the raw edge strings so we can call adjFromEdge:
+  for (const ek of Object.keys(doors)) adjFromEdge(ek);
+  if (frontDoorEdge) adjFromEdge(frontDoorEdge);
+  // pre-drawn scenario doors
+  for (const d of (scenario.pre_drawn?.doors ?? [])) {
+    const [dr, dc] = d.cell;
+    const ek = d.edge === 'N' ? `h:${dr}:${dc}`
+             : d.edge === 'S' ? `h:${dr + 1}:${dc}`
+             : d.edge === 'W' ? `v:${dr}:${dc}`
+             :                  `v:${dr}:${dc + 1}`;
+    adjFromEdge(ek);
+  }
+
+  const reachable = [...connDoorCells].filter(k => walkable.has(k));
+  if (reachable.length >= 2) {
+    // BFS from the first door-adjacent cell.
+    const visited = new Set<string>([reachable[0]]);
+    const queue = [reachable[0]];
+    while (queue.length) {
+      const curr = queue.shift()!;
+      const [pr, pc] = curr.split(',').map(Number);
+      for (const [nr, nc] of [[pr - 1, pc], [pr + 1, pc], [pr, pc - 1], [pr, pc + 1]]) {
+        const nk = `${nr},${nc}`;
+        if (walkable.has(nk) && !visited.has(nk)) {
+          visited.add(nk);
+          queue.push(nk);
+        }
+      }
+    }
+    for (const dk of reachable) {
+      if (!visited.has(dk)) {
+        return {
+          valid: false,
+          reason: '该位置会堵死房间或走廊入口，无法放置。',
+          badCells: absShape,
+        };
+      }
+    }
+  }
+
   return { valid: true };
 }

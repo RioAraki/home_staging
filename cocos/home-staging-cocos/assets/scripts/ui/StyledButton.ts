@@ -4,7 +4,11 @@ import { Node, Graphics, UITransform, Color, Button } from 'cc';
  * Paints a rounded-rectangle background on a Button node. Call from the owner
  * Component's start(). Idempotent — replaces existing 'Bg' child if present.
  */
-export function styleButton(btn: Button | Node | null | undefined): void {
+export function styleButton(
+  btn: Button | Node | null | undefined,
+  fill: Color = new Color(252, 248, 240, 255),
+  stroke: Color = new Color(30, 40, 60, 200),
+): void {
   if (!btn) return;
   const node = (btn as any).node ?? btn as Node;
   if (!node || !(node as Node).getComponent) return;
@@ -24,9 +28,9 @@ export function styleButton(btn: Button | Node | null | undefined): void {
   const r = Math.min(10, Math.min(w, h) * 0.25);
 
   drawRoundRect(g, -w / 2, h / 2, w, h, r);
-  g.fillColor = new Color(252, 248, 240, 255);
+  g.fillColor = fill;
   g.fill();
-  g.strokeColor = new Color(30, 40, 60, 200);
+  g.strokeColor = stroke;
   g.lineWidth = 1.5;
   drawRoundRect(g, -w / 2, h / 2, w, h, r);
   g.stroke();
