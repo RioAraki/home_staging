@@ -20,7 +20,8 @@ const MAX_FOOTPRINT_CELLS = 4;  // tallest furniture bbox dimension in the data
 const TITLE_Y = (MAX_FOOTPRINT_CELLS * PX_PER_CELL) / 2 + 18;
 const OPT1_X = -250;
 const OPT2_X = 35;
-const CONFIRM_X = 300;
+const CONFIRM_X = 300;    // right column: 旋转 / 放置
+const LEFT_X    = -390;   // left column:  跳过 / 撤销
 
 /**
  * Bottom chooser: the active room's current card shown as its two options,
@@ -130,15 +131,16 @@ export class RoomPanel extends Component {
         isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
       );
     }
-    // Skip / Rotate / Place / Undo stacked in same column (top→bottom).
-    // 80px spacing, buttons are 64px tall → 16px gap between each.
-    this.makeButton(CONFIRM_X,  120, '跳过', new Color(150, 140, 120, 255), true,
+    // Left column: secondary actions (跳过 / 撤销)
+    // Right column: primary actions (旋转 / 放置)
+    // 80px vertical spacing → 16px gap between 64px-tall buttons.
+    this.makeButton(LEFT_X,    40, '跳过', new Color(150, 140, 120, 255), true,
       () => gameStore.getState().skipCard(card.slot, card.slotIdx));
-    this.makeButton(CONFIRM_X,   40, '旋转', new Color(70, 120, 200, 255), !!sel,
+    this.addUndoButton(s, LEFT_X, -40);
+    this.makeButton(CONFIRM_X, 40, '旋转', new Color(70, 120, 200, 255), !!sel,
       () => gameStore.getState().rotateSelection(1));
-    this.makeButton(CONFIRM_X,  -40, '放置', new Color(80, 160, 90, 255), !!sel,
+    this.makeButton(CONFIRM_X, -40, '放置', new Color(80, 160, 90, 255), !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.addUndoButton(s, CONFIRM_X, -120);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
