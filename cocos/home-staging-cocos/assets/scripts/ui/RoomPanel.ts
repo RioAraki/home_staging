@@ -108,11 +108,10 @@ export class RoomPanel extends Component {
       if (allRoomsSealed(s) && !s.gameFinished) {
         this.buildFinishControls(s);
       } else if (s.activeRoomSlot && getRoomPhase(s) === 'construction') {
-        this.buildConstructionControls(s);
+        this.buildConstructionControls(s);  // adds its own undo internally
       } else {
         this.showHint('请选择一个房间');
       }
-      this.addUndoButton(s);
       return;
     }
 
@@ -132,20 +131,20 @@ export class RoomPanel extends Component {
       );
     }
     // Skip / Rotate / Place / Undo stacked in same column (top→bottom).
-    // Tighter spacing (60px) fits 4 buttons in the panel height.
-    this.makeButton(CONFIRM_X,  90, '跳过', new Color(150, 140, 120, 255), true,
+    // 80px spacing, buttons are 64px tall → 16px gap between each.
+    this.makeButton(CONFIRM_X,  120, '跳过', new Color(150, 140, 120, 255), true,
       () => gameStore.getState().skipCard(card.slot, card.slotIdx));
-    this.makeButton(CONFIRM_X,  30, '旋转', new Color(70, 120, 200, 255), !!sel,
+    this.makeButton(CONFIRM_X,   40, '旋转', new Color(70, 120, 200, 255), !!sel,
       () => gameStore.getState().rotateSelection(1));
-    this.makeButton(CONFIRM_X, -30, '放置', new Color(80, 160, 90, 255), !!sel,
+    this.makeButton(CONFIRM_X,  -40, '放置', new Color(80, 160, 90, 255), !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.addUndoButton(s, CONFIRM_X, -90);
+    this.addUndoButton(s, CONFIRM_X, -120);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
     const canUndo = s.past.length > 0;
     this.makeButton(x, y, '撤销', new Color(160, 70, 50, 255), canUndo,
-      () => gameStore.getState().undo(), 90);
+      () => gameStore.getState().undo());   // same default width=110
   }
 
   private makeOption(
