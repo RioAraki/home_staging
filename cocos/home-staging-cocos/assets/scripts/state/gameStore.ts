@@ -1105,9 +1105,11 @@ export const gameStore = createStore<GameState>((set, get) => {
           set({ lastError: '请先用墙将房间封闭，再完成该房间。' });
           return false;
         }
-        // Every furniture piece in this room must lie entirely within one region
-        // (no wall may cut through a piece). Uses the same inline rotation/mirror
-        // transform as the demolish hit-test — we avoid importing transformOption.
+        // Every furniture piece in this room must:
+        // (a) lie entirely within one region (no wall cuts through a piece), AND
+        // (b) all pieces must be in the SAME region (no piece left outside the walls).
+        // Uses the same inline rotation/mirror transform as the demolish hit-test.
+        const roomRegions = new Set<number>();  // one entry per piece (its region)
         for (const p of placedPieces.filter(pp => pp.slot === activeRoomSlot)) {
           const card = cardByNumberVariant(p.number, p.variant);
           const opt = card?.options.find(o => o.option_index === p.optionIndex);
@@ -1129,6 +1131,11 @@ export const gameStore = createStore<GameState>((set, get) => {
             set({ lastError: `家具「${opt.name_zh}」被墙切开了，请调整墙的位置后再完成房间。` });
             return false;
           }
+          for (const r of pieceRegions) roomRegions.add(r);
+        }
+        if (roomRegions.size > 1) {
+          set({ lastError: '部分家具在墙外，请确保所有家具都被包裹在同一个墙围区域内。' });
+          return false;
         }
       }
       mutate(() => {
