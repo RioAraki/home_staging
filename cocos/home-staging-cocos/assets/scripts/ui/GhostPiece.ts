@@ -114,5 +114,36 @@ export class GhostPiece extends Component {
       g.circle(cx, cy, radius);
       g.fill();
     }
+
+    // Highlight existing open-space cells that the ghost's shape would block.
+    // Build the set of world cells the ghost shape occupies.
+    const ghostShapeCells = new Set<string>();
+    for (const [r, c] of t.shape) ghostShapeCells.add(`${or + r},${oc + c}`);
+
+    // For each placed piece, find open_spaces that intersect with ghost shape.
+    const COL_BLOCKED_OPEN_FILL   = new Color(255, 60, 60, 160);
+    const COL_BLOCKED_OPEN_STROKE = new Color(255, 60, 60, 255);
+    for (const p of s.placedPieces) {
+      const pCard = cardByNumberVariant(p.number, p.variant);
+      const pOpt  = pCard?.options.find(o => o.option_index === p.optionIndex);
+      if (!pOpt) continue;
+      const pt = transformOption(pOpt, p.rotation, p.mirrored);
+      for (const [pr, pc] of pt.open_spaces) {
+        const wr = p.origin[0] + pr;
+        const wc = p.origin[1] + pc;
+        if (!ghostShapeCells.has(`${wr},${wc}`)) continue;
+        // This open cell would be blocked — draw a red ring.
+        const cx = edgeX(wc) + cell / 2;
+        const cy = edgeY(wr) - cell / 2;
+        const hr = cell * 0.38;
+        g.fillColor   = COL_BLOCKED_OPEN_FILL;
+        g.strokeColor = COL_BLOCKED_OPEN_STROKE;
+        g.lineWidth   = 2;
+        g.rect(edgeX(wc) + 2, edgeY(wr) - cell + 2, cell - 4, cell - 4);
+        g.fill();
+        g.circle(cx, cy, hr);
+        g.stroke();
+      }
+    }
   }
 }
