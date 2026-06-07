@@ -87,17 +87,22 @@ def make_option(furn: dict, option_index: int) -> dict:
     }
 
 
-def make_card_entry(opt1_furn: dict, opt2_furn: dict, number: int) -> dict:
-    """One card with two options — the game's 二选一 pattern."""
-    return {
+def make_card_entries(opt1_furn: dict, opt2_furn: dict, number: int) -> list:
+    """Two card entries (A and B variant) with the same two options.
+    The game picks a random variant on init; without both variants one
+    variant returns None → silent empty panel."""
+    base = {
         'number':  number,
-        'variant': 'A',
         'image':   '',
         'options': [
             make_option(opt1_furn, 1),
             make_option(opt2_furn, 2),
         ],
     }
+    return [
+        {**base, 'variant': 'A'},
+        {**base, 'variant': 'B'},
+    ]
 
 
 # ── sprite meta (trimType=none) ───────────────────────────────────────────
@@ -228,7 +233,7 @@ def main():
     fdata = load_json(FURN_JSON)
     fdata['cards'] = [c for c in fdata['cards'] if c['number'] not in card_nums]
     for (a, b), num in zip(pairs, card_nums):
-        fdata['cards'].append(make_card_entry(a, b, num))
+        fdata['cards'].extend(make_card_entries(a, b, num))
     save_json(FURN_JSON, fdata)
     print(f'  patched furniture_data.json (+{len(pairs)} demo cards)')
 

@@ -6072,7 +6072,6 @@
     },
     {
       "number": 98,
-      "variant": "A",
       "image": "",
       "options": [
         {
@@ -6153,11 +6152,96 @@
           "wall_edges": [],
           "printed_markers": 0
         }
-      ]
+      ],
+      "variant": "A"
+    },
+    {
+      "number": 98,
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "长沙发",
+          "name_en": "长沙发",
+          "bbox": [
+            2,
+            4
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              0,
+              3
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              1,
+              3
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        },
+        {
+          "option_index": 2,
+          "name_zh": "折叠沙发",
+          "name_en": "折叠沙发",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ],
+      "variant": "B"
     },
     {
       "number": 99,
-      "variant": "A",
       "image": "",
       "options": [
         {
@@ -6238,11 +6322,96 @@
           "wall_edges": [],
           "printed_markers": 0
         }
-      ]
+      ],
+      "variant": "A"
+    },
+    {
+      "number": 99,
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "带有灯的小五斗橱",
+          "name_en": "带有灯的小五斗橱",
+          "bbox": [
+            2,
+            3
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "open_spaces": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        },
+        {
+          "option_index": 2,
+          "name_zh": "带有植物的小五斗橱",
+          "name_en": "带有植物的小五斗橱",
+          "bbox": [
+            2,
+            3
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ],
+      "variant": "B"
     },
     {
       "number": 100,
-      "variant": "A",
       "image": "",
       "options": [
         {
@@ -6310,11 +6479,83 @@
           "wall_edges": [],
           "printed_markers": 0
         }
-      ]
+      ],
+      "variant": "A"
+    },
+    {
+      "number": 100,
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "蓝色玫瑰",
+          "name_en": "蓝色玫瑰",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "open_spaces": [],
+          "wall_edges": [],
+          "printed_markers": 0
+        },
+        {
+          "option_index": 2,
+          "name_zh": "带有植物的小桌子",
+          "name_en": "带有植物的小桌子",
+          "bbox": [
+            2,
+            3
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ],
+      "variant": "B"
     },
     {
       "number": 101,
-      "variant": "A",
       "image": "",
       "options": [
         {
@@ -6387,11 +6628,88 @@
           "wall_edges": [],
           "printed_markers": 0
         }
-      ]
+      ],
+      "variant": "A"
+    },
+    {
+      "number": 101,
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "转角小桌子",
+          "name_en": "转角小桌子",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        },
+        {
+          "option_index": 2,
+          "name_zh": "带有独立灶台的一体厨房",
+          "name_en": "带有独立灶台的一体厨房",
+          "bbox": [
+            2,
+            3
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "open_spaces": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ],
+      "variant": "B"
     },
     {
       "number": 102,
-      "variant": "A",
       "image": "",
       "options": [
         {
@@ -6460,11 +6778,84 @@
           "wall_edges": [],
           "printed_markers": 0
         }
-      ]
+      ],
+      "variant": "A"
+    },
+    {
+      "number": 102,
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "一体直线厨房",
+          "name_en": "一体直线厨房",
+          "bbox": [
+            2,
+            3
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        },
+        {
+          "option_index": 2,
+          "name_zh": "带有洗手设备的马桶",
+          "name_en": "带有洗手设备的马桶",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              0
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ],
+      "variant": "B"
     },
     {
       "number": 103,
-      "variant": "A",
       "image": "",
       "options": [
         {
@@ -6525,11 +6916,76 @@
           "wall_edges": [],
           "printed_markers": 0
         }
-      ]
+      ],
+      "variant": "A"
+    },
+    {
+      "number": 103,
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "带有置物架的马桶",
+          "name_en": "带有置物架的马桶",
+          "bbox": [
+            3,
+            1
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              0
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        },
+        {
+          "option_index": 2,
+          "name_zh": "并排洗手池",
+          "name_en": "并排洗手池",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ],
+      "variant": "B"
     },
     {
       "number": 104,
-      "variant": "A",
       "image": "",
       "options": [
         {
@@ -6594,7 +7050,77 @@
           "wall_edges": [],
           "printed_markers": 0
         }
-      ]
+      ],
+      "variant": "A"
+    },
+    {
+      "number": 104,
+      "image": "",
+      "options": [
+        {
+          "option_index": 1,
+          "name_zh": "带有浴帘的浴缸",
+          "name_en": "带有浴帘的浴缸",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        },
+        {
+          "option_index": 2,
+          "name_zh": "浴缸",
+          "name_en": "浴缸",
+          "bbox": [
+            2,
+            2
+          ],
+          "shape": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              1
+            ]
+          ],
+          "open_spaces": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "wall_edges": [],
+          "printed_markers": 0
+        }
+      ],
+      "variant": "B"
     }
   ]
 }
