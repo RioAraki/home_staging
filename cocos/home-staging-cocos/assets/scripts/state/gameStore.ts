@@ -222,7 +222,36 @@ export function getRoomPhase(s: GameState): RoomPhase {
  */
 export function isActiveRoomEnclosed(s: GameState): boolean {
   if (!s.scenario || !s.activeRoomSlot) return false;
-  return validateWallTopology(s.scenario, s.walls).ok;
+  if (!validateWallTopology(s.scenario, s.walls).ok) return false;
+
+  // For multi-room scenarios, also require that all furniture placed in
+  // the active room sits within a single enclosed region (not split across
+  // wall boundaries, and none left outside the player's walls).
+  if (s.scenario.rooms.length > 1) {
+    const regionMap = computeRegions(s.scenario, s.walls);
+    if (regionMap.regions.size < 2) return false;   // no real enclosure yet
+    const roomRegions = new Set<number>();
+    for (const p of s.placedPieces.filter(pp => pp.slot === s.activeRoomSlot)) {
+      const card = cardByNumberVariant(p.number, p.variant);
+      const opt = card?.options.find(o => o.option_index === p.optionIndex);
+      if (!opt) continue;
+      const [bRows, bCols] = opt.bbox;
+      for (const [sr, sc] of [...opt.shape, ...opt.open_spaces]) {
+        let rr = sr, cc = sc;
+        if (p.mirrored) cc = bCols - 1 - cc;
+        for (let i = 0; i < p.rotation; i++) {
+          const nr = cc;
+          const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
+          rr = nr; cc = nc;
+        }
+        const reg = regionMap.cellToRegion.get(`${p.origin[0] + rr},${p.origin[1] + cc}`);
+        if (reg !== undefined) roomRegions.add(reg);
+      }
+      if (roomRegions.size > 1) return false;  // piece is split by a wall
+    }
+    if (roomRegions.size > 1) return false;   // furniture spans different regions
+  }
+  return true;
 }
 
 /** The card to present right now, or null in construction / no active room. */
