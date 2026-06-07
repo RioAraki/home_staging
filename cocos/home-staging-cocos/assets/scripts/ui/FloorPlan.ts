@@ -296,20 +296,28 @@ export class FloorPlan extends Component {
                :                  `v:${dr}:${dc + 1}`;
       adjFromEdge(ek);
     }
-    // fallback: walkable cells bordering outdoor
+    // fallback: if still no seeds, use ONE arbitrary walkable indoor cell
+    // that isn't itself an open_space (bare floor) as the anchor.
+    // Avoid outdoor-adjacent cells as fallback: those could be enclosed
+    // pockets that share an outdoor edge but are cut off from the rest.
     if (seeds.size === 0) {
       for (const k of walkable) {
-        const [r, c] = k.split(',').map(Number);
-        let borderOut = false;
-        for (const [nr, nc] of [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]) {
-          const ch = ascii[nr]?.[nc];
-          if (!ch || legend[ch]?.terrain !== 'indoor') { borderOut = true; break; }
-        }
-        if (borderOut) seeds.add(k);
+        if (!allOpenSpaces.has(k)) { seeds.add(k); break; }
       }
     }
 
-    // ── 4. BFS through walkable ───────────────────────────────────────────
+    // ── 4. BFS through walkable, respecting player walls ─────────────────
+    // Walls block traversal between adjacent cells. Doors are openings
+    // (their edge has NO wall entry), so BFS passes through them naturally.
+    const isWalled = (r: number, c: number, nr: number, nc: number): boolean => {
+      let edgeKey: string;
+      if      (nr === r - 1) edgeKey = `h:${r}:${c}`;
+      else if (nr === r + 1) edgeKey = `h:${r + 1}:${c}`;
+      else if (nc === c - 1) edgeKey = `v:${r}:${c}`;
+      else                   edgeKey = `v:${r}:${c + 1}`;
+      return !!s.walls[edgeKey];
+    };
+
     const reachable = new Set<string>(seeds);
     const queue = [...seeds];
     while (queue.length) {
@@ -317,7 +325,7 @@ export class FloorPlan extends Component {
       const [r, c] = curr.split(',').map(Number);
       for (const [nr, nc] of [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]) {
         const nk = `${nr},${nc}`;
-        if (walkable.has(nk) && !reachable.has(nk)) {
+        if (walkable.has(nk) && !reachable.has(nk) && !isWalled(r, c, nr, nc)) {
           reachable.add(nk);
           queue.push(nk);
         }
