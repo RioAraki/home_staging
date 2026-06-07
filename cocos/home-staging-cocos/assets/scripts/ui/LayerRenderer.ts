@@ -18,7 +18,8 @@ const COL_OBSTACLE = new Color(100, 100, 100, 255);
 const COL_INDOOR_BORDER = new Color(255, 255, 255, 242);  // thick white outline
 const COL_GRIDLINE = new Color(255, 255, 255, 46);   // faint white pencil
 const COL_WALL     = new Color(255, 255, 255, 235);  // white architectural line
-const COL_DOOR     = new Color(255, 220,  90, 255);  // yellow door
+const COL_DOOR     = new Color(255, 220,  90, 255);  // yellow room door
+const COL_FRONT_DOOR = new Color(255, 170,  60, 255);  // orange building front door (大门)
 const COL_WINDOW   = new Color(168, 216, 238, 255);  // #a8d8ee light blue
 const COL_PREDRAWN = new Color(50,  60,  90,  200);  // slightly lighter navy
 
@@ -27,7 +28,33 @@ const DOOR_WIDTH   = 3;
 const WIN_WIDTH    = 5;
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function drawGridBg(g: Graphics, scenario: Scenario) {
+// Translucent red wash painted over every cell of a blocked / invalid room
+// (e.g. its door opens into another room, breaking the "each room independent"
+// rule) so the violation is impossible to miss. Ported from the web version's
+// problem-room overlay (FloorPlan.tsx).
+const COL_BLOCKED = new Color(255, 80, 80, 80);
+
+/** Fill each "r,c" cell with a translucent wash (default: blocked-room red). */
+export function drawCellWash(
+  g: Graphics, cells: Iterable<string>, color: Color = COL_BLOCKED,
+) {
+  g.clear();
+  const { cell } = layout();
+  g.fillColor = color;
+  let any = false;
+  for (const k of cells) {
+    const [rs, cs] = k.split(',');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    // edgeY(r) is the top of the cell; bottom-left corner is edgeY(r)-cell.
+    g.rect(edgeX(c), edgeY(r) - cell, cell, cell);
+    any = true;
+  }
+  if (any) g.fill();
+}
+
+export function drawGridBg(
+  g: Graphics, scenario: Scenario, frontDoorEdge: string | null = null,
+) {
   g.clear();
 
   const ascii = scenario.grid.ascii.replace(/\n+$/, '').split('\n');
@@ -78,25 +105,27 @@ export function drawGridBg(g: Graphics, scenario: Scenario) {
 
   // 4) Thick white indoor border: for each indoor cell, stroke any side whose
   //    neighbour is not indoor — this traces the floor-plan outline exactly,
-  //    even for non-rectangular rooms.
+  //    even for non-rectangular rooms. The front-door edge is skipped so the
+  //    door symbol shows through a real gap in the exterior wall (the door
+  //    "replaces" that wall segment).
   g.strokeColor = COL_INDOOR_BORDER;
   g.lineWidth = 5;
   for (let r = r0; r < r0 + rows; r++) {
     for (let c = c0; c < c0 + cols; c++) {
       if (!isIndoor(r, c)) continue;
-      if (!isIndoor(r - 1, c)) {  // top
+      if (!isIndoor(r - 1, c) && frontDoorEdge !== `h:${r}:${c}`) {  // top
         g.moveTo(edgeX(c),     edgeY(r));
         g.lineTo(edgeX(c + 1), edgeY(r));
       }
-      if (!isIndoor(r + 1, c)) {  // bottom
+      if (!isIndoor(r + 1, c) && frontDoorEdge !== `h:${r + 1}:${c}`) {  // bottom
         g.moveTo(edgeX(c),     edgeY(r + 1));
         g.lineTo(edgeX(c + 1), edgeY(r + 1));
       }
-      if (!isIndoor(r, c - 1)) {  // left
+      if (!isIndoor(r, c - 1) && frontDoorEdge !== `v:${r}:${c}`) {  // left
         g.moveTo(edgeX(c), edgeY(r));
         g.lineTo(edgeX(c), edgeY(r + 1));
       }
-      if (!isIndoor(r, c + 1)) {  // right
+      if (!isIndoor(r, c + 1) && frontDoorEdge !== `v:${r}:${c + 1}`) {  // right
         g.moveTo(edgeX(c + 1), edgeY(r));
         g.lineTo(edgeX(c + 1), edgeY(r + 1));
       }
@@ -248,10 +277,14 @@ function outwardByRegion(
   return 'right';
 }
 
-/** Player doors — yellow, opening outward (away from the owning room). */
+/** Player doors — yellow, opening outward (away from the owning room). The
+ *  building's front door (大门) is drawn here too, in orange, swinging out
+ *  toward the outdoors — it sits in the gap drawGridBg leaves in the exterior
+ *  wall. */
 export function drawDoors(
   g: Graphics, doors: Record<string, RoomSlot>,
   scenario: Scenario, walls: Record<string, true>, placedPieces: PlacedPiece[],
+  frontDoorEdge: string | null = null,
 ) {
   g.clear();
   const L = layout().cell;
@@ -262,6 +295,12 @@ export function drawDoors(
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
     const out = outwardByRegion(type, r, c, roomToRegion.get(owner), regionMap.cellToRegion);
     drawDoorSymbol(g, type, r, c, L, COL_DOOR, out);
+  }
+  if (frontDoorEdge) {
+    const isIndoor = makeIsIndoor(scenario);
+    const [type, rs, cs] = frontDoorEdge.split(':');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    drawDoorSymbol(g, type, r, c, L, COL_FRONT_DOOR, outwardByTerrain(type, r, c, isIndoor));
   }
 }
 
