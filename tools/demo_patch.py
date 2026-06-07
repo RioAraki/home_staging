@@ -179,13 +179,14 @@ def revert():
             bak.unlink()
             print(f'  restored {p.name}')
             restored += 1
-    # remove any demo PNGs (98_A_opt1.png … 120_A_opt2.png range)
+    # remove any demo PNGs (both A and B variants)
     removed = 0
     for num in range(DEMO_BASE, DEMO_BASE + 30):
-        for opt in [1, 2]:
-            png = VEC_DIR / f'{num:02d}_A_opt{opt}.png'
-            if png.exists():
-                png.unlink(); removed += 1
+        for variant in ['A', 'B']:
+            for opt in [1, 2]:
+                png = VEC_DIR / f'{num:02d}_{variant}_opt{opt}.png'
+                if png.exists():
+                    png.unlink(); removed += 1
     if removed:
         print(f'  removed {removed} demo PNG(s)')
     if restored == 0:
@@ -218,15 +219,17 @@ def main():
     for i, (a, b) in enumerate(pairs):
         print(f'  card {card_nums[i]:02d}: opt1={a["name"]}  opt2={b["name"]}')
 
-    # render PNGs
+    # render PNGs — generate both A and B variants (same art, both needed
+    # because the game picks a random variant per card on each run)
     VEC_DIR.mkdir(parents=True, exist_ok=True)
     for (a, b), num in zip(pairs, card_nums):
         for opt_idx, furn in enumerate([a, b], start=1):
             img = render_furniture(furn)
-            out = VEC_DIR / f'{num:02d}_A_opt{opt_idx}.png'
-            img.save(out)
-            write_sprite_meta(out)
-        print(f'  rendered {num:02d}_A_opt1.png + opt2.png')
+            for variant in ['A', 'B']:
+                out = VEC_DIR / f'{num:02d}_{variant}_opt{opt_idx}.png'
+                img.save(out)
+                write_sprite_meta(out)
+        print(f'  rendered {num:02d}_A/B_opt1+opt2.png')
 
     # patch furniture_data.json
     backup(FURN_JSON)
