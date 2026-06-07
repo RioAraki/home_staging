@@ -131,20 +131,21 @@ export class RoomPanel extends Component {
         isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
       );
     }
-    // Skip / Rotate / Place stacked (top→bottom) to the right of the options.
-    this.makeButton(CONFIRM_X, 88, '跳过', new Color(150, 140, 120, 255), true,
+    // Skip / Rotate / Place / Undo stacked in same column (top→bottom).
+    // Tighter spacing (60px) fits 4 buttons in the panel height.
+    this.makeButton(CONFIRM_X,  90, '跳过', new Color(150, 140, 120, 255), true,
       () => gameStore.getState().skipCard(card.slot, card.slotIdx));
-    this.makeButton(CONFIRM_X, 0, '旋转', new Color(70, 120, 200, 255), !!sel,
+    this.makeButton(CONFIRM_X,  30, '旋转', new Color(70, 120, 200, 255), !!sel,
       () => gameStore.getState().rotateSelection(1));
-    this.makeButton(CONFIRM_X, -88, '放置', new Color(80, 160, 90, 255), !!sel,
+    this.makeButton(CONFIRM_X, -30, '放置', new Color(80, 160, 90, 255), !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.addUndoButton(s);
+    this.addUndoButton(s, CONFIRM_X, -90);
   }
 
-  private addUndoButton(s: GameState) {
+  private addUndoButton(s: GameState, x = 0, y = -80) {
     const canUndo = s.past.length > 0;
-    this.makeButton(-CONFIRM_X, -88, '撤销', new Color(180, 80, 60, 255), canUndo,
-      () => gameStore.getState().undo());
+    this.makeButton(x, y, '撤销', new Color(160, 70, 50, 255), canUndo,
+      () => gameStore.getState().undo(), 90);
   }
 
   private makeOption(
@@ -263,8 +264,9 @@ export class RoomPanel extends Component {
     if (s.wallPhase === 'walls') {
       // Only allow finishing walls once the room is actually sealed.
       const enclosed = isActiveRoomEnclosed(s);
-      this.makeButton(0, 0, '结束砌墙', GREEN, enclosed,
+      this.makeButton(-60, 0, '结束砌墙', GREEN, enclosed,
         () => gameStore.getState().setWallPhase('door'), 200);
+      this.addUndoButton(s, 180, 0);
       return;
     }
     // Door/window step.
@@ -277,8 +279,9 @@ export class RoomPanel extends Component {
     this.makeButton(-90, 0, '窗', isWindow ? HL : DIM, true, () => {
       const st = gameStore.getState(); if (!st.windowMode) st.toggleWindowMode();
     });
-    this.makeButton(110, 0, '完成房间', GREEN, true,
+    this.makeButton(80, 0, '完成房间', GREEN, true,
       () => gameStore.getState().completeRoom(), 180);
+    this.addUndoButton(s, 250, 0);
   }
 
   /** Final stage, shown once every room is sealed: place the building's
