@@ -1105,6 +1105,31 @@ export const gameStore = createStore<GameState>((set, get) => {
           set({ lastError: '请先用墙将房间封闭，再完成该房间。' });
           return false;
         }
+        // Every furniture piece in this room must lie entirely within one region
+        // (no wall may cut through a piece). Uses the same inline rotation/mirror
+        // transform as the demolish hit-test — we avoid importing transformOption.
+        for (const p of placedPieces.filter(pp => pp.slot === activeRoomSlot)) {
+          const card = cardByNumberVariant(p.number, p.variant);
+          const opt = card?.options.find(o => o.option_index === p.optionIndex);
+          if (!opt) continue;
+          const [bRows, bCols] = opt.bbox;
+          const pieceRegions = new Set<number>();
+          for (const [sr, sc] of [...opt.shape, ...opt.open_spaces]) {
+            let rr = sr, cc = sc;
+            if (p.mirrored) cc = bCols - 1 - cc;
+            for (let i = 0; i < p.rotation; i++) {
+              const nr = cc;
+              const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
+              rr = nr; cc = nc;
+            }
+            const reg = regionMap.cellToRegion.get(`${p.origin[0] + rr},${p.origin[1] + cc}`);
+            if (reg !== undefined) pieceRegions.add(reg);
+          }
+          if (pieceRegions.size > 1) {
+            set({ lastError: `家具「${opt.name_zh}」被墙切开了，请调整墙的位置后再完成房间。` });
+            return false;
+          }
+        }
       }
       mutate(() => {
         const nextCompleted = new Set(get().completedRoomSlots);
