@@ -1,7 +1,8 @@
-import { _decorator, Component, resources, JsonAsset } from 'cc';
+import { _decorator, Component, resources, JsonAsset, Node, Canvas, director } from 'cc';
 import { setLoadedData, scenarioById } from '../core/dataLoader';
 import { gameStore } from '../state/gameStore';
 import { audioManager } from '../platform/audio';
+import { AudioControls } from './AudioControls';
 const { ccclass } = _decorator;
 
 @ccclass('GameBootstrap')
@@ -31,6 +32,15 @@ export class GameBootstrap extends Component {
     audioManager.init();
     audioManager.setBgmMuted(gameStore.getState().bgmMuted);
     audioManager.setSfxMuted(gameStore.getState().sfxMuted);
+
+    // Mount the persistent BGM/SFX mute toggles in the top-right corner. Built
+    // in code and parented to the Canvas so no scene wiring is needed.
+    const canvas = director.getScene()?.getComponentInChildren(Canvas);
+    if (canvas && !canvas.node.getChildByName('AudioControls')) {
+      const n = new Node('AudioControls');
+      canvas.node.addChild(n);
+      n.addComponent(AudioControls);
+    }
 
     // Expose to console for manual smoke tests.
     (globalThis as any).gameStore = gameStore;
