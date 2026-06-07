@@ -39,6 +39,7 @@ export class FloorPlan extends Component {
       // Wall colour depends on enclosure + phase + active room.
       if (s.wallPhase !== prev.wallPhase || s.activeRoomSlot !== prev.activeRoomSlot) {
         this.redrawWalls();
+        if (s.wallPhase !== prev.wallPhase) this.redrawInaccessibleOpen();
       }
     });
   }
@@ -237,12 +238,16 @@ export class FloorPlan extends Component {
 
   /** Red wash on every open-space cell that is walkable but unreachable
    *  from any door (pre-drawn + player + front door) via walkable floor.
-   *  This fires every time furniture is placed/removed. */
+   *  Skipped during the wall-drawing phase: open cells may be temporarily
+   *  enclosed while drawing walls; the check resumes once doors are added. */
   private redrawInaccessibleOpen() {
     const g = this.ensureInaccessibleLayer();
     if (!g) return;
     const s = gameStore.getState();
     if (!s.scenario) { g.clear(); return; }
+    // Suppress during wall-drawing: doors haven't been placed yet so any
+    // enclosed open cell would be a false positive.
+    if (s.wallPhase === 'walls') { g.clear(); return; }
 
     // ── 1. build blocked (non-carpet shape) and all open_spaces ──────────
     const CARPET = 33;
