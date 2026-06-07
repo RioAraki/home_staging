@@ -245,9 +245,15 @@ export class FloorPlan extends Component {
     if (!g) return;
     const s = gameStore.getState();
     if (!s.scenario) { g.clear(); return; }
-    // Suppress during wall-drawing: doors haven't been placed yet so any
-    // enclosed open cell would be a false positive.
+    // Suppress during wall-drawing phase — doors haven't been placed yet.
     if (s.wallPhase === 'walls') { g.clear(); return; }
+    // Also suppress during door-placement phase until the player has placed
+    // at least one door for the active room. Before any door exists the
+    // enclosed open cells are expected; only flag them once a door is open.
+    if (s.wallPhase === 'door' && s.activeRoomSlot &&
+        !Object.values(s.doors as Record<string, string>).includes(s.activeRoomSlot)) {
+      g.clear(); return;
+    }
 
     // ── 1. build blocked (non-carpet shape) and all open_spaces ──────────
     const CARPET = 33;
