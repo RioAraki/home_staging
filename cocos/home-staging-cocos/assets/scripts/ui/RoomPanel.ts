@@ -116,6 +116,26 @@ export class RoomPanel extends Component {
       return;
     }
 
+    // ── Room progress badge: "起居室  2 / 3" ────────────────────────────
+    if (s.scenario && s.activeRoomSlot) {
+      const room = s.scenario.rooms.find(r => r.slot === s.activeRoomSlot);
+      if (room) {
+        const total = room.furniture_numbers.length;
+        // Count resolved cards (placed or skipped) for this room.
+        const resolved = room.furniture_numbers.filter((_, i) =>
+          s.placedCardKeys.has(`${s.activeRoomSlot}:${i}`) ||
+          s.skippedCardKeys.has(`${s.activeRoomSlot}:${i}`),
+        ).length;
+        const badgeNode = new Node('RoomBadge');
+        this.listContent.addChild(badgeNode);
+        badgeNode.setPosition(OPT1_X, TITLE_Y + 30, 0);
+        const lbl = badgeNode.addComponent(Label);
+        lbl.string = `${room.name_zh}  ${resolved} / ${total}`;
+        lbl.fontSize = 22;
+        lbl.color = new Color(200, 200, 220, 255);
+      }
+    }
+
     const variant = s.chosenVariants[card.number] ?? 'A';
     const data = cardByNumberVariant(card.number, variant);
     if (!data) return;

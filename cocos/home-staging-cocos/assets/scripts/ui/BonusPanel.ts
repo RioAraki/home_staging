@@ -1,16 +1,88 @@
-import { _decorator, Component, Label } from 'cc';
+import { _decorator, Component, Label, Node, UITransform, Color } from 'cc';
+import { gameStore } from '../state/gameStore';
+import { computeScore } from '../core/scoring';
 const { ccclass, property } = _decorator;
 
 /**
- * Live in-game score is hidden by request (keeps the play screen clean). The
- * final score is shown by EndGameScreen. The @property binding is kept so the
- * scene wiring stays valid; we just hide the label.
+ * Always-visible bonus tracker shown above the floor plan.
+ * Updates in real-time as furniture is placed / walls drawn / doors added.
+ * Each bonus item shows ✓ (earned) or ○ (not yet) with its point value.
  */
 @ccclass('BonusPanel')
 export class BonusPanel extends Component {
   @property(Label) summaryLabel!: Label;
 
+  private unsub?: () => void;
+
   start() {
-    if (this.summaryLabel) this.summaryLabel.node.active = false;
+    // Reposition to top of canvas so it floats above the floor plan.
+    this.node.setPosition(0, 590, 0);
+    const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
+    ui.setContentSize(700, 120);
+
+    if (this.summaryLabel) {
+      this.summaryLabel.node.active = true;
+      this.summaryLabel.fontSize   = 20;
+      this.summaryLabel.lineHeight = 26;
+      this.summaryLabel.overflow   = (Label as any).Overflow?.RESIZE_HEIGHT ?? 2;
+      this.summaryLabel.enableWrapText = true;
+    }
+
+    this.refresh();
+    this.unsub = gameStore.subscribe((s, prev) => {
+      if (s.scenario           !== prev.scenario           ||
+          s.placedPieces       !== prev.placedPieces       ||
+          s.walls              !== prev.walls               ||
+          s.doors              !== prev.doors               ||
+          s.frontDoorEdge      !== prev.frontDoorEdge      ||
+          s.windows            !== prev.windows             ||
+          s.completedRoomSlots !== prev.completedRoomSlots) {
+        this.refresh();
+      }
+    });
+  }
+
+  onDestroy() { this.unsub?.(); }
+
+  private refresh() {
+    if (!this.summaryLabel) return;
+    const s = gameStore.getState();
+    if (!s.scenario) { this.summaryLabel.string = ''; return; }
+
+    try {
+      const result = computeScore(
+        s.scenario,
+        s.placedPieces,
+        s.walls,
+        s.doors,
+        s.frontDoorEdge,
+        s.windows,
+      );
+
+      const lines = result.bonuses.map((b) => {
+        const mark = b.earned ? '✓' : '○';
+        const pts  = b.earned ? `+${b.points}` : `+${b.points}`;
+        return `${mark} ${pts}  ${b.text_zh}`;
+      });
+
+      if (result.bonuses.length === 0) {
+        this.summaryLabel.string = '';
+        return;
+      }
+
+      this.summaryLabel.string = lines.join('\n');
+      // Tint earned lines green, un-earned gray — use a single colour for
+      // the whole label (most scenarios have 1–3 bonuses; mixed colours
+      // require RichText which adds complexity).
+      const allEarned = result.bonuses.every(b => b.earned);
+      const noneEarned = result.bonuses.every(b => !b.earned);
+      this.summaryLabel.color = allEarned
+        ? new Color(100, 220, 130, 255)   // all done → green
+        : noneEarned
+          ? new Color(180, 180, 180, 255) // none done → gray
+          : new Color(255, 210,  80, 255);// partial → yellow
+    } catch {
+      this.summaryLabel.string = '';
+    }
   }
 }
