@@ -32,11 +32,17 @@ export class BonusPanel extends Component {
 
     if (this.summaryLabel) {
       this.summaryLabel.node.active = true;
-      this.summaryLabel.node.setPosition(0, 0, 0);
-      this.summaryLabel.fontSize   = 20;
-      this.summaryLabel.lineHeight = 26;
-      this.summaryLabel.overflow   = (Label as any).Overflow?.RESIZE_HEIGHT ?? 2;
-      this.summaryLabel.enableWrapText = true;
+      this.summaryLabel.node.setPosition(0, -10, 0);
+      this.summaryLabel.fontSize        = 20;
+      this.summaryLabel.lineHeight      = 28;
+      // Disable soft-wrap so each bonus stays on one line; use SHRINK so
+      // long text scales down rather than spilling past the container.
+      this.summaryLabel.enableWrapText  = false;
+      this.summaryLabel.overflow        = (Label as any).Overflow?.SHRINK ?? 2;
+      // Give the label enough horizontal room for the longest bonus line.
+      const lblUi = this.summaryLabel.node.getComponent(UITransform)
+                 ?? this.summaryLabel.node.addComponent(UITransform);
+      lblUi.setContentSize(680, 100);
     }
 
     this.refresh();

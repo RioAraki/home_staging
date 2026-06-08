@@ -3,6 +3,7 @@ import { setLoadedData, scenarioById } from '../core/dataLoader';
 import { gameStore } from '../state/gameStore';
 import { audioManager } from '../platform/audio';
 import { AudioControls } from './AudioControls';
+import { RoomProgressPanel } from './RoomProgressPanel';
 const { ccclass } = _decorator;
 
 @ccclass('GameBootstrap')
@@ -33,13 +34,20 @@ export class GameBootstrap extends Component {
     audioManager.setBgmMuted(gameStore.getState().bgmMuted);
     audioManager.setSfxMuted(gameStore.getState().sfxMuted);
 
-    // Mount the persistent BGM/SFX mute toggles in the top-right corner. Built
-    // in code and parented to the Canvas so no scene wiring is needed.
     const canvas = director.getScene()?.getComponentInChildren(Canvas);
+
+    // Persistent BGM/SFX toggles — bottom-right corner.
     if (canvas && !canvas.node.getChildByName('AudioControls')) {
       const n = new Node('AudioControls');
       canvas.node.addChild(n);
       n.addComponent(AudioControls);
+    }
+
+    // Persistent room-progress panel — top-left corner.
+    if (canvas && !canvas.node.getChildByName('RoomProgressPanel')) {
+      const n = new Node('RoomProgressPanel');
+      canvas.node.addChild(n);
+      n.addComponent(RoomProgressPanel);
     }
 
     // Expose to console for manual smoke tests.
