@@ -9,8 +9,8 @@ import { layout, edgeX, edgeY } from './viewport';
 // background instead (easier to read on mobile). Colours below are tuned for
 // that light-paper look.
 const COL_BG       = new Color(16,  42,  71,  255);  // navy blueprint canvas
-const COL_INDOOR   = new Color(255, 255, 255, 16);   // translucent white fill
-const COL_OUTDOOR  = COL_BG;                          // outdoor blends into canvas
+const COL_INDOOR   = new Color(255, 255, 255, 46);   // translucent white fill (~18% opacity)
+const COL_OUTDOOR  = new Color(0,   0,   0,   72);   // dark overlay on non-playable border cells
 const COL_WATER    = new Color(150, 180, 220, 255);
 const COL_ROAD     = new Color(180, 180, 180, 255);
 const COL_OBSTACLE = new Color(100, 100, 100, 255);
@@ -72,8 +72,8 @@ export function drawGridBg(
   g.rect(edgeX(c0), edgeY(r0 + rows), w, h);
   g.fill();
 
-  // 2) Overlay indoor cells with a translucent white wash (plus any special
-  //    terrain like water/road/obstacle so those stay visible).
+  // 2) Overlay cells: outdoor border cells get a dark wash; indoor/special get
+  //    a translucent white fill so the playable area is clearly brighter.
   for (let r = r0; r < r0 + rows; r++) {
     for (let c = c0; c < c0 + cols; c++) {
       const ch = ascii[r]?.[c] ?? '.';
@@ -81,10 +81,11 @@ export function drawGridBg(
       if (terrain === 'indoor' || terrain === 'water' ||
           terrain === 'road' || terrain === 'obstacle') {
         g.fillColor = fillColorFor(terrain);
-        // edgeY(r) is the top of the cell; bottom-left corner is edgeY(r)-cell.
-        g.rect(edgeX(c), edgeY(r) - cell, cell, cell);
-        g.fill();
+      } else {
+        g.fillColor = COL_OUTDOOR;   // non-indoor border cells are visibly darker
       }
+      g.rect(edgeX(c), edgeY(r) - cell, cell, cell);
+      g.fill();
     }
   }
 

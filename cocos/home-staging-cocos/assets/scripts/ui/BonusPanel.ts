@@ -20,8 +20,19 @@ export class BonusPanel extends Component {
     const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
     ui.setContentSize(700, 120);
 
+    // Title label "奖励目标" above the bonus list.
+    const titleNode = new Node('BonusTitleLabel');
+    this.node.addChild(titleNode);
+    titleNode.setPosition(0, 48, 0);
+    const titleLbl = titleNode.addComponent(Label);
+    titleLbl.string    = '奖励目标';
+    titleLbl.fontSize  = 22;
+    titleLbl.isBold    = true;
+    titleLbl.color     = new Color(255, 225, 105, 255);
+
     if (this.summaryLabel) {
       this.summaryLabel.node.active = true;
+      this.summaryLabel.node.setPosition(0, 0, 0);
       this.summaryLabel.fontSize   = 20;
       this.summaryLabel.lineHeight = 26;
       this.summaryLabel.overflow   = (Label as any).Overflow?.RESIZE_HEIGHT ?? 2;

@@ -18,10 +18,12 @@ const MAX_FOOTPRINT_CELLS = 4;  // tallest furniture bbox dimension in the data
 // Single shared title line for ALL options — sits above the tallest piece so
 // every name aligns horizontally regardless of its image size.
 const TITLE_Y = (MAX_FOOTPRINT_CELLS * PX_PER_CELL) / 2 + 18;
-const OPT1_X = -250;
-const OPT2_X = 35;
-const CONFIRM_X = 300;    // right column: 旋转 / 放置
-const LEFT_X    = -390;   // left column:  跳过 / 撤销
+// Three-column layout with equal inter-column spacing.
+// Options are centred around x=0; buttons sit symmetrically on both sides.
+const OPT1_X    = -120;   // centre of first option slot
+const OPT2_X    =  120;   // centre of second option slot
+const CONFIRM_X =  320;   // right column: 旋转 / 放置
+const LEFT_X    = -320;   // left column:  跳过 / 撤销
 
 /**
  * Bottom chooser: the active room's current card shown as its two options,
@@ -116,23 +118,43 @@ export class RoomPanel extends Component {
       return;
     }
 
-    // ── Room progress badge: "起居室  2 / 3" ────────────────────────────
+    // ── Room header: title + progress, centred above the option slots ───
     if (s.scenario && s.activeRoomSlot) {
       const room = s.scenario.rooms.find(r => r.slot === s.activeRoomSlot);
       if (room) {
         const total = room.furniture_numbers.length;
-        // Count resolved cards (placed or skipped) for this room.
         const resolved = room.furniture_numbers.filter((_, i) =>
           s.placedCardKeys.has(`${s.activeRoomSlot}:${i}`) ||
           s.skippedCardKeys.has(`${s.activeRoomSlot}:${i}`),
         ).length;
+
+        // Background frame spanning both option slots + padding.
+        const FRAME_EXTRA = 20;
+        const frameW = (OPT2_X + SLOT_W / 2) - (OPT1_X - SLOT_W / 2) + FRAME_EXTRA * 2;
+        const frameH = SLOT_H + TITLE_Y + 30 + FRAME_EXTRA;
+        const frameCx = (OPT1_X + OPT2_X) / 2;
+        const frameCy = -TITLE_Y / 2 + 10;
+        const frameNode = new Node('OptionsFrame');
+        this.listContent.addChild(frameNode);
+        frameNode.setPosition(frameCx, frameCy, 0);
+        frameNode.addComponent(UITransform).setContentSize(frameW, frameH);
+        const fg = frameNode.addComponent(Graphics);
+        fg.fillColor = new Color(255, 255, 255, 8);
+        fg.strokeColor = new Color(255, 255, 255, 50);
+        fg.lineWidth = 1.5;
+        fg.roundRect(-frameW / 2, -frameH / 2, frameW, frameH, 10);
+        fg.fill();
+        fg.stroke();
+
+        // Title label centred above the options.
         const badgeNode = new Node('RoomBadge');
         this.listContent.addChild(badgeNode);
-        badgeNode.setPosition(OPT1_X, TITLE_Y + 30, 0);
+        badgeNode.setPosition(frameCx, TITLE_Y + 30, 0);
         const lbl = badgeNode.addComponent(Label);
         lbl.string = `${room.name_zh}  ${resolved} / ${total}`;
-        lbl.fontSize = 22;
-        lbl.color = new Color(200, 200, 220, 255);
+        lbl.fontSize = 24;
+        lbl.isBold = true;
+        lbl.color = new Color(255, 225, 105, 255);
       }
     }
 
