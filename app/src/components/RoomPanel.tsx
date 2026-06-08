@@ -79,9 +79,11 @@ export function RoomPanel({ rooms }: RoomPanelProps) {
             {},
           );
           const isCollapsed = collapsed.has(room.slot);
-          // Force-expanded when active: you can't seal a room without seeing
-          // its cards. Otherwise honour the collapse toggle.
           const showDetails = isActive ? true : !isCollapsed;
+          const totalCards = room.furniture_numbers.length;
+          const placedCount = room.furniture_numbers.filter((_, idx) =>
+            placedCardKeys.has(instanceKey(room.slot, idx))
+          ).length;
           return (
             <li
               key={room.slot}
@@ -103,6 +105,7 @@ export function RoomPanel({ rooms }: RoomPanelProps) {
                   <span className="room-name">
                     {room.name_zh} <span className="room-name-en">({room.name_en})</span>
                   </span>
+                  <span className="room-progress">{placedCount}/{totalCards}</span>
                   <span className="room-state">{stateLabel}</span>
                 </button>
                 <button

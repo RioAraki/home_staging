@@ -50,7 +50,16 @@ export function SelectionStatus() {
 
   return (
     <div className={`selection-status ${isMirrored ? 'mirroring' : ''}`}>
-      <div className="sel-label">Selected:</div>
+      {/* Left column: skip + cancel */}
+      <div className="sel-actions sel-actions-left">
+        <button type="button" className="sel-skip" onClick={skipSelected} title="Skip this card">
+          ⤿ Skip card
+        </button>
+        <button type="button" className="sel-clear" onClick={clearSelection}>
+          Cancel
+        </button>
+      </div>
+      {/* Center column: piece preview */}
       <div className="sel-piece">
         <FurnitureShape
           option={rawOption}
@@ -69,7 +78,8 @@ export function SelectionStatus() {
           </span>
         </div>
       </div>
-      <div className="sel-actions">
+      {/* Right column: rotate + mirror */}
+      <div className="sel-actions sel-actions-right">
         <button type="button" className="sel-rotate" onClick={rotateSelection} title="Rotate (R)">
           ↻ Rotate
         </button>
@@ -88,14 +98,8 @@ export function SelectionStatus() {
         >
           {jokerDisabled ? '💡✕' : isMirrored ? '💡 Cancel mirror' : '💡 Mirror'}
         </button>
-        <button type="button" className="sel-skip" onClick={skipSelected} title="Skip this card">
-          ⤿ Skip card
-        </button>
-        <button type="button" className="sel-clear" onClick={clearSelection}>
-          Cancel
-        </button>
       </div>
-      {showLocalError && <div className="sel-error">{lastError}</div>}
+      {showLocalError && <div className="sel-error" style={{ gridColumn: '1 / -1' }}>{lastError}</div>}
     </div>
   );
 }

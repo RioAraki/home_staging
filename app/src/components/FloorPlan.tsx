@@ -718,6 +718,21 @@ export function FloorPlan({ scenario, cellSize = 48 }: FloorPlanProps) {
           ))}
         </g>
 
+        {/* Outdoor wash — cells outside the building get a darker tint so
+            the playable indoor area is immediately obvious. */}
+        <g className="outdoor-cells" transform={`translate(${labelGap}, ${labelGap})`}>
+          {(() => {
+            const indoorSet = new Set(indoorCells.map(([r, c]) => `${r},${c}`));
+            return Array.from({ length: rows }, (_, r) =>
+              Array.from({ length: cols }, (__, c) =>
+                indoorSet.has(`${r},${c}`) ? null : (
+                  <rect key={`out-${r}-${c}`} x={c * cellSize} y={r * cellSize} width={cellSize} height={cellSize} className="outdoor" />
+                )
+              )
+            );
+          })()}
+        </g>
+
         <g className="indoor-cells" transform={`translate(${labelGap}, ${labelGap})`}>
           {indoorCells.map(([r, c]) => (
             <rect key={`${r}-${c}`} x={c * cellSize} y={r * cellSize} width={cellSize} height={cellSize} className="indoor" />

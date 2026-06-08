@@ -32,9 +32,16 @@
   user-select: none;
 }
 
-/* Indoor cell fill (very faint, just enough to show the room) */
+/* Indoor cell fill — noticeably brighter than the outdoor wash */
 .floor-plan .indoor {
-  fill: rgba(255, 255, 255, 0.10);
+  fill: rgba(255, 255, 255, 0.18);
+}
+
+/* Outdoor cell wash — darker overlay on non-playable cells so the
+   indoor boundary is immediately clear */
+.floor-plan .outdoor {
+  fill: rgba(0, 0, 0, 0.28);
+  pointer-events: none;
 }
 
 /* Exterior wall — thick, white, sketchy */

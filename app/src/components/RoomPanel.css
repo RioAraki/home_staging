@@ -115,6 +115,24 @@
   font-size: 0.9rem;
 }
 
+.room-progress {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(255, 225, 105, 0.12);
+  border: 1px solid rgba(255, 225, 105, 0.3);
+  border-radius: 10px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.room-item.completed .room-progress {
+  color: rgba(120, 220, 120, 0.95);
+  background: rgba(120, 220, 120, 0.10);
+  border-color: rgba(120, 220, 120, 0.4);
+}
+
 .room-state {
   font-size: 0.75rem;
   color: var(--pen-soft);
@@ -130,6 +148,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  padding: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .card-wrap {

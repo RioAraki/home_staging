@@ -127,7 +127,6 @@ function App() {
             </select>
           </p>
         </div>
-        <Toolbar />
       </header>
       <main className="app-main">
         <div className="sidebar">
@@ -143,6 +142,9 @@ function App() {
         </div>
       </main>
       <EndGameScreen scenario={scenario} />
+      <div className="toolbar-overlay">
+        <Toolbar />
+      </div>
     </div>
   );
 }

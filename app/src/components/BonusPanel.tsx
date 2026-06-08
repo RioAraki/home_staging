@@ -84,7 +84,7 @@ export function BonusPanel({ scenario }: Props) {
   return (
     <aside className="bonus-panel">
       <div className="bonus-title">
-        🎯 Bonus goals
+        奖励目标
         <span className="bonus-running">
           {earnedTotal}<span className="bonus-running-max"> / +{maxTotal}</span>
         </span>
