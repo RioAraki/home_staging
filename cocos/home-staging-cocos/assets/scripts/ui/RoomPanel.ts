@@ -264,9 +264,10 @@ export class RoomPanel extends Component {
       imgUi.setContentSize(w, h);
       const fw = w + FRAME_PAD * 2, fh = h + FRAME_PAD * 2;
       fg.clear();
-      // Dark navy fill so the white line-art reads; lighter stroke when selected.
-      fg.fillColor = new Color(16, 42, 71, 255);
-      fg.strokeColor = selected ? new Color(255, 225, 105, 255) : new Color(120, 150, 185, 255);
+      // Brighter navy fill so the white line-art reads on a lighter ground;
+      // lighter stroke when selected.
+      fg.fillColor = new Color(40, 78, 120, 255);
+      fg.strokeColor = selected ? new Color(255, 225, 105, 255) : new Color(140, 175, 210, 255);
       fg.lineWidth = selected ? 4 : 2;
       fg.rect(-fw / 2, -fh / 2, fw, fh);
       fg.fill();
