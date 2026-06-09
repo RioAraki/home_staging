@@ -319,6 +319,68 @@ export class EndGameScreen extends Component {
     btnLbl.fontSize = 22;
     btnLbl.color    = C_WHITE;
 
-    btn.on(Node.EventType.TOUCH_END, () => gameStore.getState().unfinishGame());
+    btn.on(Node.EventType.TOUCH_END, () => {
+      // Full reset: re-roll variants + clear all placed pieces/walls/doors/windows.
+      const store = gameStore.getState();
+      const scenario = store.scenario;
+      store.resetCurrentScenario();
+      // Auto-select the first room so the player can start immediately.
+      if (scenario?.rooms[0]) {
+        gameStore.getState().selectRoom(scenario.rooms[0].slot);
+      }
+    });
+
+    // ── "隐藏" button — top-right of card, lets player review the floor plan ──
+    const hideBtn = new Node('hideBtn');
+    card.addChild(hideBtn);
+    hideBtn.setPosition(CARD_W / 2 - PAD - 28, cardH / 2 - PAD - 16, 0);
+    hideBtn.addComponent(UITransform).setContentSize(64, 28);
+    const hideBtnG = hideBtn.addComponent(Graphics);
+    hideBtnG.fillColor = new Color(255, 255, 255, 18);
+    hideBtnG.strokeColor = new Color(255, 255, 255, 50);
+    hideBtnG.lineWidth = 1;
+    hideBtnG.roundRect(-32, -14, 64, 28, 6);
+    hideBtnG.fill();
+    hideBtnG.stroke();
+    const hideLblNode = new Node();
+    hideBtn.addChild(hideLblNode);
+    const hideLbl = hideLblNode.addComponent(Label);
+    hideLbl.string   = '隐藏';
+    hideLbl.fontSize = 16;
+    hideLbl.color    = C_SOFT;
+
+    // Floating "查看得分 ▲" pill shown when card is hidden.
+    const pill = new Node('scorepill');
+    overlay.addChild(pill);
+    pill.active = false;
+    pill.addComponent(UITransform).setContentSize(130, 44);
+    const pillWidget = pill.addComponent(Widget);
+    pillWidget.isAlignBottom = true;
+    pillWidget.isAlignRight  = true;
+    pillWidget.bottom = 80;
+    pillWidget.right  = 16;
+    pillWidget.alignMode = Widget.AlignMode.ON_WINDOW_RESIZE;
+    const pillG = pill.addComponent(Graphics);
+    pillG.fillColor   = new Color(12, 28, 55, 230);
+    pillG.strokeColor = new Color(255, 225, 105, 160);
+    pillG.lineWidth   = 1.5;
+    pillG.roundRect(-65, -22, 130, 44, 10);
+    pillG.fill();
+    pillG.stroke();
+    const pillLblNode = new Node();
+    pill.addChild(pillLblNode);
+    const pillLbl = pillLblNode.addComponent(Label);
+    pillLbl.string   = '查看得分 ▲';
+    pillLbl.fontSize = 18;
+    pillLbl.color    = C_TITLE;
+
+    hideBtn.on(Node.EventType.TOUCH_END, () => {
+      card.active = false;
+      pill.active = true;
+    });
+    pill.on(Node.EventType.TOUCH_END, () => {
+      card.active = true;
+      pill.active = false;
+    });
   }
 }

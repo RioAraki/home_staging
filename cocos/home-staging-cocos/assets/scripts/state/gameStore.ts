@@ -778,8 +778,7 @@ export const gameStore = createStore<GameState>((set, get) => {
         );
         if (!allowed) {
           set({
-            lastError:
-              'This scenario forces the front door to specific cells — pick one of the highlighted edges.',
+            lastError: '该方案要求大门只能放在指定位置，请选择高亮的边。',
             frontDoorMode: false,
           });
           return;
@@ -844,7 +843,7 @@ export const gameStore = createStore<GameState>((set, get) => {
         const blocker = adj.find(([rr, cc]) => occupied.has(`${rr},${cc}`));
         if (blocker) {
           set({
-            lastError: `Cell ${blocker[0] + 1}${String.fromCharCode(65 + blocker[1])} is blocked by furniture — the cells behind the door must stay open. Withdraw that piece first.`,
+            lastError: `${blocker[0] + 1}${String.fromCharCode(65 + blocker[1])} 格被家具占据，大门后方必须保持空格，请先撤回该家具。`,
             frontDoorMode: false,
           });
           return;
