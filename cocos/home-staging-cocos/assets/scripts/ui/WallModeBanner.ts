@@ -22,8 +22,8 @@ export class WallModeBanner extends Component {
 
   private refresh() {
     const s = gameStore.getState();
-    if (s.frontDoorMode) this.set('点外墙 edge 设前门');
-    else if (s.windowMode) this.set('点外墙 edge 加/移除窗');
+    if (s.frontDoorMode) this.set('点击外墙放置大门');
+    else if (s.windowMode) this.set('点击外墙添加/移除窗户');
     else if (s.demolishMode) this.set('点家具 / 墙 / 门 / 窗 拆除');
     else if (this.node) this.node.active = false;
   }

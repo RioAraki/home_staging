@@ -1,4 +1,4 @@
-import { _decorator, Component, Label, Node, UITransform, Color } from 'cc';
+import { _decorator, Component, Label, Node, UITransform, Color, Widget } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { computeScore } from '../core/scoring';
 const { ccclass, property } = _decorator;
@@ -15,34 +15,39 @@ export class BonusPanel extends Component {
   private unsub?: () => void;
 
   start() {
-    // Reposition to top of canvas so it floats above the floor plan.
-    this.node.setPosition(0, 590, 0);
+    // Use Widget to sit in the top strip, between RoomProgressPanel (left)
+    // and AudioControls (right) — both 170 px wide at their respective edges.
     const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
-    ui.setContentSize(700, 120);
+    ui.setContentSize(400, 100);
+    const widget = this.node.addComponent(Widget);
+    widget.isAlignTop   = true;
+    widget.isAlignLeft  = true;
+    widget.isAlignRight = true;
+    widget.top   = 8;
+    widget.left  = 210;   // clear of RoomProgressPanel (190px wide + 20px gap)
+    widget.right = 170;   // clear of AudioControls (150px wide + 12px margin + gap)
+    widget.alignMode = Widget.AlignMode.ON_WINDOW_RESIZE;
 
-    // Title label "奖励目标" above the bonus list.
+    // Title label "奖励目标"
     const titleNode = new Node('BonusTitleLabel');
     this.node.addChild(titleNode);
-    titleNode.setPosition(0, 48, 0);
+    titleNode.setPosition(0, 36, 0);
     const titleLbl = titleNode.addComponent(Label);
-    titleLbl.string    = '奖励目标';
-    titleLbl.fontSize  = 22;
-    titleLbl.isBold    = true;
-    titleLbl.color     = new Color(255, 225, 105, 255);
+    titleLbl.string   = '奖励目标';
+    titleLbl.fontSize = 20;
+    titleLbl.isBold   = true;
+    titleLbl.color    = new Color(255, 225, 105, 255);
 
     if (this.summaryLabel) {
       this.summaryLabel.node.active = true;
-      this.summaryLabel.node.setPosition(0, -10, 0);
-      this.summaryLabel.fontSize        = 20;
-      this.summaryLabel.lineHeight      = 28;
-      // Disable soft-wrap so each bonus stays on one line; use SHRINK so
-      // long text scales down rather than spilling past the container.
+      this.summaryLabel.node.setPosition(0, -4, 0);
+      this.summaryLabel.fontSize        = 18;
+      this.summaryLabel.lineHeight      = 24;
       this.summaryLabel.enableWrapText  = false;
       this.summaryLabel.overflow        = (Label as any).Overflow?.SHRINK ?? 2;
-      // Give the label enough horizontal room for the longest bonus line.
       const lblUi = this.summaryLabel.node.getComponent(UITransform)
                  ?? this.summaryLabel.node.addComponent(UITransform);
-      lblUi.setContentSize(680, 100);
+      lblUi.setContentSize(380, 80);
     }
 
     this.refresh();

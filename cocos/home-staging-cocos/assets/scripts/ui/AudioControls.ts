@@ -27,10 +27,10 @@ export class AudioControls extends Component {
     ui.setAnchorPoint(1, 1);
     ui.setContentSize(BTN_W, BTN_H * 2 + GAP);
     const widget = this.node.addComponent(Widget);
-    widget.isAlignBottom = true;
-    widget.isAlignRight  = true;
-    widget.bottom = 12;
-    widget.right  = 12;
+    widget.isAlignTop   = true;
+    widget.isAlignRight = true;
+    widget.top   = 8;
+    widget.right = 8;
     widget.alignMode = Widget.AlignMode.ON_WINDOW_RESIZE;
 
     // Two stacked buttons; (0,0) is the node's top-right corner (anchor 1,1),

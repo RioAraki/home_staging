@@ -19,11 +19,13 @@ const MAX_FOOTPRINT_CELLS = 4;  // tallest furniture bbox dimension in the data
 // every name aligns horizontally regardless of its image size.
 const TITLE_Y = (MAX_FOOTPRINT_CELLS * PX_PER_CELL) / 2 + 18;
 // Three-column layout with equal inter-column spacing.
-// Options are centred around x=0; buttons sit symmetrically on both sides.
+// Options are centred around x=0; buttons pulled in from the edges so they
+// stay within the canvas on narrow mobile screens (canvas half-width ≈ 375px,
+// button half-width = 55px → minimum edge gap = 375-280-55 = 40px).
 const OPT1_X    = -120;   // centre of first option slot
 const OPT2_X    =  120;   // centre of second option slot
-const CONFIRM_X =  320;   // right column: 旋转 / 放置
-const LEFT_X    = -320;   // left column:  跳过 / 撤销
+const CONFIRM_X =  280;   // right column: 旋転 / 放置  (was 320)
+const LEFT_X    = -280;   // left column:  跳过 / 撤销  (was -320)
 
 /**
  * Bottom chooser: the active room's current card shown as its two options,
