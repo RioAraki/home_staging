@@ -89,9 +89,15 @@ export class EndGameScreen extends Component {
     const canvasUi = canvas.node.getComponent(UITransform);
     const CW = canvasUi?.contentSize.width  ?? 750;
     const CH = canvasUi?.contentSize.height ?? 1334;
-    const dimUi = overlay.addComponent(UITransform);
-    dimUi.setContentSize(CW, CH);
-    const dimG = overlay.addComponent(Graphics);
+    overlay.addComponent(UITransform).setContentSize(CW, CH);
+
+    // Dim is its OWN child node so it can be hidden independently of the card.
+    // (Previously the dim graphics lived on the overlay itself, so hiding the
+    //  card still left the screen dark — the floor plan stayed dim.)
+    const dimNode = new Node('dim');
+    overlay.addChild(dimNode);
+    dimNode.addComponent(UITransform).setContentSize(CW, CH);
+    const dimG = dimNode.addComponent(Graphics);
     dimG.fillColor = C_DIM;
     dimG.rect(-CW / 2, -CH / 2, CW, CH);
     dimG.fill();
@@ -330,57 +336,62 @@ export class EndGameScreen extends Component {
       }
     });
 
-    // ── "隐藏" button — top-right of card, lets player review the floor plan ──
+    // ── "隐藏查看平面图" button — top-right of card ─────────────────────────
+    const HIDE_W = 150, HIDE_H = 48;
     const hideBtn = new Node('hideBtn');
     card.addChild(hideBtn);
-    hideBtn.setPosition(CARD_W / 2 - PAD - 28, cardH / 2 - PAD - 16, 0);
-    hideBtn.addComponent(UITransform).setContentSize(64, 28);
+    hideBtn.setPosition(CARD_W / 2 - PAD - HIDE_W / 2, cardH / 2 - PAD - HIDE_H / 2, 0);
+    hideBtn.addComponent(UITransform).setContentSize(HIDE_W, HIDE_H);
     const hideBtnG = hideBtn.addComponent(Graphics);
-    hideBtnG.fillColor = new Color(255, 255, 255, 18);
-    hideBtnG.strokeColor = new Color(255, 255, 255, 50);
-    hideBtnG.lineWidth = 1;
-    hideBtnG.roundRect(-32, -14, 64, 28, 6);
+    hideBtnG.fillColor = new Color(255, 255, 255, 26);
+    hideBtnG.strokeColor = new Color(255, 255, 255, 70);
+    hideBtnG.lineWidth = 1.5;
+    hideBtnG.roundRect(-HIDE_W / 2, -HIDE_H / 2, HIDE_W, HIDE_H, 8);
     hideBtnG.fill();
     hideBtnG.stroke();
     const hideLblNode = new Node();
     hideBtn.addChild(hideLblNode);
     const hideLbl = hideLblNode.addComponent(Label);
-    hideLbl.string   = '隐藏';
-    hideLbl.fontSize = 16;
-    hideLbl.color    = C_SOFT;
+    hideLbl.string   = '隐藏 ▼';
+    hideLbl.fontSize = 22;
+    hideLbl.color    = C_WHITE;
 
-    // Floating "查看得分 ▲" pill shown when card is hidden.
+    // Floating "查看得分 ▲" pill shown when card is hidden — bottom-centre,
+    // directly below the floor plan.
+    const PILL_W = 180, PILL_H = 52;
     const pill = new Node('scorepill');
     overlay.addChild(pill);
     pill.active = false;
-    pill.addComponent(UITransform).setContentSize(130, 44);
+    pill.addComponent(UITransform).setContentSize(PILL_W, PILL_H);
     const pillWidget = pill.addComponent(Widget);
-    pillWidget.isAlignBottom = true;
-    pillWidget.isAlignRight  = true;
-    pillWidget.bottom = 80;
-    pillWidget.right  = 16;
+    pillWidget.isAlignBottom           = true;
+    pillWidget.isAlignHorizontalCenter = true;
+    pillWidget.bottom           = 40;
+    pillWidget.horizontalCenter = 0;
     pillWidget.alignMode = Widget.AlignMode.ON_WINDOW_RESIZE;
     const pillG = pill.addComponent(Graphics);
-    pillG.fillColor   = new Color(12, 28, 55, 230);
-    pillG.strokeColor = new Color(255, 225, 105, 160);
-    pillG.lineWidth   = 1.5;
-    pillG.roundRect(-65, -22, 130, 44, 10);
+    pillG.fillColor   = new Color(12, 28, 55, 235);
+    pillG.strokeColor = new Color(255, 225, 105, 180);
+    pillG.lineWidth   = 2;
+    pillG.roundRect(-PILL_W / 2, -PILL_H / 2, PILL_W, PILL_H, 12);
     pillG.fill();
     pillG.stroke();
     const pillLblNode = new Node();
     pill.addChild(pillLblNode);
     const pillLbl = pillLblNode.addComponent(Label);
     pillLbl.string   = '查看得分 ▲';
-    pillLbl.fontSize = 18;
+    pillLbl.fontSize = 22;
     pillLbl.color    = C_TITLE;
 
     hideBtn.on(Node.EventType.TOUCH_END, () => {
-      card.active = false;
-      pill.active = true;
+      card.active    = false;
+      dimNode.active = false;   // reveal floor plan at full brightness
+      pill.active    = true;
     });
     pill.on(Node.EventType.TOUCH_END, () => {
-      card.active = true;
-      pill.active = false;
+      card.active    = true;
+      dimNode.active = true;
+      pill.active    = false;
     });
   }
 }
