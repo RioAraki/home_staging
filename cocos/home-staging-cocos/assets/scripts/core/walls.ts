@@ -195,9 +195,18 @@ export function checkWallEdgeCompliance(
   placedPieces: PlacedPiece[],
   playerWalls: Record<EdgeKey, true>,
   playerDoors: Record<EdgeKey, RoomSlot>,
+  frontDoorEdge: string | null = null,
   filterRoomSlot?: RoomSlot,
 ): WallEdgeComplianceResult {
   const exteriorSet = new Set(exteriorWallEdges(scenario));
+  // Every door counts for the "no door on a bold-edge segment" rule — not
+  // just player room doors. The front door and pre-drawn scenario doors sit
+  // on exterior edges, which would otherwise pass as solid wall.
+  const doorEdges = new Set<EdgeKey>(Object.keys(playerDoors));
+  if (frontDoorEdge) doorEdges.add(frontDoorEdge);
+  for (const d of scenario.pre_drawn?.doors ?? []) {
+    if (d.edge) doorEdges.add(doorEdgeKey(d.cell, d.edge));
+  }
   const violations: WallEdgeViolation[] = [];
 
   placedPieces.forEach((p, idx) => {
@@ -217,7 +226,7 @@ export function checkWallEdgeCompliance(
     const missing: WallEdgeRequirement[] = [];
     const doorOnReq: WallEdgeRequirement[] = [];
     for (const req of required) {
-      if (playerDoors[req.edgeKey]) {
+      if (doorEdges.has(req.edgeKey)) {
         // Doors are walls structurally, but the rule forbids a door on the
         // bold-edge segment. Flag separately so the UI message is precise.
         doorOnReq.push(req);

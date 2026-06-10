@@ -453,7 +453,7 @@ export function computeScore(
 ): ScoreBreakdown {
   const access = analyseAccessibility(scenario, placedPieces, walls, doors, frontDoorEdge);
   const pieceAccess = analyseOpenSpaceAccessibility(scenario, placedPieces, walls, doors, access, frontDoorEdge);
-  const wallEdgeCompliance = checkWallEdgeCompliance(scenario, placedPieces, walls, doors);
+  const wallEdgeCompliance = checkWallEdgeCompliance(scenario, placedPieces, walls, doors, frontDoorEdge);
   const wallEdgeViolators = new Set(wallEdgeCompliance.violations.map((v) => v.pieceIndex));
 
   // Per-piece counts and grouping. A piece counts only if:
