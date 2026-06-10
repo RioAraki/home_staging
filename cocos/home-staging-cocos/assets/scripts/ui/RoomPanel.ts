@@ -1,6 +1,6 @@
 import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
-  Graphics, Color, Label, EventTouch, director, input, Input,
+  Graphics, Color, Label, EventTouch, director, input, Input, view,
 } from 'cc';
 import {
   gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed,
@@ -24,7 +24,16 @@ const TITLE_Y = (MAX_FOOTPRINT_CELLS * PX_PER_CELL) / 2 + 18;
 // button half-width = 55px → minimum edge gap = 375-280-55 = 40px).
 const OPT1_X    = -120;   // centre of first option slot
 const OPT2_X    =  120;   // centre of second option slot
-const CONFIRM_X =  280;   // right column: 跳过 / 放置 / 撤销
+const BTN_W     =  110;   // action-button width
+
+/** X of the right-hand action column, pinned to the VISIBLE right edge so it
+ *  never clips on narrow / tall phones (where the design width exceeds the
+ *  visible width under a fit-height resolution policy). listContent is centred
+ *  on screen, so local x=0 is screen centre. */
+function rightColumnX(): number {
+  const visW = view.getVisibleSize().width;
+  return visW / 2 - BTN_W / 2 - 16;   // 16px margin from the screen edge
+}
 
 /**
  * Bottom chooser: the active room's current card shown as its two options,
@@ -176,12 +185,13 @@ export class RoomPanel extends Component {
     }
     // Single right-hand column, top→bottom: 跳过 / 放置 / 撤销.
     // Rotation is done by tapping the placed/ghost piece, so no 旋转 button.
-    // 80px vertical spacing → 16px gap between 64px-tall buttons.
-    this.makeButton(CONFIRM_X,  80, '跳过', new Color(150, 140, 120, 255), true,
+    // X pinned to the visible right edge so it never clips on narrow phones.
+    const rx = rightColumnX();
+    this.makeButton(rx,  80, '跳过', new Color(150, 140, 120, 255), true,
       () => gameStore.getState().skipCard(card.slot, card.slotIdx));
-    this.makeButton(CONFIRM_X,   0, '放置', new Color(80, 160, 90, 255), !!sel,
+    this.makeButton(rx,   0, '放置', new Color(80, 160, 90, 255), !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.addUndoButton(s, CONFIRM_X, -80);
+    this.addUndoButton(s, rx, -80);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
