@@ -69,15 +69,18 @@ export class RoomProgressPanel extends Component {
     bg.fill();
     bg.stroke();
 
-    // Title: "房间进度"
+    // Title: "房间进度" — left-aligned.
     const titleNode = new Node('title');
     this.node.addChild(titleNode);
-    titleNode.setPosition(PANEL_W / 2, -(PAD + TITLE_H / 2), 0);
+    titleNode.setPosition(PAD, -(PAD + TITLE_H / 2), 0);
+    const titleUi = titleNode.addComponent(UITransform);
+    titleUi.setAnchorPoint(0, 0.5);
     const titleLbl = titleNode.addComponent(Label);
     titleLbl.string   = '房间进度';
     titleLbl.fontSize = 18;
     titleLbl.isBold   = true;
     titleLbl.color    = new Color(255, 225, 105, 255);
+    titleLbl.horizontalAlign = (Label as any).HorizontalAlign?.LEFT ?? 0;
 
     // Divider line
     const divNode = new Node('div');
@@ -92,7 +95,6 @@ export class RoomProgressPanel extends Component {
 
     // One row per room
     rooms.forEach((room, idx) => {
-      const total  = room.furniture_numbers.length;
       const placed = room.furniture_numbers.filter((_, i) =>
         s.placedCardKeys.has(`${room.slot}:${i}`),
       ).length;
@@ -118,11 +120,15 @@ export class RoomProgressPanel extends Component {
 
       const rowNode = new Node(`row_${idx}`);
       this.node.addChild(rowNode);
-      rowNode.setPosition(PANEL_W / 2, rowY, 0);
+      rowNode.setPosition(PAD, rowY, 0);
+      const rowUi = rowNode.addComponent(UITransform);
+      rowUi.setAnchorPoint(0, 0.5);
 
+      // Room name only (per-furniture count is shown in the bottom chooser).
       const icon = done ? '✓' : placed > 0 ? '◑' : '○';
       const lbl  = rowNode.addComponent(Label);
-      lbl.string    = `${icon}  ${room.name_zh}   ${placed}/${total}`;
+      lbl.string    = `${icon}  ${room.name_zh}`;
+      lbl.horizontalAlign = (Label as any).HorizontalAlign?.LEFT ?? 0;
       lbl.fontSize  = 17;
       lbl.color     = done
         ? new Color(100, 220, 130, 255)   // green — complete
