@@ -171,6 +171,7 @@ export class InputHandler extends Component {
       sel.number,
       s.doors,
       s.frontDoorEdge,
+      s.walls,
     );
     if (!result.valid) {
       s.setError(result.reason ?? '不能放在这里');

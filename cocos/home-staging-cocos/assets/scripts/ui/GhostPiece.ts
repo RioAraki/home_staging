@@ -87,7 +87,7 @@ export class GhostPiece extends Component {
     const [or, oc] = this.origin;
 
     const valid = !!s.scenario && validatePlacement(
-      s.scenario, t, this.origin, s.placedPieces, sel.number, s.doors, s.frontDoorEdge,
+      s.scenario, t, this.origin, s.placedPieces, sel.number, s.doors, s.frontDoorEdge, s.walls,
     ).valid;
     const fillCol   = valid ? COL_OK_FILL   : COL_BAD_FILL;
     const strokeCol = valid ? COL_OK_STROKE : COL_BAD_STROKE;

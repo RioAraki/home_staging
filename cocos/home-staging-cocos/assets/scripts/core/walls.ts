@@ -25,6 +25,19 @@ function vertexKey(r: number, c: number): Vertex {
   return `${r},${c}`;
 }
 
+/** Edge key for a door/window sitting on `edge` side of grid cell `cell`.
+ *  Shared by the store, validation and renderers — keep the N/S/E/W →
+ *  "h:r:c"/"v:r:c" conversion single-sourced. */
+export function doorEdgeKey(cell: [number, number], edge: 'N' | 'S' | 'E' | 'W'): EdgeKey {
+  const [r, c] = cell;
+  switch (edge) {
+    case 'N': return `h:${r}:${c}`;
+    case 'S': return `h:${r + 1}:${c}`;
+    case 'W': return `v:${r}:${c}`;
+    case 'E': return `v:${r}:${c + 1}`;
+  }
+}
+
 function endpointsOfEdge(edgeKey: EdgeKey): [Vertex, Vertex] {
   const [type, rStr, cStr] = edgeKey.split(':');
   const r = parseInt(rStr, 10);

@@ -1,6 +1,6 @@
 import { createStore } from './zustandVanilla';
 import type { RoomSlot, Scenario } from '../core/types';
-import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology } from '../core/walls';
+import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology, doorEdgeKey } from '../core/walls';
 import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
 import { resolveOption, pieceShapeCells, pieceFootprintCells } from '../core/pieces';
 import { audioManager } from '../platform/audio';
@@ -261,16 +261,6 @@ export function currentCard(
   const idx = currentCardIndexOf(s);
   if (idx >= room.furniture_numbers.length) return null;
   return { slot: s.activeRoomSlot, slotIdx: idx, number: room.furniture_numbers[idx] };
-}
-
-function doorEdgeKey(cell: [number, number], edge: 'N' | 'S' | 'E' | 'W'): string {
-  const [r, c] = cell;
-  switch (edge) {
-    case 'N': return `h:${r}:${c}`;
-    case 'S': return `h:${r + 1}:${c}`;
-    case 'W': return `v:${r}:${c}`;
-    case 'E': return `v:${r}:${c + 1}`;
-  }
 }
 
 /** Is grid cell (r,c) an indoor cell in this scenario? */

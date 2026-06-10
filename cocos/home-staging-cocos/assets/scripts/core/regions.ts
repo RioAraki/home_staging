@@ -49,26 +49,24 @@ function indoorCells(scenario: Scenario): CellKey[] {
   return out;
 }
 
+/** The edge key separating two 4-adjacent cells, or null if not adjacent. */
+export function edgeKeyBetween(
+  r1: number, c1: number, r2: number, c2: number,
+): EdgeKey | null {
+  if (r1 === r2 && c1 + 1 === c2) return `v:${r1}:${c2}`;
+  if (r1 === r2 && c1 - 1 === c2) return `v:${r1}:${c1}`;
+  if (c1 === c2 && r1 + 1 === r2) return `h:${r2}:${c1}`;
+  if (c1 === c2 && r1 - 1 === r2) return `h:${r1}:${c1}`;
+  return null;
+}
+
 /** Is the edge between cells (r1,c1) and (r2,c2) blocked by a wall in `walls`? */
 function isBlocked(
   r1: number, c1: number, r2: number, c2: number,
   walls: Record<string, true>,
 ): boolean {
-  // Always-adjacent assumption: |dr|+|dc|=1
-  if (r1 === r2 && c1 + 1 === c2) {
-    // edge to the right of (r1,c1) === left of (r1,c2) → v:r1:c2
-    return !!walls[`v:${r1}:${c2}`];
-  }
-  if (r1 === r2 && c1 - 1 === c2) {
-    return !!walls[`v:${r1}:${c1}`];
-  }
-  if (c1 === c2 && r1 + 1 === r2) {
-    return !!walls[`h:${r2}:${c1}`];
-  }
-  if (c1 === c2 && r1 - 1 === r2) {
-    return !!walls[`h:${r1}:${c1}`];
-  }
-  return true;
+  const k = edgeKeyBetween(r1, c1, r2, c2);
+  return k === null ? true : !!walls[k];
 }
 
 export function computeRegions(

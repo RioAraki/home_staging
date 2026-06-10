@@ -6,6 +6,7 @@ import type { RoomSlot } from '../core/types';
 import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
 import { CARPET_NUMBER, pieceShapeCells, pieceOpenSpaceCells } from '../core/pieces';
+import { doorEdgeKey } from '../core/walls';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloorPlan')
@@ -293,12 +294,7 @@ export class FloorPlan extends Component {
     for (const ek of Object.keys(s.doors)) adjFromEdge(ek);
     if (s.frontDoorEdge) adjFromEdge(s.frontDoorEdge);
     for (const d of (s.scenario.pre_drawn?.doors ?? [])) {
-      const [dr, dc] = d.cell;
-      const ek = d.edge === 'N' ? `h:${dr}:${dc}`
-               : d.edge === 'S' ? `h:${dr + 1}:${dc}`
-               : d.edge === 'W' ? `v:${dr}:${dc}`
-               :                  `v:${dr}:${dc + 1}`;
-      adjFromEdge(ek);
+      if (d.edge) adjFromEdge(doorEdgeKey(d.cell, d.edge));
     }
     // fallback: if still no seeds, use ONE arbitrary walkable indoor cell
     // that isn't itself an open_space (bare floor) as the anchor.

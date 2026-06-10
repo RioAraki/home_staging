@@ -31,6 +31,8 @@ import type { Cell, TransformedShape } from './geometry';
 import { absoluteCells, inBounds } from './geometry';
 import type { PlacedPiece } from '../state/gameStore';
 import { CARPET_NUMBER, pieceShapeCells, pieceOpenSpaceCells } from './pieces';
+import { edgeKeyBetween } from './regions';
+import { doorEdgeKey } from './walls';
 
 export interface ValidationResult {
   valid: boolean;
@@ -103,6 +105,7 @@ export function validatePlacement(
   newPieceNumber: number,
   doors: Record<string, unknown> = {},
   frontDoorEdge: string | null = null,
+  walls: Record<string, true> = {},
 ): ValidationResult {
   const cells = gridCells(scenario);
   const placed = collectFootprints(alreadyPlaced);
@@ -313,22 +316,29 @@ export function validatePlacement(
   };
   const connDoorCells = new Set<string>();
   // player + front door edges are already in doorAdjacentCells; re-derive
-  // from the raw edge strings so we can call adjFromEdge:
-  for (const ek of Object.keys(doors)) adjFromEdge(ek);
-  if (frontDoorEdge) adjFromEdge(frontDoorEdge);
+  // from the raw edge strings so we can call adjFromEdge. Door edges are
+  // also collected as OPENINGS: they carry a wall entry in `walls` but the
+  // BFS may walk through them.
+  const doorOpenings = new Set<string>();
+  for (const ek of Object.keys(doors)) { adjFromEdge(ek); doorOpenings.add(ek); }
+  if (frontDoorEdge) { adjFromEdge(frontDoorEdge); doorOpenings.add(frontDoorEdge); }
   // pre-drawn scenario doors
   for (const d of (scenario.pre_drawn?.doors ?? [])) {
-    const [dr, dc] = d.cell;
-    const ek = d.edge === 'N' ? `h:${dr}:${dc}`
-             : d.edge === 'S' ? `h:${dr + 1}:${dc}`
-             : d.edge === 'W' ? `v:${dr}:${dc}`
-             :                  `v:${dr}:${dc + 1}`;
+    if (!d.edge) continue;
+    const ek = doorEdgeKey(d.cell, d.edge);
     adjFromEdge(ek);
+    doorOpenings.add(ek);
   }
 
   const reachable = [...connDoorCells].filter(k => walkable.has(k));
   if (reachable.length >= 2) {
-    // BFS from the first door-adjacent cell.
+    // BFS from the first door-adjacent cell. Walls block movement between
+    // adjacent cells (except at door openings) — without this, a piece that
+    // seals a doorway would still pass whenever a through-wall route exists.
+    const wallBetween = (r1: number, c1: number, r2: number, c2: number) => {
+      const k = edgeKeyBetween(r1, c1, r2, c2);
+      return k === null || (!!walls[k] && !doorOpenings.has(k));
+    };
     const visited = new Set<string>([reachable[0]]);
     const queue = [reachable[0]];
     while (queue.length) {
@@ -336,7 +346,7 @@ export function validatePlacement(
       const [pr, pc] = curr.split(',').map(Number);
       for (const [nr, nc] of [[pr - 1, pc], [pr + 1, pc], [pr, pc - 1], [pr, pc + 1]]) {
         const nk = `${nr},${nc}`;
-        if (walkable.has(nk) && !visited.has(nk)) {
+        if (walkable.has(nk) && !visited.has(nk) && !wallBetween(pr, pc, nr, nc)) {
           visited.add(nk);
           queue.push(nk);
         }
