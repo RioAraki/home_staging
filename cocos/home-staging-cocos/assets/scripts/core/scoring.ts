@@ -225,9 +225,10 @@ export function evaluateBonusCondition(
     // ────────── Barn rehearsal ──────────
     case 'each_distance_at_most': {
       // For each pair (instrument piece, target piece), the shortest grid
-      // path (4-neighbour, walls block) between ANY pair of cells the
-      // pieces occupy (shape ∪ open_spaces — the full card footprint)
-      // must be ≤ max. Bonus earned iff every pair satisfies.
+      // path (4-neighbour; walls AND other furniture block, per RULES.zh.md
+      // §距离) between ANY pair of cells the pieces occupy (shape ∪
+      // open_spaces — the full card footprint) must be ≤ max. Bonus earned
+      // iff every pair satisfies.
       if (!ctx) return { earned: false, evaluator: key, note: 'walls context missing' };
       const instrumentNum = arg.instrument as number;
       const targets = (arg.targets as number[]) ?? [];
@@ -237,12 +238,21 @@ export function evaluateBonusCondition(
       if (sources.length === 0 || targetPieces.length === 0) {
         return { earned: false, evaluator: key, note: 'instrument or target missing' };
       }
+      // Per-piece non-carpet shape cells, so each pair can exclude its own
+      // two endpoint pieces from the blocking set.
+      const shapeByPiece = placedPieces.map((p) =>
+        p.number === CARPET_NUMBER ? [] : pieceShapeCells(p));
       for (const src of sources) {
         for (const tgt of targetPieces) {
+          const blocked = new Set<string>();
+          placedPieces.forEach((p, i) => {
+            if (p === src || p === tgt) return;
+            for (const [r, c] of shapeByPiece[i]) blocked.add(`${r},${c}`);
+          });
           let best: number | null = null;
           for (const sc of pieceFootprintCells(src)) {
             for (const tc of pieceFootprintCells(tgt)) {
-              const d = pathDistance(scenario, ctx.walls, sc, tc);
+              const d = pathDistance(scenario, ctx.walls, sc, tc, blocked);
               if (d === null) continue;
               if (best === null || d < best) best = d;
             }
@@ -293,8 +303,9 @@ export function evaluateBonusCondition(
 
     case 'door_distance_between_rooms_max': {
       // Walk from one room's door (hallway side) to the other room's door
-      // (hallway side), using the BFS path distance helper (4-neighbour,
-      // walls block). Bonus earned iff distance ≤ max.
+      // (hallway side), using the BFS path distance helper (4-neighbour;
+      // walls and furniture block, per RULES.zh.md §距离). Bonus earned iff
+      // distance ≤ max.
       if (!ctx) return { earned: false, evaluator: key, note: 'walls context missing' };
       const roomA = arg.room_a as RoomSlot;
       const roomB = arg.room_b as RoomSlot;
@@ -320,7 +331,12 @@ export function evaluateBonusCondition(
       const b = hallwaySideForRoom(roomB);
       if (!a) return { earned: false, evaluator: key, note: `room ${roomA} has no door yet` };
       if (!b) return { earned: false, evaluator: key, note: `room ${roomB} has no door yet` };
-      const d = pathDistance(scenario, ctx.walls, a, b);
+      const blocked = new Set<string>();
+      for (const p of placedPieces) {
+        if (p.number === CARPET_NUMBER) continue;
+        for (const [r, c] of pieceShapeCells(p)) blocked.add(`${r},${c}`);
+      }
+      const d = pathDistance(scenario, ctx.walls, a, b, blocked);
       if (d === null) {
         return { earned: false, evaluator: key, note: `doors not connected (need walkable path ≤ ${max})` };
       }

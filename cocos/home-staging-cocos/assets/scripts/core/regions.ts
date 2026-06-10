@@ -362,13 +362,17 @@ export function findOrphanRegions(
 }
 
 /** Shortest 4-neighbour grid path between two cells, blocked by walls (and
- *  doors, which are walls structurally). Returns null if unreachable. Only
- *  walks through indoor cells. */
+ *  doors, which are walls structurally). `blockedCells` lets callers add
+ *  cell-level obstacles — per RULES.zh.md §距离 the path must detour around
+ *  furniture too, so pass the non-carpet shape cells of every piece that
+ *  isn't one of the two endpoints. The from/to cells themselves are always
+ *  enterable. Returns null if unreachable. Only walks through indoor cells. */
 export function pathDistance(
   scenario: Scenario,
   walls: Record<string, true>,
   from: [number, number],
   to: [number, number],
+  blockedCells: Set<string> = new Set(),
 ): number | null {
   const indoor = new Set(indoorCells(scenario));
   const fromKey = `${from[0]},${from[1]}`;
@@ -387,6 +391,7 @@ export function pathDistance(
     for (const [nr, nc] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]] as Array<[number, number]>) {
       const nk = `${nr},${nc}`;
       if (!indoor.has(nk) || dist.has(nk)) continue;
+      if (blockedCells.has(nk) && nk !== toKey) continue;
       if (isBlocked(r, c, nr, nc, walls)) continue;
       dist.set(nk, d + 1);
       if (nk === toKey) return d + 1;
