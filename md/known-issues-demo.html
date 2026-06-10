@@ -81,11 +81,39 @@
 <!-- ════════════════ 问题 1 ════════════════ -->
 <h2>问题 1：预绘内墙只在"画面"里存在 <span class="tag">孤独的瞭望塔</span></h2>
 
-<p>「孤独的瞭望塔」是目前唯一带 <code>walls_interior</code> 的关卡（左下角预印一段 L 形内墙）。
+<p>「孤独的瞭望塔」是数据集中唯一带 <code>walls_interior</code> 的关卡。
 渲染层（<code>LayerRenderer.drawPreDrawn</code>）会把它画出来，但<strong>所有逻辑层
 ——区域划分 <code>computeRegions</code>、放置校验、自由空间可达性 BFS、距离计算——
-读的都是玩家自己画的 <code>walls</code></strong>，预绘墙不在其中。
-下面用简化示意（3×3 室内，墙位仿照瞭望塔左下角）演示两种后果。</p>
+读的都是玩家自己画的 <code>walls</code></strong>，预绘墙不在其中。</p>
+
+<h3>这张地图长什么样（你没见过它是正常的）</h3>
+<p>Cocos 端 <code>GameBootstrap</code> 写死只加载训练关，瞭望塔等其余关卡只存在于
+<code>maps_data</code> 数据里（从规则书第 50–51 页电子化而来），游戏里从未出现过。
+它的画法很特别：灯塔的<strong>三层楼平铺在同一张 16×16 图纸上</strong>，层与层靠外部楼梯相连。</p>
+
+<div class="panels">
+  <div class="panel">
+    <h4>按数据渲染（<code>grid.ascii</code> + <code>pre_drawn</code>）</h4>
+    <svg id="wt" width="500" height="500"></svg>
+    <div class="cap">蓝色短线 = 数据里的 3 扇预绘窗；
+    <b style="color:var(--bad)">红色两段 = 数据声称的预绘内墙</b>（13B 上边、13D 左边）。</div>
+  </div>
+  <div class="panel" style="max-width:560px">
+    <h4>规则书原页（page 50–51 扫描）</h4>
+    <img src="images/scenarios/page_26.png" alt="原书扫描"
+         style="width:100%;border-radius:6px;border:1px solid #d9d2c4">
+    <div class="cap">原图左下角"Ground floor"内部<b>干干净净</b>——只有外轮廓、
+    斜线小方块（外部楼梯）和小圆点标记，<b>没有任何内部墙</b>。</div>
+  </div>
+</div>
+
+<div class="note"><b>对照结论：原书地图上并不存在这两段内部墙。</b>
+数据里的 <code>walls_interior: [[12,1,12,2],[12,3,13,3]]</code> 对不上扫描页里的任何元素，
+且该关 <code>grid</code> 仍带着 <code>verify: true</code>（电子化未校验标记）——
+基本可断定是录入错误，应从数据中删除。这也意味着"问题 1"目前没有任何真实关卡触发，
+降级为：<i>将来接入确有预绘内墙的关卡时才需要修</i>。下面的机制演示仍然成立，仅作原理说明。</div>
+
+<p>以下用简化示意（3×3 室内）演示<strong>假如</strong>某关真有预绘内墙、而逻辑层看不见会发生什么。</p>
 
 <h3>例 a：自由空间"穿墙可达"，该不计分的家具被照常计分</h3>
 <p>一件家具放在 13B，它的自由空间（必须保持可走、且结算时必须能从门走到）落在 12B。
@@ -398,6 +426,96 @@ bathPanel('s1', 'lock', -1, '',      { r: 1, c: 1, text: '✓ 已完成', cls: '
 bathPanel('s2', 'lock', -1, '',      { r: 1, c: 1, text: '已解封',   cls: 'good' });
 bathPanel('s3', 'lock', 2, 'deny',   { r: 1, c: 1, text: '✗ 删不掉', cls: 'bad'  });
 bathPanel('s4', 'lock', 2, 'okdel',  { r: 1, c: 1, text: '🔨 可删',  cls: 'good' });
+
+/* ── 真实地图：孤独的瞭望塔 ─────────────────────────────────
+   直接照 maps_data 里的 grid.ascii 渲染；外轮廓按 indoor/outdoor
+   边界逐格描出（与游戏里 drawGridBg 同一思路）。              */
+function drawAsciiMap(id, asciiRows, opts) {
+  const svg = document.getElementById(id);
+  const cs = opts.cs || 27, pad = 26;
+  const rows = asciiRows.length, cols = asciiRows[0].length;
+  const W = pad * 2 + cols * cs, H = pad * 2 + rows * cs;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const isIn = (r, c) =>
+    r >= 0 && c >= 0 && r < rows && c < cols && asciiRows[r][c] === 'I';
+  const X = c => pad + c * cs, Y = r => pad + r * cs;
+
+  // 底色：室外淡米、室内淡蓝
+  el(svg, 'rect', { x: X(0), y: Y(0), width: cols * cs, height: rows * cs, fill: '#efe9dd' });
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (isIn(r, c)) el(svg, 'rect', { x: X(c), y: Y(r), width: cs, height: cs, fill: 'var(--indoor)' });
+  }
+  // 细格线 + 行列标签
+  for (let r = 0; r <= rows; r++) el(svg, 'line', { x1: X(0), y1: Y(r), x2: X(cols), y2: Y(r), stroke: '#cfc8ba', 'stroke-width': .6 });
+  for (let c = 0; c <= cols; c++) el(svg, 'line', { x1: X(c), y1: Y(0), x2: X(c), y2: Y(rows), stroke: '#cfc8ba', 'stroke-width': .6 });
+  for (let r = 0; r < rows; r++) el(svg, 'text', { x: X(0) - 6, y: Y(r) + cs / 2 + 4, 'text-anchor': 'end', 'font-size': 10, fill: 'var(--soft)' }, String(r + 1));
+  for (let c = 0; c < cols; c++) el(svg, 'text', { x: X(c) + cs / 2, y: Y(0) - 6, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--soft)' }, String.fromCharCode(65 + c));
+
+  // 外轮廓：室内格的每条"邻格非室内"边
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (!isIn(r, c)) continue;
+    const seg = (x1, y1, x2, y2) =>
+      el(svg, 'line', { x1, y1, x2, y2, stroke: 'var(--ink)', 'stroke-width': 3, 'stroke-linecap': 'square' });
+    if (!isIn(r - 1, c)) seg(X(c), Y(r), X(c + 1), Y(r));
+    if (!isIn(r + 1, c)) seg(X(c), Y(r + 1), X(c + 1), Y(r + 1));
+    if (!isIn(r, c - 1)) seg(X(c), Y(r), X(c), Y(r + 1));
+    if (!isIn(r, c + 1)) seg(X(c + 1), Y(r), X(c + 1), Y(r + 1));
+  }
+  // 附加边（窗 / 数据声称的内墙）
+  const COLS = { win: '#5aa7d8', claim: 'var(--bad)' };
+  for (const w of opts.walls || []) {
+    const a = { stroke: COLS[w.cls], 'stroke-width': 5, 'stroke-linecap': 'round' };
+    if (w.o === 'h') { a.x1 = X(w.c); a.y1 = Y(w.r); a.x2 = X(w.c + 1); a.y2 = Y(w.r); }
+    else             { a.x1 = X(w.c); a.y1 = Y(w.r); a.x2 = X(w.c);     a.y2 = Y(w.r + 1); }
+    el(svg, 'line', a);
+  }
+  // 楼层名
+  for (const t of opts.texts || []) {
+    el(svg, 'text', { x: X(0) + t.c * cs, y: Y(0) + t.r * cs, 'font-size': 12,
+                      fill: '#3b4a63', 'font-weight': 'bold' }, t.text);
+  }
+  // 数据声称的内墙：圈出来
+  if (opts.spot) {
+    el(svg, 'circle', { cx: X(0) + opts.spot.c * cs, cy: Y(0) + opts.spot.r * cs, r: cs * 1.9,
+                        fill: 'none', stroke: 'var(--bad)', 'stroke-width': 2, 'stroke-dasharray': '6 5' });
+  }
+}
+
+const WT_ASCII = [
+  '...........II...',
+  '..........IIIII.',
+  '..........IIII..',
+  '...........II...',
+  '.......III......',
+  '......IIIII.....',
+  '......IIIIII....',
+  '......IIIII.....',
+  '.......III......',
+  '..IIII..........',
+  '.IIIIII.........',
+  '.IIIIII.........',
+  '.IIIIIII........',
+  '.IIIIII.........',
+  '..IIII..........',
+  '................',
+];
+drawAsciiMap('wt', WT_ASCII, {
+  walls: [
+    // pre_drawn.windows：[2,14]E / [6,4]W / [10,1]W
+    { o: 'v', r: 2,  c: 15, cls: 'win' },
+    { o: 'v', r: 6,  c: 4,  cls: 'win' },
+    { o: 'v', r: 10, c: 1,  cls: 'win' },
+    // pre_drawn.walls_interior（数据声称，原书没有）
+    { o: 'h', r: 12, c: 1, cls: 'claim' },
+    { o: 'v', r: 12, c: 3, cls: 'claim' },
+  ],
+  texts: [
+    { r: 1.3,  c: 7.2,  text: '顶层' },
+    { r: 5.6,  c: 3.2,  text: '上层' },
+    { r: 10.6, c: 8.0,  text: '底层' },
+  ],
+  spot: { r: 12.5, c: 2.5 },
+});
 
 /* ── 问题 2 · 共用墙 ───────────────────────────────────── */
 drawGrid('s5', {
