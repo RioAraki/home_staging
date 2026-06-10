@@ -1,10 +1,10 @@
 import {
-  _decorator, Component, Label, Button, Node, UITransform,
+  _decorator, Component, Label, Node, UITransform,
   Graphics, Color, Widget, director, Canvas,
 } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { computeScore } from '../core/scoring';
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 // ── Layout ────────────────────────────────────────────────────────────────────
 const CARD_W   = 500;
@@ -38,16 +38,11 @@ const C_BTN          = new Color(60,  110, 200, 255);
 
 @ccclass('EndGameScreen')
 export class EndGameScreen extends Component {
-  @property(Label)  detailLabel!: Label;
-  @property(Button) closeBtn!: Button;
-
   private overlay: Node | null = null;
   private unsub?: () => void;
 
   start() {
     if (this.node) this.node.active = false;
-    if (this.detailLabel) this.detailLabel.node.active = false;
-    if (this.closeBtn)    this.closeBtn.node.active    = false;
 
     this.unsub = gameStore.subscribe((s, prev) => {
       if (s.gameFinished !== prev.gameFinished) {

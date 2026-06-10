@@ -1,10 +1,10 @@
-import { _decorator, Component, Node, Graphics, Color } from 'cc';
+import { _decorator, Component, Graphics, Color } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
 import { validatePlacement } from '../core/validation';
 import { layout, edgeX, edgeY, FULL_GRID_ROWS, FULL_GRID_COLS } from './viewport';
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 const COL_OK_FILL    = new Color(255, 225, 105, 90);
 const COL_OK_STROKE  = new Color(255, 225, 105, 255);
@@ -13,8 +13,6 @@ const COL_BAD_STROKE = new Color(255, 70, 70, 255);
 
 @ccclass('GhostPiece')
 export class GhostPiece extends Component {
-  @property(Node) sprite!: Node;
-
   private unsub?: () => void;
   /** Origin in grid coords [row, col] of the top-left of the bbox. */
   private origin: [number, number] = [8, 8];
@@ -23,8 +21,6 @@ export class GhostPiece extends Component {
   private positioned = false;
 
   start() {
-    // Legacy sprite ghost is replaced by Graphics drawing — hide it.
-    if (this.sprite) this.sprite.active = false;
     this.refresh();
     this.unsub = gameStore.subscribe((s, prev) => {
       const sel = s.selectedOption, prevSel = prev.selectedOption;
