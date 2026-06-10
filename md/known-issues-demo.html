@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>两个已知问题图解：预绘内墙 &amp; lockedWalls</title>
+<style>
+  :root {
+    --paper:   #f7f4ee;
+    --ink:     #2b3240;
+    --soft:    #6b7280;
+    --indoor:  #e8f0f8;
+    --outdoor: #d8d3c8;
+    --furn:    #e8943a;
+    --wallpre: #2b3240;
+    --wallply: #7a8aa0;
+    --lock:    #9aa7b8;
+    --bad:     #d24a43;
+    --good:    #3d9a57;
+    --accent:  #b8860b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px 80px;
+    background: var(--paper); color: var(--ink);
+    font: 15px/1.8 "Microsoft YaHei", "PingFang SC", sans-serif;
+    max-width: 1080px; margin-inline: auto;
+  }
+  h1 { font-size: 24px; border-bottom: 3px solid var(--ink); padding-bottom: 10px; }
+  h2 { font-size: 20px; margin-top: 56px; }
+  h2 .tag {
+    font-size: 12px; vertical-align: middle; margin-left: 10px;
+    background: var(--accent); color: #fff; border-radius: 4px; padding: 2px 8px;
+  }
+  h3 { font-size: 16px; margin-top: 32px; }
+  p  { max-width: 72em; }
+  code {
+    background: #ece7dc; border-radius: 4px; padding: 1px 6px;
+    font-family: Consolas, monospace; font-size: 13px;
+  }
+  .panels { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; margin: 16px 0; }
+  .panel {
+    background: #fff; border: 1px solid #d9d2c4; border-radius: 10px;
+    padding: 14px 16px 10px; box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+  .panel h4 { margin: 0 0 8px; font-size: 14px; }
+  .panel .cap { font-size: 13px; color: var(--soft); max-width: 320px; margin: 8px 0 4px; }
+  .verdict { font-weight: bold; font-size: 14px; }
+  .verdict.bad  { color: var(--bad); }
+  .verdict.good { color: var(--good); }
+  .steps { display: flex; gap: 18px; flex-wrap: wrap; counter-reset: step; }
+  .step { counter-increment: step; }
+  .step h4::before {
+    content: counter(step); display: inline-block;
+    width: 22px; height: 22px; line-height: 22px; text-align: center;
+    background: var(--ink); color: #fff; border-radius: 50%;
+    margin-right: 8px; font-size: 13px;
+  }
+  .legend { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13px; color: var(--soft); margin: 10px 0 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { display: inline-block; width: 26px; height: 0; }
+  .sw.pre  { border-top: 5px solid var(--wallpre); }
+  .sw.ply  { border-top: 5px solid var(--wallply); }
+  .sw.lock { border-top: 6px solid var(--lock); }
+  .sw.ghost{ border-top: 3px dashed #b9b2a4; }
+  .box { display: inline-block; width: 16px; height: 16px; border-radius: 3px; }
+  .box.furn { background: var(--furn); }
+  .dotmark { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); opacity: .55; }
+  .note {
+    background: #fdf6e0; border-left: 4px solid var(--accent);
+    padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 18px 0; max-width: 72em;
+  }
+  svg text { font-family: "Microsoft YaHei", sans-serif; }
+</style>
+</head>
+<body>
+
+<h1>两个已知问题图解</h1>
+<p>配合代码评审结论阅读：① 预绘内墙 <code>walls_interior</code> 只参与渲染、逻辑层不感知；
+② <code>lockedWalls</code> 在重进已完成房间后不解锁。下面全部用图说明。</p>
+
+<!-- ════════════════ 问题 1 ════════════════ -->
+<h2>问题 1：预绘内墙只在"画面"里存在 <span class="tag">孤独的瞭望塔</span></h2>
+
+<p>「孤独的瞭望塔」是目前唯一带 <code>walls_interior</code> 的关卡（左下角预印一段 L 形内墙）。
+渲染层（<code>LayerRenderer.drawPreDrawn</code>）会把它画出来，但<strong>所有逻辑层
+——区域划分 <code>computeRegions</code>、放置校验、自由空间可达性 BFS、距离计算——
+读的都是玩家自己画的 <code>walls</code></strong>，预绘墙不在其中。
+下面用简化示意（3×3 室内，墙位仿照瞭望塔左下角）演示两种后果。</p>
+
+<h3>例 a：自由空间"穿墙可达"，该不计分的家具被照常计分</h3>
+<p>一件家具放在 13B，它的自由空间（必须保持可走、且结算时必须能从门走到）落在 12B。
+12B 所在的小隔间被<strong>预绘墙</strong>完全封死——真人看图会判定自由空间不可达，整件家具不计分。</p>
+
+<div class="panels">
+  <div class="panel">
+    <h4>👁 玩家眼中（图纸的真实语义）</h4>
+    <svg id="g1a" width="300" height="280"></svg>
+    <div class="cap">从门出发想走到 12B 的自由空间：被预绘墙挡死。</div>
+    <div class="verdict bad">✗ 自由空间不可达 → 这件家具应整件不计分</div>
+  </div>
+  <div class="panel">
+    <h4>🤖 逻辑层眼中（预绘墙不存在）</h4>
+    <svg id="g1b" width="300" height="280"></svg>
+    <div class="cap">BFS 只检查玩家画的墙——这里一段都没有，畅通无阻。</div>
+    <div class="verdict good">✓ "可达" → 家具照常计分（<b>错误</b>）</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><i class="sw pre"></i>预绘内墙</span>
+  <span><i class="sw ghost"></i>逻辑层视角中"消失"的预绘墙</span>
+  <span><i class="box furn"></i>家具占用格</span>
+  <span><i class="dotmark"></i>自由空间</span>
+</div>
+
+<h3>例 b：想借预绘墙当房间边界，系统不认账</h3>
+<p>规则原文：「这堵墙可以与既有墙共用」。玩家想把 12A、12B 围成小房间，
+上、左两面是外墙，下、右两面正好是预绘墙——按规则<strong>一段墙都不用画</strong>，开个门就行。
+但 <code>completeRoom</code> 用 <code>computeRegions(玩家墙)</code> 判断封闭性：</p>
+
+<div class="panels">
+  <div class="panel">
+    <h4>👁 玩家眼中：房间已经围合</h4>
+    <svg id="g2a" width="300" height="280"></svg>
+    <div class="cap">小房间（黄）与其余室内（蓝）被预绘墙隔成两个区域。</div>
+    <div class="verdict good">✓ 应当允许"完成房间"</div>
+  </div>
+  <div class="panel">
+    <h4>🤖 逻辑层眼中：到处漏风</h4>
+    <svg id="g2b" width="300" height="280"></svg>
+    <div class="cap">没有玩家墙 → 整个室内还是一整块区域（区域数 = 1 &lt; 2）。</div>
+    <div class="verdict bad">✗ 报错「请先用墙将房间封闭」——玩家被迫在已有墙的位置再描一遍</div>
+  </div>
+</div>
+
+<div class="note"><b>修复方向：</b>把 <code>[r1,c1,r2,c2]</code> 线段分解为单位边键
+（<code>h:r:c</code> / <code>v:r:c</code>），在所有读 <code>walls</code> 的入口并入，
+且这些边不可被玩家拆除、不可开门。目前 Cocos 端只跑训练关，瞭望塔尚未接入，
+所以这个 bug 现阶段实际触发不到——属于"接入新关卡前必须修"。</div>
+
+<!-- ════════════════ 问题 2 ════════════════ -->
+<h2>问题 2：解封的房间，锁住的墙 <span class="tag">lockedWalls</span></h2>
+
+<p>按时间顺序操作一遍（训练关即可复现）：</p>
+
+<div class="steps">
+  <div class="panel step">
+    <h4>完成浴室</h4>
+    <svg id="s1" width="240" height="210"></svg>
+    <div class="cap">点「完成房间」：<code>completeRoom</code> 把<b>此刻全图所有墙</b>
+    加入 <code>lockedWalls</code>，墙渲染成锁定色。</div>
+  </div>
+  <div class="panel step">
+    <h4>重新进入浴室</h4>
+    <svg id="s2" width="240" height="210"></svg>
+    <div class="cap">发现一段墙画歪了，点进度面板重进。<code>selectRoom</code>
+    把房间<b>解封</b>——代码注释写明意图：「玩家可以修改墙」。</div>
+  </div>
+  <div class="panel step">
+    <h4>点墙想删 → 被拒</h4>
+    <svg id="s3" width="240" height="210"></svg>
+    <div class="cap"><code>toggleWall</code> 检查 <code>lockedWalls</code>：
+    那 5 段墙<b>还在锁集合里</b>，没有任何代码在解封时把它们移出来。</div>
+  </div>
+  <div class="panel step">
+    <h4>拆除模式 → 又能删了</h4>
+    <svg id="s4" width="240" height="210"></svg>
+    <div class="cap"><code>demolishAtEdge</code> 不检查锁。
+    同一段墙：点按删不掉、抡锤子能删——<b>行为不一致</b>，玩家困惑。</div>
+  </div>
+</div>
+
+<h3>为什么不能"解封时顺手解锁"？——共用墙</h3>
+<p><code>lockedWalls</code> 是一个扁平的 <code>Set&lt;边&gt;</code>，
+<strong>不记录每段墙属于哪个房间</strong>。而两个房间可以共用一段墙：</p>
+
+<div class="panels">
+  <div class="panel">
+    <h4>浴室与卧室共用中间那段墙</h4>
+    <svg id="s5" width="340" height="210"></svg>
+    <div class="cap">若重进浴室时把"浴室的墙"全部解锁，<b>紫色共用墙也会被解锁</b>
+    ——隔壁已完成的卧室就不再是封闭房间了。何况"哪些墙属于浴室"根本没记录：
+    卧室封顶时 <code>completeRoom</code> 又把全图的墙（含浴室的）再锁了一遍。</div>
+  </div>
+  <div class="panel" style="max-width:380px">
+    <h4>两个候选方案</h4>
+    <p style="font-size:14px;margin:6px 0"><b>方案 A（正确但要动数据结构）：</b><br>
+    <code>Set&lt;边&gt;</code> → <code>Map&lt;边, Set&lt;房间&gt;&gt;</code>。
+    封房间=登记依赖，解封=撤销登记，"被任一已封房间依赖"才算锁。
+    解封浴室后：独占墙解锁、共用墙仍锁。</p>
+    <p style="font-size:14px;margin:6px 0"><b>方案 B（维持现状，已做）：</b><br>
+    改墙一律走拆除模式；点按被锁墙时给出明确提示
+    「已完成房间的墙不能直接抹掉，请使用拆除模式」。</p>
+  </div>
+</div>
+
+<div class="legend">
+  <span><i class="sw lock"></i>锁定墙（已完成房间）</span>
+  <span><i class="sw ply"></i>普通玩家墙</span>
+  <span><i class="sw" style="border-top:6px solid #8a5fbf"></i>共用墙</span>
+</div>
+
+<script>
+/* ───────────────────────── 极简 SVG 网格渲染器 ─────────────────────────
+   cfg = {
+     rows, cols, rowStart, colStart,   // 标签：rowStart 起的行号 / colStart 起的列字母
+     cells:  [{r,c,kind}]              // kind: furn | open | washA | washB | door
+     walls:  [{o:'h'|'v', r, c, cls}]  // h: 单元格(r,c)上边；v: 单元格(r,c)左边
+     path:   {pts:[[r,c]...], blockedAt?, cls}   // 单元格中心折线，可选末端箭头/叉
+     badge:  {r,c,text,cls}
+   }                                                                      */
+const CS = 64, PAD = 30;
+
+function cellXY(r, c) { return [PAD + c * CS, PAD + r * CS]; }
+
+function el(svg, name, attrs, text) {
+  const n = document.createElementNS('http://www.w3.org/2000/svg', name);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (text !== undefined) n.textContent = text;
+  svg.appendChild(n);
+  return n;
+}
+
+function drawGrid(id, cfg) {
+  const svg = document.getElementById(id);
+  const W = PAD * 2 + cfg.cols * CS, H = PAD * 2 + cfg.rows * CS;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  // 室内底色 + 格线
+  el(svg, 'rect', { x: PAD, y: PAD, width: cfg.cols * CS, height: cfg.rows * CS,
+                    fill: 'var(--indoor)' });
+  for (const cell of cfg.cells || []) {
+    const [x, y] = cellXY(cell.r, cell.c);
+    if (cell.kind === 'washA') el(svg, 'rect', { x, y, width: CS, height: CS, fill: '#f4dd9a' });
+    if (cell.kind === 'washB') el(svg, 'rect', { x, y, width: CS, height: CS, fill: '#cfe3f5' });
+  }
+  for (let r = 0; r <= cfg.rows; r++) {
+    el(svg, 'line', { x1: PAD, y1: PAD + r * CS, x2: PAD + cfg.cols * CS, y2: PAD + r * CS,
+                      stroke: '#b9c4d2', 'stroke-width': 1 });
+  }
+  for (let c = 0; c <= cfg.cols; c++) {
+    el(svg, 'line', { x1: PAD + c * CS, y1: PAD, x2: PAD + c * CS, y2: PAD + cfg.rows * CS,
+                      stroke: '#b9c4d2', 'stroke-width': 1 });
+  }
+  // 行号 / 列字母
+  for (let r = 0; r < cfg.rows; r++) {
+    el(svg, 'text', { x: PAD - 8, y: PAD + r * CS + CS / 2 + 5, 'text-anchor': 'end',
+                      'font-size': 13, fill: 'var(--soft)' }, String(cfg.rowStart + r));
+  }
+  for (let c = 0; c < cfg.cols; c++) {
+    el(svg, 'text', { x: PAD + c * CS + CS / 2, y: PAD - 8, 'text-anchor': 'middle',
+                      'font-size': 13, fill: 'var(--soft)' },
+       String.fromCharCode(65 + cfg.colStart + c));
+  }
+  // 外墙
+  el(svg, 'rect', { x: PAD, y: PAD, width: cfg.cols * CS, height: cfg.rows * CS,
+                    fill: 'none', stroke: 'var(--ink)', 'stroke-width': 6 });
+
+  // 单元格内容
+  for (const cell of cfg.cells || []) {
+    const [x, y] = cellXY(cell.r, cell.c);
+    if (cell.kind === 'furn') {
+      el(svg, 'rect', { x: x + 7, y: y + 7, width: CS - 14, height: CS - 14, rx: 6,
+                        fill: 'var(--furn)' });
+      el(svg, 'text', { x: x + CS / 2, y: y + CS / 2 + 5, 'text-anchor': 'middle',
+                        'font-size': 12, fill: '#fff' }, '家具');
+    }
+    if (cell.kind === 'open') {
+      el(svg, 'circle', { cx: x + CS / 2, cy: y + CS / 2, r: 7,
+                          fill: 'var(--ink)', opacity: .55 });
+      el(svg, 'text', { x: x + CS / 2, y: y + CS / 2 - 12, 'text-anchor': 'middle',
+                        'font-size': 11, fill: 'var(--soft)' }, '自由空间');
+    }
+    if (cell.kind === 'door') {
+      // 在该格下边画一个黄色门洞标记
+      el(svg, 'line', { x1: x + 10, y1: y + CS, x2: x + CS - 10, y2: y + CS,
+                        stroke: '#e9b820', 'stroke-width': 8, 'stroke-linecap': 'round' });
+      el(svg, 'text', { x: x + CS / 2, y: y + CS + 18, 'text-anchor': 'middle',
+                        'font-size': 12, fill: '#a8830a' }, '门');
+    }
+  }
+
+  // 墙：h = (r,c) 上边；v = (r,c) 左边
+  const wallStyle = {
+    pre:    { stroke: 'var(--wallpre)', w: 7 },
+    ghost:  { stroke: '#b9b2a4', w: 4, dash: '7 6' },
+    ply:    { stroke: 'var(--wallply)', w: 7 },
+    lock:   { stroke: 'var(--lock)', w: 8 },
+    shared: { stroke: '#8a5fbf', w: 8 },
+    deny:   { stroke: 'var(--bad)', w: 8 },
+    okdel:  { stroke: 'var(--good)', w: 6, dash: '8 6' },
+  };
+  for (const wl of cfg.walls || []) {
+    const s = wallStyle[wl.cls || 'ply'];
+    const [x, y] = cellXY(wl.r, wl.c);
+    const a = { stroke: s.stroke, 'stroke-width': s.w, 'stroke-linecap': 'round' };
+    if (s.dash) a['stroke-dasharray'] = s.dash;
+    if (wl.o === 'h') { a.x1 = x; a.y1 = y; a.x2 = x + CS; a.y2 = y; }
+    else              { a.x1 = x; a.y1 = y; a.x2 = x;      a.y2 = y + CS; }
+    el(svg, 'line', a);
+  }
+
+  // 路径箭头（沿单元格中心）
+  if (cfg.path) {
+    const pts = cfg.path.pts.map(([r, c]) => {
+      const [x, y] = cellXY(r, c);
+      return `${x + CS / 2},${y + CS / 2}`;
+    }).join(' ');
+    const color = cfg.path.cls === 'bad' ? 'var(--bad)' : 'var(--good)';
+    el(svg, 'polyline', { points: pts, fill: 'none', stroke: color,
+                          'stroke-width': 4, 'stroke-dasharray': '2 7',
+                          'stroke-linecap': 'round' });
+    const last = cfg.path.pts[cfg.path.pts.length - 1];
+    const [lx, ly] = cellXY(last[0], last[1]);
+    el(svg, 'text', { x: lx + CS / 2 + 14, y: ly + CS / 2 + 6, 'font-size': 20,
+                      fill: color, 'font-weight': 'bold' },
+       cfg.path.cls === 'bad' ? '✗' : '✓');
+  }
+
+  // 角标
+  if (cfg.badge) {
+    const [x, y] = cellXY(cfg.badge.r, cfg.badge.c);
+    el(svg, 'text', { x: x + CS / 2, y: y + CS / 2 + 6, 'text-anchor': 'middle',
+                      'font-size': 17, 'font-weight': 'bold',
+                      fill: cfg.badge.cls === 'bad' ? 'var(--bad)' : 'var(--good)' },
+       cfg.badge.text);
+  }
+}
+
+/* ── 问题 1 · 例 a ─────────────────────────────────────────
+   3×3，行 12–14，列 A–C。
+   小隔间 = 12A,12B：下边两段 + 12B 右边一段为预绘墙。
+   家具在 13B，自由空间在 12B，门在 14C 下边。            */
+const POCKET_WALLS = [
+  { o: 'h', r: 1, c: 0 },   // 12A 下边（= 13A 上边）
+  { o: 'h', r: 1, c: 1 },   // 12B 下边
+  { o: 'v', r: 0, c: 2 },   // 12B 右边（= 12C 左边）
+];
+const CELLS_1 = [
+  { r: 1, c: 1, kind: 'furn' },   // 13B 家具
+  { r: 0, c: 1, kind: 'open' },   // 12B 自由空间
+  { r: 2, c: 2, kind: 'door' },   // 14C 门
+];
+drawGrid('g1a', {
+  rows: 3, cols: 3, rowStart: 12, colStart: 0,
+  cells: CELLS_1,
+  walls: POCKET_WALLS.map(w => ({ ...w, cls: 'pre' })),
+  path: { pts: [[2, 2], [2, 0], [1, 0]], cls: 'bad' },   // 从门绕到 13A，被墙挡住
+});
+drawGrid('g1b', {
+  rows: 3, cols: 3, rowStart: 12, colStart: 0,
+  cells: CELLS_1,
+  walls: POCKET_WALLS.map(w => ({ ...w, cls: 'ghost' })),
+  path: { pts: [[2, 2], [2, 0], [1, 0], [0, 0], [0, 1]], cls: 'good' },  // 直接穿墙走进隔间
+});
+
+/* ── 问题 1 · 例 b ───────────────────────────────────────── */
+const ROOM_CELLS = [
+  { r: 0, c: 0, kind: 'washA' }, { r: 0, c: 1, kind: 'washA' },  // 小房间
+  { r: 1, c: 0, kind: 'washB' }, { r: 1, c: 1, kind: 'washB' },
+  { r: 1, c: 2, kind: 'washB' }, { r: 0, c: 2, kind: 'washB' },
+  { r: 2, c: 0, kind: 'washB' }, { r: 2, c: 1, kind: 'washB' }, { r: 2, c: 2, kind: 'washB' },
+];
+drawGrid('g2a', {
+  rows: 3, cols: 3, rowStart: 12, colStart: 0,
+  cells: ROOM_CELLS,
+  walls: POCKET_WALLS.map(w => ({ ...w, cls: 'pre' })),
+  badge: { r: 0, c: 0, text: '2 区域', cls: 'good' },
+});
+drawGrid('g2b', {
+  rows: 3, cols: 3, rowStart: 12, colStart: 0,
+  cells: ROOM_CELLS.map(c => ({ ...c, kind: 'washB' })),   // 逻辑层：全部同一区域
+  walls: POCKET_WALLS.map(w => ({ ...w, cls: 'ghost' })),
+  badge: { r: 0, c: 0, text: '1 区域', cls: 'bad' },
+});
+
+/* ── 问题 2 · 四步复现 ─────────────────────────────────────
+   浴室 = 2×1（12A,12B），周围 5 段玩家墙 + 右侧门。       */
+const BATH_WALLS = [
+  { o: 'h', r: 0, c: 0 }, { o: 'h', r: 0, c: 1 },   // 上
+  { o: 'h', r: 1, c: 0 }, { o: 'h', r: 1, c: 1 },   // 下
+  { o: 'v', r: 0, c: 2 },                            // 右（门留在此段中开洞，示意即可）
+];
+function bathPanel(id, wallCls, markIdx, markCls, badge) {
+  drawGrid(id, {
+    rows: 2, cols: 3, rowStart: 12, colStart: 0,
+    cells: [
+      { r: 0, c: 0, kind: 'washA' }, { r: 0, c: 1, kind: 'washA' },
+      { r: 0, c: 0, kind: 'furn' },
+    ],
+    walls: BATH_WALLS.map((w, i) => ({
+      ...w, cls: i === markIdx ? markCls : wallCls,
+    })),
+    badge,
+  });
+}
+bathPanel('s1', 'lock', -1, '',      { r: 1, c: 1, text: '✓ 已完成', cls: 'good' });
+bathPanel('s2', 'lock', -1, '',      { r: 1, c: 1, text: '已解封',   cls: 'good' });
+bathPanel('s3', 'lock', 2, 'deny',   { r: 1, c: 1, text: '✗ 删不掉', cls: 'bad'  });
+bathPanel('s4', 'lock', 2, 'okdel',  { r: 1, c: 1, text: '🔨 可删',  cls: 'good' });
+
+/* ── 问题 2 · 共用墙 ───────────────────────────────────── */
+drawGrid('s5', {
+  rows: 2, cols: 4, rowStart: 12, colStart: 0,
+  cells: [
+    { r: 0, c: 0, kind: 'washA' }, { r: 0, c: 1, kind: 'washA' },   // 浴室
+    { r: 0, c: 2, kind: 'washB' }, { r: 0, c: 3, kind: 'washB' },   // 卧室
+  ],
+  walls: [
+    { o: 'h', r: 0, c: 0, cls: 'lock' }, { o: 'h', r: 0, c: 1, cls: 'lock' },
+    { o: 'h', r: 0, c: 2, cls: 'lock' }, { o: 'h', r: 0, c: 3, cls: 'lock' },
+    { o: 'h', r: 1, c: 0, cls: 'lock' }, { o: 'h', r: 1, c: 1, cls: 'lock' },
+    { o: 'h', r: 1, c: 2, cls: 'lock' }, { o: 'h', r: 1, c: 3, cls: 'lock' },
+    { o: 'v', r: 0, c: 2, cls: 'shared' },                       // 共用墙
+  ],
+  badge: { r: 1, c: 1, text: '浴室 | 卧室', cls: 'good' },
+});
+</script>
+</body>
+</html>
