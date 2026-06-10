@@ -25,7 +25,7 @@ export class BonusPanel extends Component {
     widget.isAlignRight = true;
     widget.top   = 8;
     widget.left  = 210;   // clear of RoomProgressPanel (190px wide + 20px gap)
-    widget.right = 170;   // clear of AudioControls (150px wide + 12px margin + gap)
+    widget.right = 80;    // clear of the gear button (52px + 12px margin + gap)
     widget.alignMode = Widget.AlignMode.ON_WINDOW_RESIZE;
 
     // Title label "奖励目标"
