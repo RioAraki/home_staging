@@ -2298,15 +2298,11 @@ scenarios:
       name_en: Ground floor
       level: 1
   pre_drawn:
-    walls_interior:
-    - - 12
-      - 1
-      - 12
-      - 2
-    - - 12
-      - 3
-      - 13
-      - 3
+    # 2026-06-10 人工对照原书扫描（images/scenarios/page_26.png）：底层内部
+    # 干净无墙，原先录入的两段 [[12,1,12,2],[12,3,13,3]] 系电子化误录，已删。
+    # 本关 rules.hallway 注释亦明确 "No interior partition walls (except the
+    # bathroom)"（浴室隔断由玩家自行画）。
+    walls_interior: []
     doors: []
     windows:
     - cell:
@@ -2395,7 +2391,7 @@ scenarios:
     pre_drawn_counts:
       doors: 0
       windows: 3
-      walls_interior: 2
+      walls_interior: 0
     rooms: 2
     bonus_points: 5
 - id: dreamy_yacht
