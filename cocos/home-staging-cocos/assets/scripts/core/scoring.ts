@@ -39,7 +39,10 @@ export interface ScoreBreakdown {
   totalSquares: number;
   emptyRoomPenalty: number;
   inaccessibleRooms: RoomSlot[];
-  inaccessiblePenalty: number;
+  /** Squares dropped because open spaces are unreachable / wall-edge rules
+   *  broken. Informational only — these squares are already EXCLUDED from
+   *  countedSquares/totalSquares, so they must NOT be subtracted again. */
+  droppedSquares: number;
   bonuses: BonusEvaluation[];
   bonusTotal: number;
   total: number;
@@ -544,7 +547,7 @@ export function computeScore(
     totalSquares,
     emptyRoomPenalty,
     inaccessibleRooms,
-    inaccessiblePenalty: -droppedSquares,
+    droppedSquares,
     bonuses,
     bonusTotal,
     total: totalSquares + emptyRoomPenalty + bonusTotal,

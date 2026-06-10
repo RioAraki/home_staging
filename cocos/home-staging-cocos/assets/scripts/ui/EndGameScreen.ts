@@ -57,7 +57,12 @@ export class EndGameScreen extends Component {
     });
   }
 
-  onDestroy() { this.unsub?.(); }
+  onDestroy() {
+    this.unsub?.();
+    // The overlay is parented to the Canvas, not to this node — destroy it
+    // explicitly or it (and its touch handlers) would outlive the component.
+    this.hide();
+  }
 
   private hide() {
     this.overlay?.destroy();
@@ -106,9 +111,13 @@ export class EndGameScreen extends Component {
     const rooms    = result.rooms;
     const bonuses  = result.bonuses;
     const hasBonus = bonuses.length > 0;
-    const penalty  = result.emptyRoomPenalty + result.inaccessiblePenalty;
+    // Dropped (unreachable) squares are already excluded from each room's
+    // countedSquares — the only line-item penalty is the empty-room one.
+    const penalty  = result.emptyRoomPenalty;
 
-    // card height = sum of all sections + button
+    // card height = sum of all sections + button. Each section consumes a
+    // SEC_GAP right after its leading divider AND one after its rows — keep
+    // this in sync with the cursor flow below or the button overflows the card.
     const cardH =
       PAD +
       TITLE_H +
@@ -116,9 +125,10 @@ export class EndGameScreen extends Component {
       ROW_H +                            // "房间得分" header
       rooms.length * ROW_H + SEC_GAP +
       (hasBonus
-        ? ROW_H + bonuses.length * ROW_H + SEC_GAP
+        ? SEC_GAP + ROW_H + bonuses.length * ROW_H + SEC_GAP
         : 0) +
-      (penalty !== 0 ? ROW_H + SEC_GAP : 0) +
+      (penalty !== 0 ? SEC_GAP + ROW_H + SEC_GAP : 0) +
+      SEC_GAP +
       TOTAL_H +
       SEC_GAP +
       BTN_H +
@@ -280,7 +290,7 @@ export class EndGameScreen extends Component {
       divider(cur);
       cur -= SEC_GAP;
       const yC = cur - ROW_H / 2;
-      row('空房间 / 无障碍扣分', 18, C_GREY, INNER_W - SCORE_W - 4, LEFT_X, yC);
+      row('空房间扣分', 18, C_GREY, INNER_W - SCORE_W - 4, LEFT_X, yC);
       scoreCol(`${penalty}`, 18, new Color(240, 100, 100, 255), yC);
       cur -= ROW_H + SEC_GAP;
     }
