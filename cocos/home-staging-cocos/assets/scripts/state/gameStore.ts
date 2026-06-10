@@ -1,14 +1,11 @@
 import { createStore } from './zustandVanilla';
 import type { RoomSlot, Scenario } from '../core/types';
-import { cardByNumberVariant } from '../core/dataLoader';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology } from '../core/walls';
 import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
+import { resolveOption, pieceShapeCells, pieceFootprintCells } from '../core/pieces';
 import { audioManager } from '../platform/audio';
 import { loadAudioSettings, saveAudioSettings } from '../platform/audioSettings';
 import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, type RoomPhase } from './roomFlow';
-
-// PersistedState is unused in v1; declare a stub for type compat.
-type PersistedState = unknown;
 
 export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
@@ -19,13 +16,6 @@ export type WallPhase = 'walls' | 'door';
  *  is its own instance with independent reveal/place/skip state. */
 export function instanceKey(slot: RoomSlot, slotIdx: number): string {
   return `${slot}:${slotIdx}`;
-}
-
-/** Legacy per-(number,variant) key — kept for places that key by furniture
- *  number rather than placement instance (none after this refactor; left in
- *  case of external use). */
-export function cardKey(number: number, variant: Variant): string {
-  return `${number}-${variant}`;
 }
 
 export function hEdge(r: number, c: number): string { return `h:${r}:${c}`; }
@@ -44,6 +34,26 @@ export interface SelectedOption {
 export interface PlacedPiece extends SelectedOption {
   origin: [number, number];
   roomSlot: RoomSlot;        // === slot, kept for backwards compat in code
+}
+
+/** Shape of a restored session. Only the fields initRun consumes are typed;
+ *  unknown extra fields are ignored. `lockedWalls` is optional for saves
+ *  written before it was persisted — see initRun for the fallback. */
+export interface PersistedState {
+  chosenVariants: Record<number, Variant>;
+  activeRoomSlot: RoomSlot | null;
+  completedRoomSlots: RoomSlot[];
+  revealedCardKeys: string[];
+  placedCardKeys: string[];
+  skippedCardKeys: string[];
+  placedPieces: PlacedPiece[];
+  walls: Record<string, true>;
+  lockedWalls?: string[];
+  doors: Record<string, RoomSlot>;
+  windows: Record<string, true>;
+  jokerUsed: boolean;
+  frontDoorEdge: string | null;
+  gameFinished: boolean;
 }
 
 /** Undoable state — everything except chosenVariants (set at game start)
@@ -129,7 +139,6 @@ export interface GameState extends Undoable {
   unfinishGame: () => void;
   undo: () => void;
   setError: (msg: string | null) => void;
-  reset: () => void;
 }
 
 function pickRandomVariant(): Variant {
@@ -232,19 +241,8 @@ export function isActiveRoomEnclosed(s: GameState): boolean {
     if (regionMap.regions.size < 2) return false;   // no real enclosure yet
     const roomRegions = new Set<number>();
     for (const p of s.placedPieces.filter(pp => pp.slot === s.activeRoomSlot)) {
-      const card = cardByNumberVariant(p.number, p.variant);
-      const opt = card?.options.find(o => o.option_index === p.optionIndex);
-      if (!opt) continue;
-      const [bRows, bCols] = opt.bbox;
-      for (const [sr, sc] of [...opt.shape, ...opt.open_spaces]) {
-        let rr = sr, cc = sc;
-        if (p.mirrored) cc = bCols - 1 - cc;
-        for (let i = 0; i < p.rotation; i++) {
-          const nr = cc;
-          const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
-          rr = nr; cc = nc;
-        }
-        const reg = regionMap.cellToRegion.get(`${p.origin[0] + rr},${p.origin[1] + cc}`);
+      for (const [r, c] of pieceFootprintCells(p)) {
+        const reg = regionMap.cellToRegion.get(`${r},${c}`);
         if (reg !== undefined) roomRegions.add(reg);
       }
       if (roomRegions.size > 1) return false;  // piece is split by a wall
@@ -303,20 +301,7 @@ function edgeRoomAffinity(edgeKey: string, placed: PlacedPiece[]): Set<RoomSlot>
   const rooms = new Set<RoomSlot>();
   for (const p of placed) {
     if (rooms.has(p.roomSlot)) continue;
-    const card = cardByNumberVariant(p.number, p.variant);
-    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-    if (!opt) continue;
-    const [bRows, bCols] = opt.bbox;
-    for (const [sr, sc] of [...opt.shape, ...opt.open_spaces]) {
-      let rr = sr, cc = sc;
-      if (p.mirrored) cc = bCols - 1 - cc;
-      for (let i = 0; i < p.rotation; i++) {
-        const nr = cc;
-        const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
-        rr = nr; cc = nc;
-      }
-      const ar = p.origin[0] + rr;
-      const ac = p.origin[1] + cc;
+    for (const [ar, ac] of pieceFootprintCells(p)) {
       if ((ar === a[0] && ac === a[1]) || (ar === b[0] && ac === b[1])) {
         rooms.add(p.roomSlot);
         break;
@@ -389,6 +374,15 @@ export const gameStore = createStore<GameState>((set, get) => {
           skippedCardKeys: new Set(saved.skippedCardKeys),
           placedPieces: saved.placedPieces,
           walls: saved.walls,
+          // Older saves don't carry lockedWalls. Fallback: if any room was
+          // sealed, treat every restored wall as locked (completeRoom locks
+          // all walls existing at seal time, so this only over-locks walls
+          // drawn after the last seal — better than silently unlocking every
+          // sealed room's walls).
+          lockedWalls: new Set(
+            saved.lockedWalls ??
+            (saved.completedRoomSlots.length > 0 ? Object.keys(saved.walls) : []),
+          ),
           doors: saved.doors,
           windows: saved.windows,
           jokerUsed: saved.jokerUsed,
@@ -398,6 +392,7 @@ export const gameStore = createStore<GameState>((set, get) => {
           past: [],
           frontDoorMode: false,
           windowMode: false,
+          demolishMode: false,
         });
         return;
       }
@@ -666,7 +661,11 @@ export const gameStore = createStore<GameState>((set, get) => {
       if (wallPhase !== 'walls') return;
       if (doors[edgeKey]) return;
       const isRemoving = !!walls[edgeKey];
-      if (isRemoving && lockedWalls.has(edgeKey)) return;  // sealed room's wall — keep it
+      if (isRemoving && lockedWalls.has(edgeKey)) {
+        // Sealed room's wall — not removable by a plain tap (use demolish mode).
+        set({ lastError: '已完成房间的墙不能直接抹掉，请使用拆除模式。' });
+        return;
+      }
       // A player wall is an INTERIOR partition: both cells it separates must be
       // indoor. This forbids drawing on the building's exterior outline (one
       // side outdoor — already a wall) or out in the open (both sides outdoor).
@@ -710,20 +709,7 @@ export const gameStore = createStore<GameState>((set, get) => {
         const [a, b] = edgeAdjacentCells(edgeKey);
         const shapeCells = new Set<string>();
         for (const p of placedPieces) {
-          const card = cardByNumberVariant(p.number, p.variant);
-          const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-          if (!opt) continue;
-          const [bRows, bCols] = opt.bbox;
-          for (const [sr, sc] of opt.shape) {
-            let rr = sr, cc = sc;
-            if (p.mirrored) cc = bCols - 1 - cc;
-            for (let i = 0; i < p.rotation; i++) {
-              const nr = cc;
-              const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
-              rr = nr; cc = nc;
-            }
-            shapeCells.add(`${p.origin[0] + rr},${p.origin[1] + cc}`);
-          }
+          for (const [r, c] of pieceShapeCells(p)) shapeCells.add(`${r},${c}`);
         }
         if (shapeCells.has(`${a[0]},${a[1]}`) || shapeCells.has(`${b[0]},${b[1]}`)) {
           set({ lastError: 'Both sides of a door must be open — one side is blocked by a furniture piece.' });
@@ -825,20 +811,7 @@ export const gameStore = createStore<GameState>((set, get) => {
         }
         const occupied = new Set<string>();
         for (const p of placedPieces) {
-          const card = cardByNumberVariant(p.number, p.variant);
-          const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-          if (!opt) continue;
-          const [bRows, bCols] = opt.bbox;
-          for (const [sr, sc] of opt.shape) {
-            let rr = sr, cc = sc;
-            if (p.mirrored) cc = bCols - 1 - cc;
-            for (let i = 0; i < p.rotation; i++) {
-              const nr = cc;
-              const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
-              rr = nr; cc = nc;
-            }
-            occupied.add(`${p.origin[0] + rr},${p.origin[1] + cc}`);
-          }
+          for (const [r, c] of pieceShapeCells(p)) occupied.add(`${r},${c}`);
         }
         const blocker = adj.find(([rr, cc]) => occupied.has(`${rr},${cc}`));
         if (blocker) {
@@ -881,25 +854,8 @@ export const gameStore = createStore<GameState>((set, get) => {
       // count — clicking those is a no-op (per user rule).
       const hits: number[] = [];
       placedPieces.forEach((p, idx) => {
-        const card = cardByNumberVariant(p.number, p.variant);
-        const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-        if (!opt) return;
-        // Inline transform — we don't want to drag the geometry import into
-        // the store; reuse the shape cells stored by the piece's data.
-        // Apply rotation + mirror, same as transformOption.
-        const [bRows, bCols] = opt.bbox;
-        for (const [sr, sc] of opt.shape) {
-          let rr = sr, cc = sc;
-          if (p.mirrored) cc = bCols - 1 - cc;
-          for (let i = 0; i < p.rotation; i++) {
-            const nr = cc;
-            const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
-            rr = nr; cc = nc;
-          }
-          if (p.origin[0] + rr === targetR && p.origin[1] + cc === targetC) {
-            hits.push(idx);
-            break;
-          }
+        if (pieceShapeCells(p).some(([r, c]) => r === targetR && c === targetC)) {
+          hits.push(idx);
         }
       });
       if (hits.length === 0) return;
@@ -1029,9 +985,14 @@ export const gameStore = createStore<GameState>((set, get) => {
           // A demolished door un-finalises its owner room.
           const newCompleted = new Set(completedRoomSlots);
           if (owner) newCompleted.delete(owner);
+          // Unlock the edge too — otherwise a wall later re-drawn here would
+          // inherit the stale lock and could never be toggled off again.
+          const nextLocked = new Set(get().lockedWalls);
+          nextLocked.delete(edgeKey);
           set({
             walls: nextWalls,
             doors: nextDoors,
+            lockedWalls: nextLocked,
             completedRoomSlots: newCompleted,
             gameFinished: false,
             lastError: null,
@@ -1136,27 +1097,16 @@ export const gameStore = createStore<GameState>((set, get) => {
         // Every furniture piece in this room must:
         // (a) lie entirely within one region (no wall cuts through a piece), AND
         // (b) all pieces must be in the SAME region (no piece left outside the walls).
-        // Uses the same inline rotation/mirror transform as the demolish hit-test.
         const roomRegions = new Set<number>();  // one entry per piece (its region)
         for (const p of placedPieces.filter(pp => pp.slot === activeRoomSlot)) {
-          const card = cardByNumberVariant(p.number, p.variant);
-          const opt = card?.options.find(o => o.option_index === p.optionIndex);
-          if (!opt) continue;
-          const [bRows, bCols] = opt.bbox;
           const pieceRegions = new Set<number>();
-          for (const [sr, sc] of [...opt.shape, ...opt.open_spaces]) {
-            let rr = sr, cc = sc;
-            if (p.mirrored) cc = bCols - 1 - cc;
-            for (let i = 0; i < p.rotation; i++) {
-              const nr = cc;
-              const nc = (i % 2 === 0 ? bRows : bCols) - 1 - rr;
-              rr = nr; cc = nc;
-            }
-            const reg = regionMap.cellToRegion.get(`${p.origin[0] + rr},${p.origin[1] + cc}`);
+          for (const [r, c] of pieceFootprintCells(p)) {
+            const reg = regionMap.cellToRegion.get(`${r},${c}`);
             if (reg !== undefined) pieceRegions.add(reg);
           }
           if (pieceRegions.size > 1) {
-            set({ lastError: `家具「${opt.name_zh}」被墙切开了，请调整墙的位置后再完成房间。` });
+            const opt = resolveOption(p);
+            set({ lastError: `家具「${opt?.name_zh ?? `#${p.number}`}」被墙切开了，请调整墙的位置后再完成房间。` });
             return false;
           }
           for (const r of pieceRegions) roomRegions.add(r);
@@ -1199,15 +1149,6 @@ export const gameStore = createStore<GameState>((set, get) => {
     },
 
     setError: (msg) => set({ lastError: msg }),
-
-    reset: () =>
-      set({
-        ...blank,
-        chosenVariants: get().chosenVariants,
-        past: [],
-        frontDoorMode: false,
-        windowMode: false,
-      }),
   };
 });
 
