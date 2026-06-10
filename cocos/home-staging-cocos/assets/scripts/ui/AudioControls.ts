@@ -60,7 +60,12 @@ export class AudioControls extends Component {
     });
   }
 
-  onDestroy() { this.unsub?.(); }
+  onDestroy() {
+    this.unsub?.();
+    // The popup is parented to the Canvas, not to this node — close it or a
+    // dead modal (whose refresh subscription is gone) would stay on screen.
+    this.closePopup();
+  }
 
   private togglePopup() {
     if (this.popup) { this.closePopup(); return; }

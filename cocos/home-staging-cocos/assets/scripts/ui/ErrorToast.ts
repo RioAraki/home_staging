@@ -6,6 +6,7 @@ const { ccclass, property } = _decorator;
 export class ErrorToast extends Component {
   @property(Label) text!: Label;
   private unsub?: () => void;
+  private hideCb?: () => void;
 
   start() {
     if (this.node) this.node.active = false;
@@ -57,9 +58,14 @@ export class ErrorToast extends Component {
     if (!this.text || !this.node) return;
     this.text.string = msg;
     this.node.active = true;
-    this.scheduleOnce(() => {
+    // Cancel the previous timer: otherwise an earlier toast's pending hide
+    // fires early on this one (deactivating the node only PAUSES the timer,
+    // so it would also resume and fire almost immediately on the next show).
+    if (this.hideCb) this.unschedule(this.hideCb);
+    this.hideCb = () => {
       if (this.node) this.node.active = false;
       gameStore.getState().setError(null);
-    }, 3);
+    };
+    this.scheduleOnce(this.hideCb, 3);
   }
 }

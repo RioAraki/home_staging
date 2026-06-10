@@ -1,6 +1,6 @@
 import { AudioClip, AudioSource, Node, resources, director } from 'cc';
 
-type SfxKind = 'place' | 'remove' | 'error';
+type SfxKind = 'place' | 'remove';
 
 class AudioManager {
   private bgm?: AudioSource;
@@ -34,9 +34,12 @@ class AudioManager {
     resources.load(path, AudioClip, (err, clip) => {
       if (err || !clip) { return; }
       this.clips[key] = clip;
-      if (key === 'bgm' && this.bgm && !this._bgmMuted) {
+      if (key === 'bgm' && this.bgm) {
+        // Always assign the clip — if we skipped assignment while muted,
+        // setBgmMuted(false) would find clip=null and BGM could never start
+        // for the rest of the session.
         this.bgm.clip = clip;
-        this.bgm.play();
+        if (!this._bgmMuted) this.bgm.play();
       }
     });
   }

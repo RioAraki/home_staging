@@ -9,12 +9,20 @@ const { ccclass } = _decorator;
 @ccclass('GameBootstrap')
 export class GameBootstrap extends Component {
   async start() {
-    const maps = await new Promise<JsonAsset>((res, rej) =>
-      resources.load('data/maps_data', JsonAsset, (e, a) => e ? rej(e) : res(a))
-    );
-    const furniture = await new Promise<JsonAsset>((res, rej) =>
-      resources.load('data/furniture_data', JsonAsset, (e, a) => e ? rej(e) : res(a))
-    );
+    // A failed load would otherwise become an unhandled rejection and the
+    // game would silently never initialise.
+    let maps: JsonAsset, furniture: JsonAsset;
+    try {
+      maps = await new Promise<JsonAsset>((res, rej) =>
+        resources.load('data/maps_data', JsonAsset, (e, a) => e ? rej(e) : res(a))
+      );
+      furniture = await new Promise<JsonAsset>((res, rej) =>
+        resources.load('data/furniture_data', JsonAsset, (e, a) => e ? rej(e) : res(a))
+      );
+    } catch (e) {
+      console.error('[bootstrap] failed to load game data:', e);
+      return;
+    }
 
     setLoadedData(maps.json as any, furniture.json as any);
     console.log('[bootstrap] data loaded, scenarios:', (maps.json as any).scenarios.length);
@@ -36,7 +44,7 @@ export class GameBootstrap extends Component {
 
     const canvas = director.getScene()?.getComponentInChildren(Canvas);
 
-    // Persistent BGM/SFX toggles — bottom-right corner.
+    // Settings gear (BGM/SFX toggles) — top-right corner.
     if (canvas && !canvas.node.getChildByName('AudioControls')) {
       const n = new Node('AudioControls');
       canvas.node.addChild(n);

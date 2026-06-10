@@ -83,8 +83,7 @@ export class BonusPanel extends Component {
 
       const lines = result.bonuses.map((b) => {
         const mark = b.earned ? '✓' : '○';
-        const pts  = b.earned ? `+${b.points}` : `+${b.points}`;
-        return `${mark} ${pts}  ${b.text_zh}`;
+        return `${mark} +${b.points}  ${b.text_zh}`;
       });
 
       if (result.bonuses.length === 0) {

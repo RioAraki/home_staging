@@ -33,8 +33,9 @@ export class Toolbar extends Component {
     if (this.frontDoorBtn) this.frontDoorBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().toggleFrontDoorMode());
     if (this.windowBtn)    this.windowBtn.node.on(Button.EventType.CLICK,    () => gameStore.getState().toggleWindowMode());
     if (this.demolishBtn)  this.demolishBtn.node.on(Button.EventType.CLICK,  () => gameStore.getState().toggleDemolishMode());
-    // No "finish/settle" button anymore — the game auto-settles when the last
-    // room is sealed (see gameStore.completeRoom).
+    // No "finish/settle" button here — once every room is sealed, RoomPanel
+    // shows the final 放大门 → 结算 stage and scoring runs only when the
+    // player presses 结算 (gameStore.finishGame; never automatic).
     if (this.finishBtn) this.finishBtn.node.active = false;
     if (this.undoBtn) this.undoBtn.node.on(Button.EventType.CLICK, () => gameStore.getState().undo());
 

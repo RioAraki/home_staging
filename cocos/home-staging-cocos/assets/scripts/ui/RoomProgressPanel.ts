@@ -46,7 +46,8 @@ export class RoomProgressPanel extends Component {
   onDestroy() { this.unsub?.(); }
 
   private rebuild() {
-    this.node.removeAllChildren();
+    // destroy (not just detach) — rebuild() runs on every progress change.
+    this.node.destroyAllChildren();
     const s = gameStore.getState();
     if (!s.scenario) return;
 
