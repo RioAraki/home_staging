@@ -20,8 +20,9 @@
 
 import type { Scenario, RoomSlot } from './types';
 import type { PlacedPiece } from '../state/gameStore';
-import { transformOption, absoluteCells } from './geometry';
-import { cardByNumberVariant } from './dataLoader';
+import {
+  CARPET_NUMBER, pieceShapeCells, pieceOpenSpaceCells, resolveOption,
+} from './pieces';
 
 export type CellKey = string;        // "r,c"
 export type RegionId = number;
@@ -133,12 +134,7 @@ export function assignRoomsToRegions(
   const m = new Map<RoomSlot, RegionId>();
   for (const p of placedPieces) {
     if (m.has(p.roomSlot)) continue;
-    const card = cardByNumberVariant(p.number, p.variant);
-    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-    if (!opt) continue;
-    const t = transformOption(opt, p.rotation, p.mirrored);
-    const cells = absoluteCells(t.shape, p.origin);
-    for (const [r, c] of cells) {
+    for (const [r, c] of pieceShapeCells(p)) {
       const k = `${r},${c}`;
       const reg = regions.cellToRegion.get(k);
       if (reg !== undefined) { m.set(p.roomSlot, reg); break; }
@@ -410,9 +406,6 @@ export function pathDistance(
 // either empty, open-space cells, or part of the carpet (#33) which is a
 // special exception.
 
-const CARPET_NUMBER = 31;  // NOTE: per FURNITURE.md the carpet is #33 in the
-                            // rulebook numbering. Update if your data differs.
-
 function getShapeCellsByPiece(
   placedPieces: PlacedPiece[],
 ): { byPieceIdx: Map<number, Set<string>>; carpetCells: Set<string>; allBlockingCells: Set<string> } {
@@ -420,15 +413,11 @@ function getShapeCellsByPiece(
   const carpetCells = new Set<string>();
   const allBlockingCells = new Set<string>();
   placedPieces.forEach((p, idx) => {
-    const card = cardByNumberVariant(p.number, p.variant);
-    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-    if (!opt) return;
-    const t = transformOption(opt, p.rotation, p.mirrored);
     const set = new Set<string>();
-    for (const [r, c] of absoluteCells(t.shape, p.origin)) {
+    for (const [r, c] of pieceShapeCells(p)) {
       const k = `${r},${c}`;
       set.add(k);
-      if (p.number === CARPET_NUMBER || p.number === 33) {
+      if (p.number === CARPET_NUMBER) {
         // Carpet is walkable — not a blocker
         carpetCells.add(k);
       } else {
@@ -443,12 +432,8 @@ function getShapeCellsByPiece(
 function getOpenSpaceCellsByPiece(placedPieces: PlacedPiece[]): Map<number, Set<string>> {
   const m = new Map<number, Set<string>>();
   placedPieces.forEach((p, idx) => {
-    const card = cardByNumberVariant(p.number, p.variant);
-    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-    if (!opt) return;
-    const t = transformOption(opt, p.rotation, p.mirrored);
     const set = new Set<string>();
-    for (const [r, c] of absoluteCells(t.open_spaces, p.origin)) {
+    for (const [r, c] of pieceOpenSpaceCells(p)) {
       set.add(`${r},${c}`);
     }
     m.set(idx, set);
@@ -577,8 +562,8 @@ export function analyseOpenSpaceAccessibility(
         valid.add(idx);
       } else {
         ignored.add(idx);
-        const card = cardByNumberVariant(placedPieces[idx].number, placedPieces[idx].variant);
-        pushReason(slot, `Piece #${placedPieces[idx].number}${placedPieces[idx].variant} (${card?.options[0]?.name_zh ?? '?'}) has unreachable open space(s)`);
+        const opt = resolveOption(placedPieces[idx]);
+        pushReason(slot, `Piece #${placedPieces[idx].number}${placedPieces[idx].variant} (${opt?.name_zh ?? '?'}) has unreachable open space(s)`);
       }
     }
   }

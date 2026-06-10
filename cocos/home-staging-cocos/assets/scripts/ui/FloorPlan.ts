@@ -5,8 +5,7 @@ import { analyseAccessibility, isRoomAccessible } from '../core/regions';
 import type { RoomSlot } from '../core/types';
 import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
-import { cardByNumberVariant } from '../core/dataLoader';
-import { transformOption } from '../core/geometry';
+import { CARPET_NUMBER, pieceShapeCells, pieceOpenSpaceCells } from '../core/pieces';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloorPlan')
@@ -256,19 +255,13 @@ export class FloorPlan extends Component {
     }
 
     // ── 1. build blocked (non-carpet shape) and all open_spaces ──────────
-    const CARPET = 33;
     const allBlocked = new Set<string>();
     const allOpenSpaces = new Set<string>();
     for (const p of s.placedPieces) {
-      const card = cardByNumberVariant(p.number, p.variant);
-      const opt = card?.options.find(o => o.option_index === p.optionIndex);
-      if (!opt) continue;
-      const t = transformOption(opt, p.rotation, p.mirrored);
-      const [or, oc] = p.origin;
-      for (const [sr, sc] of t.shape) {
-        if (p.number !== CARPET) allBlocked.add(`${or + sr},${oc + sc}`);
+      if (p.number !== CARPET_NUMBER) {
+        for (const [r, c] of pieceShapeCells(p)) allBlocked.add(`${r},${c}`);
       }
-      for (const [sr, sc] of t.open_spaces) allOpenSpaces.add(`${or + sr},${oc + sc}`);
+      for (const [r, c] of pieceOpenSpaceCells(p)) allOpenSpaces.add(`${r},${c}`);
     }
     if (allOpenSpaces.size === 0) { g.clear(); return; }
 

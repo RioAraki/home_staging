@@ -30,16 +30,13 @@ import type { Scenario, CellAttrs } from './types';
 import type { Cell, TransformedShape } from './geometry';
 import { absoluteCells, inBounds } from './geometry';
 import type { PlacedPiece } from '../state/gameStore';
-import { transformOption } from './geometry';
-import { cardByNumberVariant } from './dataLoader';
+import { CARPET_NUMBER, pieceShapeCells, pieceOpenSpaceCells } from './pieces';
 
 export interface ValidationResult {
   valid: boolean;
   reason?: string;
   badCells?: Cell[];
 }
-
-const CARPET_NUMBER = 33;
 
 function gridCells(scenario: Scenario): string[][] {
   return scenario.grid.ascii.replace(/\n+$/, '').split('\n').map((r) => r.split(''));
@@ -87,13 +84,9 @@ function collectFootprints(placed: PlacedPiece[]): PlacedFootprint {
   const carpetShape = new Set<string>();
   const openSpaces = new Set<string>();
   for (const p of placed) {
-    const card = cardByNumberVariant(p.number, p.variant);
-    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-    if (!opt) continue;
-    const t = transformOption(opt, p.rotation, p.mirrored);
     const targetShape = p.number === CARPET_NUMBER ? carpetShape : nonCarpetShape;
-    for (const [r, c] of absoluteCells(t.shape, p.origin)) targetShape.add(`${r},${c}`);
-    for (const [r, c] of absoluteCells(t.open_spaces, p.origin)) openSpaces.add(`${r},${c}`);
+    for (const [r, c] of pieceShapeCells(p)) targetShape.add(`${r},${c}`);
+    for (const [r, c] of pieceOpenSpaceCells(p)) openSpaces.add(`${r},${c}`);
   }
   return { nonCarpetShape, carpetShape, openSpaces };
 }

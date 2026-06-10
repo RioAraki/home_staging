@@ -2,8 +2,11 @@
 
 import type { Scenario, RoomSlot, BonusPoint } from './types';
 import type { PlacedPiece } from '../state/gameStore';
-import { cardByNumberVariant } from './dataLoader';
-import { transformOption, absoluteCells } from './geometry';
+import { inBounds } from './geometry';
+import {
+  CARPET_NUMBER, resolveOption,
+  pieceShapeCells, pieceOpenSpaceCells, pieceFootprintCells, pieceFeatureCells,
+} from './pieces';
 import {
   analyseAccessibility,
   analyseOpenSpaceAccessibility,
@@ -11,7 +14,6 @@ import {
   pathDistance,
 } from './regions';
 import { checkWallEdgeCompliance } from './walls';
-import { transformOption as transformOptionFn, absoluteCells as absoluteCellsFn } from './geometry';
 
 export interface RoomScore {
   slot: RoomSlot;
@@ -47,13 +49,10 @@ export interface ScoreBreakdown {
 }
 
 function squaresPerPiece(p: PlacedPiece): number {
-  const card = cardByNumberVariant(p.number, p.variant);
-  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-  if (!opt) return 0;
-  const t = transformOption(opt, p.rotation, p.mirrored);
-  return absoluteCells(t.shape, p.origin).filter(
-    ([r, c]) => r >= 0 && c >= 0 && r < 16 && c < 16,
-  ).length;
+  // The carpet occupies no squares and scores no points itself — it only
+  // participates in bonus conditions (RULES.zh.md §画家具 / §结算).
+  if (p.number === CARPET_NUMBER) return 0;
+  return pieceShapeCells(p).filter((cell) => inBounds(cell)).length;
 }
 
 // Furniture numbers used by structural evaluators.
@@ -85,60 +84,13 @@ const NAME_SUBSTRING_FOR_NUMBER: Record<number, string> = {
  *  match — whichever is simpler for the rule in question). */
 function pieceCountsAsFurniture(p: PlacedPiece, target: number): boolean {
   if (p.number === target) return true;
-  const card = cardByNumberVariant(p.number, p.variant);
-  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+  const opt = resolveOption(p);
   if (!opt) return false;
   const feature = FEATURE_FOR_NUMBER[target];
   if (feature && opt.cell_features?.some(([, , t]) => t === feature)) return true;
   const sub = NAME_SUBSTRING_FOR_NUMBER[target];
   if (sub && opt.name_zh.includes(sub)) return true;
   return false;
-}
-
-/** All world-cell occupancy from shape cells of a placed piece. */
-function pieceShapeCells(p: PlacedPiece): Array<[number, number]> {
-  const card = cardByNumberVariant(p.number, p.variant);
-  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-  if (!opt) return [];
-  const t = transformOptionFn(opt, p.rotation, p.mirrored);
-  return absoluteCellsFn(t.shape, p.origin);
-}
-
-/** Every cell the placed piece "occupies" on the card — its shape cells
- *  plus its open-space cells. Distance-style rules treat this as the
- *  piece's full footprint so e.g. the drum kit's cymbal hat counts the
- *  same as the surrounding stool-radius open cells. */
-function pieceFootprintCells(p: PlacedPiece): Array<[number, number]> {
-  const card = cardByNumberVariant(p.number, p.variant);
-  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-  if (!opt) return [];
-  const t = transformOptionFn(opt, p.rotation, p.mirrored);
-  return [
-    ...absoluteCellsFn(t.shape, p.origin),
-    ...absoluteCellsFn(t.open_spaces, p.origin),
-  ];
-}
-
-function pieceOpenSpaceCells(p: PlacedPiece): Array<[number, number]> {
-  const card = cardByNumberVariant(p.number, p.variant);
-  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-  if (!opt) return [];
-  const t = transformOptionFn(opt, p.rotation, p.mirrored);
-  return absoluteCellsFn(t.open_spaces, p.origin);
-}
-
-/** World-cell coordinates of cell_features on a placed piece whose type
- *  matches `featureType` (e.g. 'plant', 'table'). cell_features are
- *  bbox-local and already rotated / mirrored by transformOption. */
-function pieceFeatureCells(p: PlacedPiece, featureType: string): Array<[number, number]> {
-  const card = cardByNumberVariant(p.number, p.variant);
-  const opt = card?.options.find((o) => o.option_index === p.optionIndex);
-  if (!opt) return [];
-  const t = transformOptionFn(opt, p.rotation, p.mirrored);
-  const [or, oc] = p.origin;
-  return t.cell_features
-    .filter(([, , type]) => type === featureType)
-    .map(([r, c]) => [r + or, c + oc] as [number, number]);
 }
 
 export interface EvaluatorContext {
@@ -228,8 +180,7 @@ export function evaluateBonusCondition(
       let chairs = 0;
       for (const p of placedPieces) {
         if (p.roomSlot !== slot) continue;
-        const card = cardByNumberVariant(p.number, p.variant);
-        const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+        const opt = resolveOption(p);
         chairs += opt?.chair_count ?? pieceOpenSpaceCells(p).length;
       }
       return { earned: chairs >= min, evaluator: key, note: `${chairs} chairs counted` };

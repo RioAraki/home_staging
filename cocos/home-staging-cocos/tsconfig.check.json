@@ -1,0 +1,14 @@
+{
+  // Typecheck helper for CLI use only (the editor ignores this file):
+  //   npx tsc --noEmit -p tsconfig.check.json
+  // Scopes the check to our scripts and skips the engine's noisy .d.ts files.
+  "extends": "./temp/tsconfig.cocos.json",
+  "compilerOptions": {
+    "strict": false,
+    "skipLibCheck": true,
+    // The editor's pipeline accepts ES2017+ APIs (Object.entries, padStart…)
+    // even though its base target is ES2015 — match that here.
+    "lib": ["ES2020", "DOM"]
+  },
+  "include": ["assets/**/*.ts"]
+}
