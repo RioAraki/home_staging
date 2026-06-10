@@ -37,7 +37,9 @@ export class PlacedPiece extends Component {
     sprite.sizeMode = Sprite.SizeMode.CUSTOM;
     const url = `cards/vector/${String(p.number).padStart(2, '0')}_${p.variant}_opt${p.optionIndex}/spriteFrame`;
     resources.load(url, SpriteFrame, (err, sf) => {
-      if (!err && sf) sprite.spriteFrame = sf;
+      // The placed layer is rebuilt on every placement change — the load may
+      // resolve after this node was destroyed.
+      if (!err && sf && imgNode.isValid) sprite.spriteFrame = sf;
     });
 
     // Graphics on the piece node (un-rotated): a small white dot at each

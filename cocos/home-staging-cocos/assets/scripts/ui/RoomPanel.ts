@@ -98,7 +98,7 @@ export class RoomPanel extends Component {
 
   onDestroy() {
     this.unsub?.();
-    input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+    this.offGlobalListeners();
   }
 
   /** Forward a global touch-move (during a tray drag) to the plan's ghost. */
@@ -106,14 +106,24 @@ export class RoomPanel extends Component {
     this.getInput()?.dragGhost(e);
   }
 
+  /** Remove ALL global drag listeners. The end/cancel pair is registered with
+   *  `once`, but only one of them fires — the sibling registration must be
+   *  removed by hand or it keeps referencing this component forever. */
+  private offGlobalListeners() {
+    input.off(Input.EventType.TOUCH_MOVE,   this.onGlobalMove, this);
+    input.off(Input.EventType.TOUCH_END,    this.onGlobalEnd,  this);
+    input.off(Input.EventType.TOUCH_CANCEL, this.onGlobalEnd,  this);
+  }
+
   private onGlobalEnd() {
-    input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+    this.offGlobalListeners();
   }
 
   private rebuild() {
     const c = this.listContent;
     if (!c) return;
-    c.removeAllChildren();
+    // destroy (not just detach) — rebuild() runs on nearly every store change.
+    c.destroyAllChildren();
 
     const s = gameStore.getState();
     const card = currentCard(s);
@@ -261,7 +271,9 @@ export class RoomPanel extends Component {
 
     const url = `cards/vector/${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}/spriteFrame`;
     resources.load(url, SpriteFrame, (err, sf) => {
-      if (err || !sf) return;
+      // The option nodes are rebuilt on every store change — the load may
+      // resolve after this node was destroyed.
+      if (err || !sf || !imgNode.isValid) return;
       sprite.spriteFrame = sf;
       // Fit the native image INSIDE the footprint box, preserving its aspect
       // ratio (no distortion). Size is governed by the footprint → comparable.

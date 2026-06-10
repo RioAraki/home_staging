@@ -32,8 +32,13 @@ export class FloorPlan extends Component {
       if (s.doors !== prev.doors) { this.redrawDoors(); this.redrawWalls(); this.redrawBlocked(); this.redrawInaccessibleOpen(); }
       if (s.windows !== prev.windows) this.redrawWindows();
       // The front door punches a gap in the exterior wall (grid bg) and draws
-      // its symbol in the doors layer — redraw both when it changes.
-      if (s.frontDoorEdge !== prev.frontDoorEdge) { this.redrawGrid(); this.redrawDoors(); }
+      // its symbol in the doors layer. Both red-wash overlays depend on it
+      // too: redrawBlocked flags sealed rooms unreachable from it, and
+      // redrawInaccessibleOpen seeds its BFS from it.
+      if (s.frontDoorEdge !== prev.frontDoorEdge) {
+        this.redrawGrid(); this.redrawDoors();
+        this.redrawBlocked(); this.redrawInaccessibleOpen();
+      }
       // Sealing/un-sealing a room can block a previously-built room.
       if (s.completedRoomSlots !== prev.completedRoomSlots) this.redrawBlocked();
       // Wall colour depends on enclosure + phase + active room.
@@ -96,7 +101,7 @@ export class FloorPlan extends Component {
       this.labelsNode = new Node('Labels');
       this.node.addChild(this.labelsNode);
     }
-    this.labelsNode.removeAllChildren();
+    this.labelsNode.destroyAllChildren();
 
     const { cell, r0, c0, rows, cols } = layout();
     const fontSize = Math.round(Math.max(12, Math.min(22, cell * 0.4)));
@@ -128,7 +133,8 @@ export class FloorPlan extends Component {
 
   private rebuildPlacedLayer() {
     if (!this.placedLayer) return;
-    this.placedLayer.removeAllChildren();
+    // destroy (not just detach) — these rebuild on every placement change.
+    this.placedLayer.destroyAllChildren();
     for (const p of gameStore.getState().placedPieces) {
       const node = new Node('piece');
       this.placedLayer.addChild(node);
@@ -205,9 +211,8 @@ export class FloorPlan extends Component {
     }
     const cells: string[] = [];
     for (const slot of problem) {
-      // Only flag rooms the player has finished — a room still being built is
-      // expected to be "open" and shouldn't flash red mid-placement.
-      if (!s.completedRoomSlots.has(slot)) continue;
+      // (problem only ever contains sealed rooms — both sources above filter
+      // on completedRoomSlots.)
       const reg = access.roomToRegion.get(slot);
       if (reg === undefined) continue;
       for (const k of access.regionMap.cellsByRegion.get(reg) ?? []) cells.push(k);
