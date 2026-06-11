@@ -4,6 +4,8 @@ import {
 } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { computeScore } from '../core/scoring';
+import { nextScenario } from '../core/dataLoader';
+import { openScenarioSelect, startScenario } from './ScenarioSelectScreen';
 const { ccclass } = _decorator;
 
 // ── Layout ────────────────────────────────────────────────────────────────────
@@ -311,34 +313,58 @@ export class EndGameScreen extends Component {
     scoreCol(`${result.total}`, 26, C_TITLE, totalY, true);
     cur -= TOTAL_H + SEC_GAP;
 
-    // ── Button (child of card) ─────────────────────────────────────────────
+    // ── Buttons (children of card): 再来一局 / 下一关 / 选择关卡 ────────────
     const btnY = cur - BTN_H / 2;
-    const btn  = new Node('btn');
-    card.addChild(btn);
-    btn.setPosition(0, btnY, 0);
-    btn.addComponent(UITransform).setContentSize(200, BTN_H);
+    const next = nextScenario(s.scenario.id);
+    const buttons: { text: string; fill: Color; onTap: () => void }[] = [
+      {
+        text: '再来一局',
+        fill: new Color(255, 255, 255, 30),
+        onTap: () => {
+          // Full reset: re-roll variants + clear all placed pieces/walls/doors/windows.
+          const store = gameStore.getState();
+          const scenario = store.scenario;
+          store.resetCurrentScenario();
+          // Auto-select the first room so the player can start immediately.
+          if (scenario?.rooms[0]) {
+            gameStore.getState().selectRoom(scenario.rooms[0].slot);
+          }
+        },
+      },
+    ];
+    if (next) {
+      buttons.push({ text: '下一关', fill: C_BTN, onTap: () => startScenario(next) });
+    }
+    // Select overlay opens on top; picking a level re-inits the store, which
+    // resets gameFinished and auto-hides this screen.
+    buttons.push({
+      text: '选择关卡',
+      fill: new Color(255, 255, 255, 30),
+      onTap: () => openScenarioSelect(),
+    });
 
-    const btnG = btn.addComponent(Graphics);
-    btnG.fillColor = C_BTN;
-    btnG.roundRect(-100, -BTN_H / 2, 200, BTN_H, 10);
-    btnG.fill();
+    const BTN_W   = 140;
+    const BTN_GAP = 10;
+    const totalW  = buttons.length * BTN_W + (buttons.length - 1) * BTN_GAP;
+    buttons.forEach((b, i) => {
+      const btn = new Node('btn');
+      card.addChild(btn);
+      btn.setPosition(-totalW / 2 + BTN_W / 2 + i * (BTN_W + BTN_GAP), btnY, 0);
+      btn.addComponent(UITransform).setContentSize(BTN_W, BTN_H);
 
-    const btnLblNode = new Node();
-    btn.addChild(btnLblNode);
-    const btnLbl = btnLblNode.addComponent(Label);
-    btnLbl.string   = '再来一局';
-    btnLbl.fontSize = 22;
-    btnLbl.color    = C_WHITE;
+      const btnG = btn.addComponent(Graphics);
+      btnG.fillColor = b.fill;
+      btnG.roundRect(-BTN_W / 2, -BTN_H / 2, BTN_W, BTN_H, 10);
+      btnG.fill();
 
-    btn.on(Node.EventType.TOUCH_END, () => {
-      // Full reset: re-roll variants + clear all placed pieces/walls/doors/windows.
-      const store = gameStore.getState();
-      const scenario = store.scenario;
-      store.resetCurrentScenario();
-      // Auto-select the first room so the player can start immediately.
-      if (scenario?.rooms[0]) {
-        gameStore.getState().selectRoom(scenario.rooms[0].slot);
-      }
+      const btnLblNode = new Node();
+      btn.addChild(btnLblNode);
+      const btnLbl = btnLblNode.addComponent(Label);
+      btnLbl.string   = b.text;
+      btnLbl.fontSize = 22;
+      btnLbl.color    = C_WHITE;
+
+      btn.on(Node.EventType.TOUCH_END, b.onTap);
     });
 
     // ── "隐藏查看平面图" button — top-right of card ─────────────────────────
