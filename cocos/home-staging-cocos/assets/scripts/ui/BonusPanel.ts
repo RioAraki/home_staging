@@ -8,11 +8,18 @@ const { ccclass, property } = _decorator;
  * Updates in real-time as furniture is placed / walls drawn / doors added.
  * Each bonus item shows ✓ (earned) or ○ (not yet) with its point value.
  */
+const TITLE_H     = 28;   // title strip height
+const LINE_H      = 24;   // bonus line height (matches label lineHeight)
+const PAD_V       = 8;    // top/bottom padding
+const FONT_SIZE   = 18;
+
 @ccclass('BonusPanel')
 export class BonusPanel extends Component {
   @property(Label) summaryLabel!: Label;
 
   private unsub?: () => void;
+  private titleNode: Node | null = null;
+  private widget: Widget | null = null;
 
   start() {
     // Use Widget to sit in the top strip, between RoomProgressPanel (left)
@@ -20,18 +27,19 @@ export class BonusPanel extends Component {
     const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
     ui.setContentSize(400, 100);
     const widget = this.node.addComponent(Widget);
+    this.widget = widget;
     widget.isAlignTop   = true;
     widget.isAlignLeft  = true;
     widget.isAlignRight = true;
     widget.top   = 8;
     widget.left  = 210;   // clear of RoomProgressPanel (190px wide + 20px gap)
-    widget.right = 80;    // clear of the gear button (52px + 12px margin + gap)
+    widget.right = 144;   // clear of "☰" + gear buttons (2×52px + margins)
     widget.alignMode = Widget.AlignMode.ON_WINDOW_RESIZE;
 
     // Title label "奖励目标"
     const titleNode = new Node('BonusTitleLabel');
     this.node.addChild(titleNode);
-    titleNode.setPosition(0, 36, 0);
+    this.titleNode = titleNode;
     const titleLbl = titleNode.addComponent(Label);
     titleLbl.string   = '奖励目标';
     titleLbl.fontSize = 20;
@@ -40,14 +48,10 @@ export class BonusPanel extends Component {
 
     if (this.summaryLabel) {
       this.summaryLabel.node.active = true;
-      this.summaryLabel.node.setPosition(0, -4, 0);
-      this.summaryLabel.fontSize        = 18;
-      this.summaryLabel.lineHeight      = 24;
+      this.summaryLabel.fontSize        = FONT_SIZE;
+      this.summaryLabel.lineHeight      = LINE_H;
       this.summaryLabel.enableWrapText  = false;
       this.summaryLabel.overflow        = (Label as any).Overflow?.SHRINK ?? 2;
-      const lblUi = this.summaryLabel.node.getComponent(UITransform)
-                 ?? this.summaryLabel.node.addComponent(UITransform);
-      lblUi.setContentSize(380, 80);
     }
 
     this.refresh();
@@ -66,10 +70,34 @@ export class BonusPanel extends Component {
 
   onDestroy() { this.unsub?.(); }
 
+  /** Size the panel to its content: title strip + one line per bonus.
+   *  Fixed sizes overflowed on scenarios with 4–5 bonuses (SHRINK made the
+   *  text tiny and it collided with the title). */
+  private layout(lineCount: number) {
+    const visible = lineCount > 0;
+    if (this.titleNode) this.titleNode.active = visible;
+    if (!visible) return;
+
+    const lblH   = lineCount * LINE_H;
+    const panelH = PAD_V + TITLE_H + lblH + PAD_V;
+    const ui = this.node.getComponent(UITransform)!;
+    ui.setContentSize(ui.contentSize.width, panelH);
+    // Re-pin the top edge: the widget only re-aligns on window resize, so a
+    // height change would otherwise drift the panel off its top anchor.
+    this.widget?.updateAlignment();
+
+    this.titleNode?.setPosition(0, panelH / 2 - PAD_V - TITLE_H / 2, 0);
+
+    const lblUi = this.summaryLabel.node.getComponent(UITransform)
+               ?? this.summaryLabel.node.addComponent(UITransform);
+    lblUi.setContentSize(Math.max(ui.contentSize.width - 20, 200), lblH);
+    this.summaryLabel.node.setPosition(0, panelH / 2 - PAD_V - TITLE_H - lblH / 2, 0);
+  }
+
   private refresh() {
     if (!this.summaryLabel) return;
     const s = gameStore.getState();
-    if (!s.scenario) { this.summaryLabel.string = ''; return; }
+    if (!s.scenario) { this.summaryLabel.string = ''; this.layout(0); return; }
 
     try {
       const result = computeScore(
@@ -88,10 +116,12 @@ export class BonusPanel extends Component {
 
       if (result.bonuses.length === 0) {
         this.summaryLabel.string = '';
+        this.layout(0);
         return;
       }
 
       this.summaryLabel.string = lines.join('\n');
+      this.layout(lines.length);
       // Tint earned lines green, un-earned gray — use a single colour for
       // the whole label (most scenarios have 1–3 bonuses; mixed colours
       // require RichText which adds complexity).
@@ -104,6 +134,7 @@ export class BonusPanel extends Component {
           : new Color(255, 210,  80, 255);// partial → yellow
     } catch {
       this.summaryLabel.string = '';
+      this.layout(0);
     }
   }
 }
