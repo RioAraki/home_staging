@@ -76,11 +76,12 @@
       </div>
       <div class="sec">
         <h3>预绘元素</h3>
-        <button id="tool-door" class="toolbtn">门(点格子边)</button>
+        <button id="tool-frontdoor" class="toolbtn">大门 (点外墙边)</button>
+        <button id="tool-door" class="toolbtn">房门(点格子边)</button>
         <button id="tool-window" class="toolbtn">窗(点格子边)</button>
         <button id="tool-wall" class="toolbtn">内墙(点格子边)</button>
         <button id="tool-marker" class="toolbtn">Marker(点格子)</button>
-        <button id="tool-frontcell" class="toolbtn">前门强制格</button>
+        <button id="tool-frontcell" class="toolbtn">前门可选格</button>
       </div>
     </div>
     <!-- center -->
@@ -235,6 +236,7 @@ function buildFeatureOptions() {
 }
 function wireTools() {
   $('tool-feature').onclick = () => { tool = 'feature'; syncToolButtons(); };
+  $('tool-frontdoor').onclick = () => { tool = 'frontdoor'; syncToolButtons(); };
   $('tool-door').onclick = () => { tool = 'door'; syncToolButtons(); };
   $('tool-window').onclick = () => { tool = 'window'; syncToolButtons(); };
   $('tool-wall').onclick = () => { tool = 'wall'; syncToolButtons(); };
@@ -424,6 +426,7 @@ function render() {
   drawEdges(model.walls, '#e6e9ee', 4);
   drawEdges(model.windows, '#7fd0ff', 3, true);
   drawEdges(model.doors, '#57c98b', 5);
+  if (model.frontDoor) drawEdges([model.frontDoor], '#ffaa3c', 7);  // 大门 (orange, like game)
   // markers
   for (const mk of model.markers) {
     const [r,c]=mk.cell; const x=w2sX(c)+cell/2, y=w2sY(r)+cell/2;
@@ -457,6 +460,12 @@ function applyPaint(ev, erase){
     const cl=cellAt(ev); if(!cl)return;
     if (tool==='terrain') model.terrain[cl.r][cl.c]= erase?'outdoor':terrainValue;
     else model.feature[cl.r][cl.c]= erase?null:($('feature-sel').value||null);
+    render(); return;
+  }
+  if (tool==='frontdoor'){
+    const k=edgeAt(ev); if(!k)return;
+    if(erase){ if(model.frontDoor===k) model.frontDoor=null; }
+    else { model.frontDoor = (model.frontDoor===k && !painting) ? null : k; } // single, replaces
     render(); return;
   }
   if (tool==='door'||tool==='window'||tool==='wall'){

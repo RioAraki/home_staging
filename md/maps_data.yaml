@@ -3572,3 +3572,66 @@ scenarios:
         walls_interior: 0
       rooms: 5
       bonus_points: 1
+  - id: test_0
+    title_zh: 小公寓
+    title_en: studio
+    chapter_zh: ''
+    difficulty: training
+    pages_in_book: []
+    page_image: ''
+    rooms:
+      - slot: I
+        name_zh: 独居室
+        name_en: Studio
+        furniture:
+          - 长沙发
+          - 折叠沙发
+          - 岛台1
+          - 浴缸
+          - 马桶 8A-1
+          - 单人床 13A-2
+    grid:
+      ascii: |-
+        ................
+        ................
+        ................
+        ................
+        .....IIIII......
+        .....IIIII......
+        .....IIIII......
+        .....IIIII......
+        .....IIIII......
+        ................
+        ................
+        ................
+        ................
+        ................
+        ................
+        ................
+      legend:
+        .:
+          terrain: outdoor
+        I:
+          terrain: indoor
+    zones: {}
+    pre_drawn:
+      doors:
+        - cell:
+            - 9
+            - 7
+          edge: 'N'
+          target: front_door
+      windows: []
+      walls_interior: []
+    rules:
+      hallway:
+        required: true
+      front_door:
+        on_exterior_wall_anywhere: false
+        forced_cells: []
+      drawing: []
+      scoring: []
+    bonus_points:
+      - text_zh: 放入了5件家具
+        text_en: ''
+        points: 1

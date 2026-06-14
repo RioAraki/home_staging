@@ -96,6 +96,7 @@ export function emptyModel(rows = 16, cols = 16) {
     meta: { id: '', title_zh: '', title_en: '', chapter_zh: '', difficulty: 'medium', pages_in_book: [], page_image: '' },
     rows, cols, terrain, feature,
     doors: [], windows: [], walls: [], markers: [],
+    frontDoor: null,   // edge key of the building's front door (大门), or null
     rooms: [],
     rules: { hallway_required: true, front_door: { mode: 'anywhere', forced_edges: [], forced_cells: [], width: 1 }, drawing: [] },
     bonus_points: [],
@@ -107,6 +108,8 @@ export function parseScenario(s) {
   const g = parseGrid(s.grid || { ascii: '', legend: {} });
   const pd = s.pre_drawn || {};
   const fd = s.rules?.front_door || {};
+  const allDoors = pd.doors || [];
+  const fdDoor = allDoors.find((d) => d.target === 'front_door');
   let mode = 'anywhere';
   if (fd.forced_edges?.length) mode = 'forced_edges';
   else if (fd.forced_cells?.length) mode = 'forced_cells';
@@ -117,9 +120,10 @@ export function parseScenario(s) {
       pages_in_book: s.pages_in_book || [], page_image: s.page_image || '',
     },
     rows: g.rows, cols: g.cols, terrain: g.terrain, feature: g.feature,
-    doors: (pd.doors || []).map(doorToKey),
+    doors: allDoors.filter((d) => d.target !== 'front_door').map(doorToKey),
     windows: (pd.windows || []).map(doorToKey),
     walls: (pd.walls_interior || []).map(wallPairToKey),
+    frontDoor: fdDoor ? doorToKey(fdDoor) : null,
     markers: (pd.markers || []).map((m) => ({ cell: m.cell, id: m.id, symbol: m.symbol })),
     rooms: (s.rooms || []).map((r) => ({
       slot: r.slot, name_zh: r.name_zh || '', name_en: r.name_en || '',
@@ -147,7 +151,10 @@ export function parseScenario(s) {
 export function buildScenario(m) {
   const grid = buildGrid(m);
   const pre_drawn = {
-    doors: m.doors.map(keyToDoor),
+    doors: [
+      ...m.doors.map(keyToDoor),
+      ...(m.frontDoor ? [{ ...keyToDoor(m.frontDoor), target: 'front_door' }] : []),
+    ],
     windows: m.windows.map(keyToDoor),
     walls_interior: m.walls.map(keyToWallPair),
   };
@@ -202,6 +209,13 @@ export function validate(m, validFurnitureNames) {
 
   ok(/^[a-z0-9_]+$/.test(m.meta.id), 'id 必须是非空 slug（小写字母/数字/下划线）');
   ok(!!m.meta.title_zh, '缺少中文标题 title_zh');
+
+  // building entrance: a fixed 大门, or a front_door rule that lets the player place one
+  const fdr = m.rules.front_door || {};
+  const hasEntrance = !!m.frontDoor || fdr.mode === 'anywhere' ||
+    (fdr.mode === 'forced_cells' && (fdr.forced_cells || []).length > 0) ||
+    (fdr.mode === 'forced_edges' && (fdr.forced_edges || []).length > 0);
+  ok(hasEntrance, '没有大门入口：放一个「大门」，或把前门规则设为「任意外墙」');
 
   // indoor non-empty + connectivity
   let indoor = 0; const indoorCells = [];

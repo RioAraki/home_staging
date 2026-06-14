@@ -25,7 +25,7 @@ describe('level-editor model', () => {
     const m = emptyModel(16, 16);
     m.meta = { id: 'demo_level', title_zh: '演示', title_en: 'Demo', chapter_zh: 'x', difficulty: 'easy', pages_in_book: [1], page_image: 'p.png' };
     for (let r = 4; r < 8; r++) for (let c = 4; c < 8; c++) m.terrain[r][c] = 'indoor';
-    m.doors = ['h:4:5']; m.windows = ['v:6:4']; m.walls = ['v:5:6'];
+    m.doors = ['h:4:5']; m.windows = ['v:6:4']; m.walls = ['v:5:6']; m.frontDoor = 'h:8:5';
     m.markers = [{ cell: [5, 5], id: 'socket', symbol: '*' }];
     m.rooms = [{ slot: 'I', name_zh: '客厅', name_en: 'Living', furniture: ['长沙发 1A-1', '长沙发 1A-1'] }];
     m.bonus_points = [{ text_zh: '盖住插座', text_en: 'cover socket', points: 2, condition: { covers_marker: { marker: 'socket' } } }];
