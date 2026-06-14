@@ -16,7 +16,7 @@
   .sec { padding:10px 14px; border-bottom:1px solid var(--line); }
   .row { display:flex; gap:6px; align-items:center; margin:4px 0; }
   label.k { color:var(--muted); width:64px; flex:none; }
-  input[type=text], input[type=number] { background:#171a1f; border:1px solid var(--line); color:var(--txt); border-radius:5px; padding:6px 8px; width:100%; }
+  input[type=text], input[type=number], select { background:#171a1f; border:1px solid var(--line); color:var(--txt); border-radius:5px; padding:6px 8px; width:100%; }
   button { background:#2f3540; border:1px solid var(--line); color:var(--txt); border-radius:5px; padding:6px 10px; cursor:pointer; }
   button:hover { background:#39414e; }
   button.primary { background:var(--accent); color:#1b1f24; border-color:var(--accent); font-weight:600; }
@@ -47,6 +47,9 @@
   </div>
   <div id="side">
     <h1>Sprite 标注工具</h1>
+    <div class="sec">
+      <div class="row"><label class="k">图集</label><select id="sheet" title="选择要标注的 sprite sheet"></select></div>
+    </div>
     <div class="sec">
       <div class="row"><label class="k">格子</label><input type="number" id="cell" value="100" min="1" /></div>
       <div class="row muted" id="gridinfo">—</div>
@@ -81,8 +84,9 @@
   const els = id => document.getElementById(id);
   const labelInput = els('label');
 
-  const IMG_DEFAULT = '../../asset/asset.png';
-  const LS_KEY = 'sprite-annotator-v1';
+  const LS_PREFIX = 'sprite-annotator-v1';
+  const lsKey = sheet => `${LS_PREFIX}:${sheet}`;
+  let currentSheet = 'asset.png';
 
   let img = null, imgW = 0, imgH = 0;
   let cell = 100, cols = 0, rows = 0;
@@ -93,21 +97,73 @@
   // annotations keyed by "col,row" -> label
   let ann = new Map();
 
-  // ---------- persistence ----------
+  // ---------- persistence (per sheet) ----------
   function save() {
     const data = { cell, imageSize:[imgW,imgH], annotations:[...ann].map(([k,label])=>{
       const [c,r] = k.split(',').map(Number);
       return { col:c, row:r, x:c*cell, y:r*cell, w:cell, h:cell, label };
     })};
-    try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch(e){}
+    try { localStorage.setItem(lsKey(currentSheet), JSON.stringify(data)); } catch(e){}
   }
-  function loadLS() {
+  // One-time migration: the old single global key holds asset.png's data.
+  function migrateLegacyLS() {
     try {
-      const raw = localStorage.getItem(LS_KEY); if(!raw) return;
-      const d = JSON.parse(raw);
-      if (d.cell) { cell = d.cell; els('cell').value = cell; }
-      ann = new Map((d.annotations||[]).map(a => [a.col+','+a.row, a.label]));
+      const legacy = localStorage.getItem(LS_PREFIX);
+      const k = lsKey('asset.png');
+      if (legacy && !localStorage.getItem(k)) localStorage.setItem(k, legacy);
     } catch(e){}
+  }
+  function applyAnnData(d) {
+    if (d && d.cell) { cell = d.cell; els('cell').value = cell; }
+    ann = new Map(((d && d.annotations) || []).map(a => [a.col+','+a.row, a.label]));
+  }
+  // Load a sheet's annotations: localStorage first, else its committed
+  // <stem>.annotations.json, else empty.
+  async function loadAnnotationsFor(sheet) {
+    try {
+      const raw = localStorage.getItem(lsKey(sheet));
+      if (raw) { applyAnnData(JSON.parse(raw)); return; }
+    } catch(e){}
+    try {
+      const stem = sheet.replace(/\.[^.]+$/, '');
+      const r = await fetch('../../asset/' + stem + '.annotations.json?t=' + Date.now());
+      if (r.ok) { applyAnnData(await r.json()); return; }
+    } catch(e){}
+    ann = new Map();
+  }
+
+  // ---------- sheet selection ----------
+  async function initSheets() {
+    let sheets = [];
+    try {
+      const r = await fetch('/api/sheets');
+      const d = await r.json();
+      if (d.ok) sheets = d.sheets || [];
+    } catch(e){}
+    if (!sheets.length) sheets = ['asset.png'];
+    const sel = els('sheet');
+    sel.innerHTML = '';
+    sheets.forEach(s => { const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+    sel.onchange = () => selectSheet(sel.value);
+    selectSheet(sheets.includes('asset.png') ? 'asset.png' : sheets[0]);
+  }
+  async function selectSheet(sheet) {
+    if (img && currentSheet && currentSheet !== sheet) save(); // persist outgoing
+    currentSheet = sheet;
+    els('sheet').value = sheet;
+    await loadAnnotationsFor(sheet);
+    setImage('../../asset/' + sheet);
+  }
+  // A locally dropped/picked file (must live in asset/ to be cropped server-side).
+  async function useLocalFile(f) {
+    const sel = els('sheet');
+    if (![...sel.options].some(o => o.value === f.name)) {
+      const o=document.createElement('option'); o.value=f.name; o.textContent=f.name; sel.appendChild(o);
+    }
+    if (img) save();
+    currentSheet = f.name; sel.value = f.name;
+    await loadAnnotationsFor(f.name);
+    setImage(URL.createObjectURL(f));
   }
 
   // ---------- image loading ----------
@@ -292,7 +348,7 @@
 
   els('export').onclick = async () => {
     const btn = els('export');
-    const data = { image:'asset.png', imageSize:[imgW,imgH], cell, cols, rows,
+    const data = { image:currentSheet, imageSize:[imgW,imgH], cell, cols, rows,
       annotations:[...ann].map(([k,label])=>{ const [c,r]=k.split(',').map(Number); return {col:c,row:r,x:c*cell,y:r*cell,w:cell,h:cell,label}; })
         .sort((a,b)=>a.label.localeCompare(b.label,'zh')) };
 
@@ -311,7 +367,8 @@
     } catch(e) {
       // fallback: plain download if server endpoint not available
       const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'annotations.json'; a.click();
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = currentSheet.replace(/\.[^.]+$/, '') + '.annotations.json'; a.click();
       btn.textContent = '导出并裁切 ✂'; btn.disabled = false;
       console.warn('server /api/crop unavailable, fell back to download:', e.message);
     }
@@ -330,15 +387,15 @@
   };
   els('reset').onclick = () => { if(confirm('清空所有标注？')){ ann.clear(); sel=null; labelInput.value=''; refreshList(); updateSel(); render(); } };
 
-  // file drop / picker
-  els('file').onchange = e => { const f=e.target.files[0]; if(f) setImage(URL.createObjectURL(f)); };
+  // file drop / picker — must be a file already in asset/ to be cropped server-side
+  els('file').onchange = e => { const f=e.target.files[0]; if(f) useLocalFile(f); };
   stage.addEventListener('dragover', e=>{ e.preventDefault(); els('drop').classList.add('show'); });
-  stage.addEventListener('drop', e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) setImage(URL.createObjectURL(f)); });
+  stage.addEventListener('drop', e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) useLocalFile(f); });
 
   // ---------- boot ----------
   window.addEventListener('resize', resize);
-  loadLS(); resize();
-  setImage(IMG_DEFAULT);   // try auto-load; falls back to drop overlay on error
+  migrateLegacyLS(); resize();
+  initSheets();   // fetch asset/*.png list, populate dropdown, load the default sheet
 })();
 </script>
 </body>
