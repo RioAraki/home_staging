@@ -9,10 +9,16 @@
 - 与用户全程使用**中文**交流。
 
 ## 工具服务（本地开发）
-- 标注工具：`http://localhost:8777/tools/sprite-annotator/index.html`
+- 标注工具：`http://localhost:8777/tools/sprite-annotator/index.html`（支持多 sprite sheet，顶部图集下拉框切换）
 - 拼装工具：`http://localhost:8777/tools/assembler/index.html`
-- 静态服务器：`python tools/server.py`（替代 `python -m http.server`，增加了 `/api/crop` 接口）
+- 关卡编辑器：`http://localhost:8777/tools/level-editor/index.html`（编辑/新建关卡，保存到 `md/scenarios/<id>.json` 并自动重建 maps_data）
+- 静态服务器：`python tools/server.py`（替代 `python -m http.server`，增加 `/api/crop`、`/api/sheets`、`/api/scenarios`、`/api/scenario` 接口）
 - 游戏网页：`http://localhost:8778/`（由 `cd app && npx vite --port 8778` 提供）
+
+## 关卡数据（源 → 成品）
+- **源**：`md/scenarios/<id>.json`（每关一个）+ `md/scenarios/_index.json`（顺序）。新建关卡 = 加一个同构 JSON。
+- **成品**：`npm run scenarios:build`（在 cocos 目录）把 per-level JSON 打包成 `md/maps_data.yaml` 再生成 cocos 的 `maps_data.json`。`md/maps_data.yaml` 现为生成物，勿手改。
+- cocos 与 app 仍读 `md/maps_data.yaml`（加载代码未变）。
 
 ## Cocos 资产操作规范
 - **移动/重命名资产必须在 Cocos 编辑器内操作**，不能直接 mv 文件，否则 .meta/UUID 会断裂。
