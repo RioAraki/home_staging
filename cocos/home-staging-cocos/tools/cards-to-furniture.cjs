@@ -24,6 +24,7 @@ for (const card of data.cards) {
       option_index: opt.option_index,
       name_zh: opt.name_zh || '',
       name_en: opt.name_en || '',
+      image: card.image,            // md/<image> — card photo for preview
       bbox: opt.bbox,
       shape: opt.shape,
       open_cells: opt.open_spaces || [],

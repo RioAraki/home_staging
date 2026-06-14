@@ -134,8 +134,11 @@ const LS_KEY = 'level-editor-v1';
 const TERRAIN_COLOR = { indoor:'#2d3a4a', outdoor:'#15181c', water:'#1f3a4d', obstacle:'#3a2222', road:'#333a33' };
 
 let model = M.emptyModel(16, 16);
-let library = [];            // unified named furniture: [{name, source}]
+let library = [];            // unified named furniture: full entries + {source}
+let libByName = new Map();   // name -> entry
 let validNames = new Set();  // valid furniture names
+const TILE_BASE = '/asset/tiles/';
+const CARD_BASE = '/md/';
 let tool = 'terrain';        // terrain|feature|door|window|wall|marker|frontcell
 let terrainValue = 'indoor';
 
@@ -158,12 +161,42 @@ async function boot() {
 
 async function loadLibrary() {
   library = [];
-  const add = (arr, source) => { for (const f of (arr || [])) if (f && f.name) library.push({ name: f.name, source }); };
+  const add = (arr, source) => { for (const f of (arr || [])) if (f && f.name) library.push({ ...f, source }); };
   try { const r = await fetch('/asset/furniture_collection.json?t=' + Date.now()); const d = await r.json(); add(d.furniture || d, 'custom'); } catch(e) { console.warn('collection load failed', e); }
   try { const r = await fetch('/asset/cards_furniture.json?t=' + Date.now()); const d = await r.json(); add(d.furniture || d, 'card'); } catch(e) { console.warn('cards_furniture load failed', e); }
   const seen = new Set();
   library = library.filter(f => { if (seen.has(f.name)) return false; seen.add(f.name); return true; });
+  libByName = new Map(library.map(f => [f.name, f]));
   validNames = new Set(library.map(f => f.name));
+}
+
+// Build a thumbnail element for a furniture name.
+//  - card  → the original card photo (shows the diagram)
+//  - custom → composite its tiles onto a small canvas
+function furnitureThumb(name, px) {
+  const e = libByName.get(name);
+  if (!e) { const s = document.createElement('span'); s.textContent = '?'; return s; }
+  if (e.source === 'card' && e.image) {
+    const img = document.createElement('img');
+    img.src = CARD_BASE + e.image; img.loading = 'lazy';
+    img.style.height = px + 'px'; img.style.width = 'auto'; img.style.maxWidth = (px * 1.6) + 'px';
+    img.style.objectFit = 'contain'; img.style.background = '#fff'; img.style.borderRadius = '3px';
+    return img;
+  }
+  // custom: composite tiles
+  const rows = e.bbox?.[0] || 1, cols = e.bbox?.[1] || 1;
+  const cell = Math.max(6, Math.floor(px / Math.max(rows, cols)));
+  const cvs = document.createElement('canvas'); cvs.width = cols * cell; cvs.height = rows * cell;
+  cvs.style.background = '#1e2229'; cvs.style.borderRadius = '3px';
+  const cx = cvs.getContext('2d');
+  cx.fillStyle = 'rgba(87,201,139,.28)';
+  for (const [r, c] of (e.open_cells || [])) cx.fillRect(c * cell, r * cell, cell, cell);
+  for (const t of (e.tiles || [])) {
+    const img = new Image();
+    img.onload = () => { cx.save(); cx.translate(t.col * cell + cell / 2, t.row * cell + cell / 2); cx.rotate((t.rotation || 0) * Math.PI / 180); if (t.mirror) cx.scale(-1, 1); cx.drawImage(img, -cell / 2, -cell / 2, cell, cell); cx.restore(); };
+    img.src = TILE_BASE + t.tile + '.png';
+  }
+  return cvs;
 }
 
 async function reloadScenarioList() {
@@ -310,10 +343,16 @@ function renderRooms() {
     const addb=document.createElement('button'); addb.textContent='添加'; addb.style.flex='none';
     addb.onclick=()=>{ if(fsel.value){ (room.furniture=room.furniture||[]).push(fsel.value); persist(); renderRooms(); refreshValidation(); } };
     pickRow.appendChild(addb); div.appendChild(pickRow);
-    // chosen furniture list
+    // live preview of the currently-selected option (so you can match name→image)
+    const prev=document.createElement('div'); prev.style.cssText='display:flex;justify-content:center;align-items:center;min-height:70px;background:#15181c;border-radius:5px;margin:4px 0;padding:4px;';
+    const showPrev=()=>{ prev.innerHTML=''; if(fsel.value) prev.appendChild(furnitureThumb(fsel.value, 76)); };
+    fsel.onchange=showPrev; showPrev();
+    div.appendChild(prev);
+    // chosen furniture list (with thumbnails)
     (room.furniture||[]).forEach((nm, fi)=>{
-      const fr=document.createElement('div'); fr.className='row'; fr.style.gap='4px';
-      const sp=document.createElement('span'); sp.style.flex='1'; sp.style.fontSize='12px'; sp.textContent='· '+nm;
+      const fr=document.createElement('div'); fr.className='row'; fr.style.gap='5px';
+      const th=furnitureThumb(nm, 30); th.style.flex='none'; fr.appendChild(th);
+      const sp=document.createElement('span'); sp.style.flex='1'; sp.style.fontSize='12px'; sp.textContent=nm;
       if(!validNames.has(nm)){ sp.style.color='var(--bad)'; sp.title='不在家具库中'; }
       fr.appendChild(sp);
       const x=document.createElement('button'); x.className='danger'; x.textContent='✕'; x.style.padding='2px 6px'; x.style.flex='none';
