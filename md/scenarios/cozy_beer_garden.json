@@ -1,0 +1,175 @@
+{
+  "id": "cozy_beer_garden",
+  "title_zh": "惬意的啤酒花园",
+  "title_en": "The Cozy Beer Garden",
+  "chapter_zh": "老工厂区",
+  "difficulty": "hard",
+  "pages_in_book": [
+    44,
+    45
+  ],
+  "page_image": "images/scenarios/page_23.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "洗手间小屋",
+      "name_en": "Toilet house",
+      "furniture_numbers": [
+        8,
+        9
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "厨房小屋",
+      "name_en": "Kitchen house",
+      "furniture_numbers": [
+        7
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "花园",
+      "name_en": "Garden",
+      "furniture_numbers": [
+        4,
+        5,
+        21,
+        23,
+        27
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊，小屋直接通向花园",
+      "notes_en": "No hallway small houses connect directly to garden"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "neighbor_storage_2x2",
+        "kind": "setup_inter_player",
+        "text_zh": "开局可在右手玩家户型任意位置画一个 2x2 储物间",
+        "text_en": "At setup may draw a 2x2 storage on right neighbor floor plan at any location"
+      },
+      {
+        "id": "free_kitchen_house",
+        "kind": "drawing_constraint",
+        "text_zh": "厨房小屋大小、位置随你画",
+        "text_en": "Kitchen house can be drawn at any size and location"
+      },
+      {
+        "id": "free_toilet_house",
+        "kind": "drawing_constraint",
+        "text_zh": "洗手间小屋大小、位置随你画",
+        "text_en": "Toilet house can be drawn at any size and location"
+      },
+      {
+        "id": "four_entrance_doors",
+        "kind": "drawing_constraint",
+        "text_zh": "任意时刻可以画 4 道入口门",
+        "text_en": "4 entrance doors may be drawn at any time"
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "花园里至少 15 个座位",
+      "text_en": "At least 15 seats in the garden",
+      "points": 5,
+      "condition": {
+        "seats_in_room_min": {
+          "room_slot": "III",
+          "min": 15
+        }
+      }
+    },
+    {
+      "text_zh": "啤酒花园每个方向都能进入",
+      "text_en": "Garden accessible from every direction",
+      "points": 3,
+      "condition": {
+        "front_doors_all_directions": {}
+      }
+    },
+    {
+      "text_zh": "乐器紧邻一棵树",
+      "text_en": "Musical instrument adjacent to a tree",
+      "points": 3,
+      "condition": {
+        "adjacent_to_feature": {
+          "furniture": 27,
+          "feature": "tree"
+        }
+      }
+    },
+    {
+      "text_zh": "洗手间小屋不挨厨房小屋",
+      "text_en": "Toilet house does not border kitchen house",
+      "points": 2,
+      "condition": {
+        "rooms_not_adjacent": {
+          "room_slots": [
+            "I",
+            "II"
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "每棵树至少 6 邻格被家具或自由空间环绕",
+      "text_en": "Per tree surrounded on at least 6 neighbors",
+      "points": 2,
+      "condition": {
+        "tree_surrounded_min": {
+          "min_neighbors": 6
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 146,
+      "indoor": 110
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      2,
+      3,
+      13,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 3,
+    "bonus_points": 5
+  }
+}

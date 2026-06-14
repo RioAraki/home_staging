@@ -1,0 +1,154 @@
+{
+  "id": "single_family_house_countryside",
+  "title_zh": "乡间独栋小屋",
+  "title_en": "The Single-Family House in the Countryside",
+  "chapter_zh": "沙坑情缘",
+  "difficulty": "medium",
+  "pages_in_book": [
+    62,
+    63
+  ],
+  "page_image": "images/scenarios/page_32.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "儿童房 1",
+      "name_en": "Children's bedroom 1",
+      "furniture_numbers": [
+        1,
+        13,
+        22
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "儿童房 2",
+      "name_en": "Children's bedroom 2",
+      "furniture_numbers": [
+        13,
+        17,
+        23
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "主卧",
+      "name_en": "Bedroom",
+      "furniture_numbers": [
+        12,
+        15
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "slot": "V",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        4,
+        6,
+        20,
+        24
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...III....III...\n...III....III...\n...III....III...\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "儿童房 1 和 2 占用格数相同",
+      "text_en": "Children's bedrooms 1 and 2 same size",
+      "points": 5,
+      "condition": {
+        "rooms_same_size": {
+          "room_slots": [
+            "I",
+            "II"
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "主卧有能看见树的窗",
+      "text_en": "Bedroom has window with view of a tree",
+      "points": 5,
+      "condition": {
+        "window_with_view": {
+          "from_room": "III",
+          "to": "tree"
+        }
+      }
+    },
+    {
+      "text_zh": "婴儿装备（22、23）装齐",
+      "text_en": "Baby equipment (22",
+      "23) installed": null,
+      "points": 5,
+      "condition": {
+        "all_installed": {
+          "furniture": [
+            22,
+            23
+          ]
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 168,
+      "indoor": 88
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      2,
+      3,
+      12,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 5,
+    "bonus_points": 3
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "id": "angled_attic_apartment",
+  "title_zh": "错层阁楼公寓",
+  "title_en": "The Angled Attic Apartment",
+  "chapter_zh": "沙坑情缘",
+  "difficulty": "hard",
+  "pages_in_book": [
+    66,
+    67
+  ],
+  "page_image": "images/scenarios/page_34.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "阳台",
+      "name_en": "Balcony",
+      "furniture_numbers": [
+        5,
+        19,
+        21
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "厨房",
+      "name_en": "Kitchen",
+      "furniture_numbers": [
+        7,
+        15
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        2,
+        4,
+        15,
+        20,
+        29,
+        31,
+        32
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "slot": "V",
+      "name_zh": "卧室",
+      "name_en": "Bedroom",
+      "furniture_numbers": [
+        3,
+        12
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n................\n..IIIIII........\n..IIIIIIIIIIII..\n..IIIIIIIIIIII..\n..IIIIIIIIIIII..\n..IIIIIIIIIIII..\n......IIII......\n......IIII......\n......IIII......\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊；其余所有房间都只连到起居/餐厅",
+      "notes_en": "No hallway all other rooms connect only to the living-dining room"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "low_ceiling_no_walkway",
+        "kind": "layout_constraint",
+        "text_zh": "低天花板区域（Z 格）可放家具，但不能作为通行路径。",
+        "text_en": "Low-ceiling cells (Z) may hold furniture but cannot be used as a walking path."
+      },
+      {
+        "id": "balcony_railing",
+        "kind": "layout_constraint",
+        "text_zh": "阳台被视作一个房间，含小阳台栏杆（R 格，位置见户型）。",
+        "text_en": "The balcony is treated as a room with a small railing (R cells at marked positions)."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "摆好小阳台栏杆",
+      "text_en": "Small balcony railing placed",
+      "points": 2,
+      "condition": {
+        "count_cells_with_feature": {
+          "feature": "balcony_railing",
+          "min": 1
+        }
+      }
+    },
+    {
+      "text_zh": "装了壁炉",
+      "text_en": "Fireplace (31) installed",
+      "points": 5,
+      "condition": {
+        "count_installed": {
+          "furniture": 31,
+          "min": 1
+        }
+      }
+    },
+    {
+      "text_zh": "展示了 2 件艺术品",
+      "text_en": "2 pieces of art (32) displayed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 32,
+          "min": 2
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 190,
+      "indoor": 66
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      4,
+      2,
+      12,
+      14
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 5,
+    "bonus_points": 3
+  }
+}

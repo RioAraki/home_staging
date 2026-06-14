@@ -1,0 +1,198 @@
+{
+  "id": "forgotten_railway_wagon",
+  "title_zh": "被遗忘的列车车厢",
+  "title_en": "The Forgotten Railway Wagon",
+  "chapter_zh": "老工厂区",
+  "difficulty": "hard",
+  "pages_in_book": [
+    40,
+    41
+  ],
+  "page_image": "images/scenarios/page_21.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        3,
+        5,
+        7,
+        13,
+        15,
+        16,
+        19,
+        20,
+        27,
+        32
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n......IIII......\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [
+      {
+        "cell": [
+          3,
+          5
+        ],
+        "edge": "W",
+        "target": "front_door_candidate",
+        "verify": true
+      },
+      {
+        "cell": [
+          3,
+          8
+        ],
+        "edge": "E",
+        "target": "front_door_candidate",
+        "verify": true
+      },
+      {
+        "cell": [
+          13,
+          5
+        ],
+        "edge": "W",
+        "target": "front_door_candidate",
+        "verify": true
+      },
+      {
+        "cell": [
+          13,
+          8
+        ],
+        "edge": "E",
+        "target": "front_door_candidate",
+        "verify": true
+      }
+    ],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          3,
+          5
+        ],
+        [
+          3,
+          8
+        ],
+        [
+          13,
+          5
+        ],
+        [
+          13,
+          8
+        ]
+      ]
+    },
+    "drawing": [
+      {
+        "id": "neighbor_walls",
+        "kind": "setup_inter_player",
+        "text_zh": "开局时每位玩家在右手玩家的车厢上画 3 段墙，位置随意，可触碰外墙。",
+        "text_en": "At setup each player draws 3 wall segments on right neighbor wagon any location even touching exterior wall."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "两张小桌相距不超 2 格",
+      "text_en": "Two small tables within 2 squares",
+      "points": 3,
+      "condition": {
+        "distance_at_most": {
+          "a": 5,
+          "b": 7,
+          "max": 2
+        }
+      }
+    },
+    {
+      "text_zh": "大床与大办公桌相距不超 3 格",
+      "text_en": "Large bed and large desk within 3 squares",
+      "points": 3,
+      "condition": {
+        "distance_at_most": {
+          "a": 13,
+          "b": 16,
+          "max": 3
+        }
+      }
+    },
+    {
+      "text_zh": "长桌沿外墙摆",
+      "text_en": "Long desk along exterior wall",
+      "points": 2,
+      "condition": {
+        "along_exterior_wall": {
+          "furniture": 16
+        }
+      }
+    },
+    {
+      "text_zh": "浴室呈矩形",
+      "text_en": "Bathroom is rectangular",
+      "points": 3,
+      "condition": {
+        "room_shape_rectangular": {
+          "room_slot": "I"
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 200,
+      "indoor": 56
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      1,
+      6,
+      15,
+      10
+    ],
+    "pre_drawn_counts": {
+      "doors": 4,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 2,
+    "bonus_points": 4
+  }
+}

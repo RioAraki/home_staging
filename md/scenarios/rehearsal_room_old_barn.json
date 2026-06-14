@@ -1,0 +1,151 @@
+{
+  "id": "rehearsal_room_old_barn",
+  "title_zh": "旧谷仓里的排练房",
+  "title_en": "The Rehearsal Room in the Old Barn",
+  "chapter_zh": "奇幻迷",
+  "difficulty": "easy",
+  "pages_in_book": [
+    16,
+    17
+  ],
+  "page_image": "images/scenarios/page_09.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "排练房",
+      "name_en": "Rehearsal room",
+      "furniture_numbers": [
+        7,
+        15,
+        17,
+        20,
+        21,
+        27,
+        27,
+        28,
+        29,
+        33
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n........IIII....\n........IIII....\n........IIII....\n........IIII....\n................\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          7,
+          4
+        ],
+        [
+          7,
+          5
+        ],
+        [
+          7,
+          6
+        ],
+        [
+          7,
+          7
+        ],
+        [
+          8,
+          7
+        ],
+        [
+          9,
+          7
+        ],
+        [
+          10,
+          7
+        ]
+      ],
+      "width": 2
+    },
+    "drawing": [
+      {
+        "id": "door_zone_clear",
+        "kind": "drawing_constraint",
+        "text_zh": "门带后面的 2 格必须保持空格（即 E 格的 open-space）。",
+        "text_en": "The 2 squares behind the door zone must stay empty."
+      },
+      {
+        "id": "no_furniture_on_carpet",
+        "kind": "drawing_constraint",
+        "text_zh": "不要把家具压在地毯上。",
+        "text_en": "Do not place furniture on the carpet."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "每件乐器（27）到音响设备（28）不超过 2 格",
+      "text_en": "Each instrument (27) is ≤ 2 squares from sound equipment (28)",
+      "points": 2,
+      "condition": {
+        "each_distance_at_most": {
+          "instrument": 27,
+          "targets": [
+            28
+          ],
+          "max": 2
+        }
+      }
+    },
+    {
+      "text_zh": "装了地毯（33）",
+      "text_en": "Carpet (33) placed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 33,
+          "min": 1
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 208,
+      "indoor": 48
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      4,
+      11,
+      12
+    ],
+    "pre_drawn_counts": {
+      "doors": 2,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 1,
+    "bonus_points": 2
+  }
+}

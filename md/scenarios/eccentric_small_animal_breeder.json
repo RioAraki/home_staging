@@ -1,0 +1,161 @@
+{
+  "id": "eccentric_small_animal_breeder",
+  "title_zh": "偏执的小动物饲养家",
+  "title_en": "The Eccentric Small Animal Breeder",
+  "chapter_zh": "俱乐部生活",
+  "difficulty": "medium",
+  "pages_in_book": [
+    26,
+    27
+  ],
+  "page_image": "images/scenarios/page_14.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "动物房",
+      "name_en": "Animal room",
+      "furniture_numbers": [
+        15,
+        22,
+        24,
+        33
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "卧室",
+      "name_en": "Bedroom",
+      "furniture_numbers": [
+        13,
+        14
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        11
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        4,
+        7,
+        19,
+        27
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n........IIIII...\n........IIIII...\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "three_markers_on_24",
+        "kind": "setup",
+        "text_zh": "在 24 号家具（宠物用品）上放 3 枚标记盘。",
+        "text_en": "Place 3 furniture markers on card 24 (pet supplies)."
+      },
+      {
+        "id": "no_furniture_on_carpet",
+        "kind": "drawing_constraint",
+        "text_zh": "不要把家具压在地毯上。",
+        "text_en": "Do not place furniture on the carpet."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "宠物用品（24）安装 3 份",
+      "text_en": "Pet supplies (24) installed 3 times",
+      "points": 5,
+      "condition": {
+        "count_installed": {
+          "furniture": 24,
+          "min": 3
+        }
+      }
+    },
+    {
+      "text_zh": "每个矩形房间",
+      "text_en": "Per room with a rectangular floor plan",
+      "points": 3,
+      "condition": {
+        "per_rectangular_room": {}
+      }
+    },
+    {
+      "text_zh": "起居/餐厅有朝南的窗",
+      "text_en": "Living/dining room has a south-facing window",
+      "points": 3,
+      "condition": {
+        "room_has_window_facing": {
+          "room_slot": "IV",
+          "direction": "S"
+        }
+      }
+    },
+    {
+      "text_zh": "铺了地毯（33）",
+      "text_en": "Carpet (33) placed",
+      "points": 4,
+      "condition": {
+        "count_installed": {
+          "furniture": 33,
+          "min": 1
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 166,
+      "indoor": 90
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      3,
+      13,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 4,
+    "bonus_points": 4
+  }
+}

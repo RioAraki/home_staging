@@ -1,0 +1,142 @@
+{
+  "id": "mysterious_aristocrat",
+  "title_zh": "神秘贵族",
+  "title_en": "The Mysterious Aristocrat",
+  "chapter_zh": "海之呼唤",
+  "difficulty": "hard",
+  "pages_in_book": [
+    48,
+    49
+  ],
+  "page_image": "images/scenarios/page_25.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "卧室",
+      "name_en": "Bedroom",
+      "furniture_numbers": [
+        13,
+        17,
+        20
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        4,
+        15,
+        31,
+        32
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n................\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "secret_room",
+        "kind": "drawing_constraint",
+        "text_zh": "密室 2x2，通过 1 格宽、任意长度 ≥1、最多 1 次 90 度转弯的密道进入。\n密道末端必须接到某个房间或走廊；末端是大镜柜（可决定向左/右滑）。\n密室与密道都不能贴外墙，都不能放家具。\n可在任意时刻分阶段画。\n",
+        "text_en": "Secret room is 2x2, reached by a 1-cell-wide passage of any length >= 1\nwith at most one 90-degree turn. Passage must end in a room or hallway,\nterminating in a large mirrored cabinet that slides left or right.\nNeither the secret room nor the passage may touch an exterior wall or\ncontain furniture. May be drawn in stages at any time.\n",
+        "adds_zone": {
+          "id": "secret_room",
+          "shape": "2x2"
+        },
+        "adds_zone_passage": true
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "每一格属于密道或密室的方格",
+      "text_en": "Per square that is part of the secret passage or room",
+      "points": 2,
+      "condition": {
+        "count_cells_in_zone": {
+          "zone": "secret_room_or_passage"
+        }
+      }
+    },
+    {
+      "text_zh": "每展示一件艺术品",
+      "text_en": "Per piece of art (32) displayed",
+      "points": 2,
+      "condition": {
+        "count_installed": {
+          "furniture": 32,
+          "min": 1,
+          "per_unit": true
+        }
+      }
+    },
+    {
+      "text_zh": "装了壁炉",
+      "text_en": "Fireplace (31) installed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 31,
+          "min": 1
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 176,
+      "indoor": 80
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      4,
+      3,
+      12,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 3,
+    "bonus_points": 3
+  }
+}

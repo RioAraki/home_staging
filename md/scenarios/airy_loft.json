@@ -1,0 +1,170 @@
+{
+  "id": "airy_loft",
+  "title_zh": "通透的 Loft",
+  "title_en": "The Airy Loft",
+  "chapter_zh": "老工厂区",
+  "difficulty": "hard",
+  "pages_in_book": [
+    42,
+    43
+  ],
+  "page_image": "images/scenarios/page_22.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        2,
+        4,
+        6,
+        15,
+        20,
+        24,
+        25,
+        26,
+        31,
+        32
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n................\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIII....\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {
+    "living_dining": {
+      "room_slot": "I",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room"
+    },
+    "bathroom": {
+      "room_slot": null,
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "connects_to": [
+        "living_dining"
+      ]
+    }
+  },
+  "pre_drawn": {
+    "walls_interior": [],
+    "doors": [
+      {
+        "cell": [
+          11,
+          7
+        ],
+        "edge": "S",
+        "target": "front_door",
+        "notes_zh": "南墙三角，强制大门位置",
+        "notes_en": "South-wall triangle marks the front door location",
+        "verify": true
+      }
+    ],
+    "windows": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊；浴室直接连到起居/餐厅。",
+      "notes_en": "No hallway; bathroom connects directly to the living/dining room."
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          11,
+          7
+        ]
+      ]
+    },
+    "drawing": [
+      {
+        "id": "right_neighbour_columns",
+        "kind": "setup_inter_player",
+        "text_zh": "开局时，每位玩家在【右手玩家】的户型上画 3 根 1x1 立柱。\n位置随意，但不能压到既有家具/自由空间；立柱本身之后也不能被覆盖。\n",
+        "text_en": "At setup, each player draws 3 columns (1×1) onto the floor plan of\nthe player to their right. Columns may go anywhere except on\nexisting furniture / open-space cells, and may not be built over.\n",
+        "adds_cell_feature": "column"
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "大厨房（6）与大桌（4）相距不超 4 格",
+      "text_en": "Big kitchen (6) and big table (4) ≤ 4 squares apart",
+      "points": 5,
+      "condition": {
+        "distance_at_most": {
+          "a": 6,
+          "b": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "text_zh": "宠物配件（24）与小沙发（2）相距不超 4 格",
+      "text_en": "Pet accessories (24) and small sofa (2) ≤ 4 squares apart",
+      "points": 5,
+      "condition": {
+        "distance_at_most": {
+          "a": 24,
+          "b": 2,
+          "max": 4
+        }
+      }
+    },
+    {
+      "text_zh": "展示了 3 件艺术品（32）",
+      "text_en": "3 pieces of art (32) displayed",
+      "points": 5,
+      "condition": {
+        "count_installed": {
+          "furniture": 32,
+          "min": 3
+        }
+      }
+    },
+    {
+      "text_zh": "装了壁炉（31）",
+      "text_en": "Fireplace (31) installed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 31,
+          "min": 1
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 177,
+      "indoor": 79
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      4,
+      3,
+      12,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 1,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 1,
+    "bonus_points": 4
+  }
+}

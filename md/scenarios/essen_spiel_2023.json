@@ -1,0 +1,181 @@
+{
+  "id": "essen_spiel_2023",
+  "title_zh": "拓广场景：2023 埃森桌游展",
+  "title_en": "Bonus: 2023 Essen Spiel (workshop content)",
+  "chapter_zh": "工坊附赠",
+  "difficulty": "medium",
+  "pages_in_book": [],
+  "page_image": "images/cards/bonus_scenario_floorplan.jpg",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "游戏室",
+      "name_en": "Game room",
+      "furniture_numbers": [
+        1,
+        4,
+        19,
+        20
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "起居室",
+      "name_en": "Living room",
+      "furniture_numbers": [
+        1,
+        7,
+        19,
+        22,
+        30
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "厨房",
+      "name_en": "Kitchen",
+      "furniture_numbers": [
+        5,
+        6,
+        19
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "卧室",
+      "name_en": "Bedroom",
+      "furniture_numbers": [
+        12,
+        17,
+        19,
+        31
+      ]
+    },
+    {
+      "slot": "V",
+      "name_zh": "盥洗室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10,
+        11
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n...........IIIII\n.........IIIIIII\n.........IIIIIII\n.......IIIIIIIII\n......IIIIIIIIII\n.......IIIIIIIII\n.......IIIIIIIII\n.......IIIIIIIII\n.......IIIIIIIII\n.......IIIIIIIII\n..........II..II\n...........I....\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {
+    "storage": {
+      "room_slot": null,
+      "name_zh": "储藏室",
+      "name_en": "Storage room",
+      "notes_zh": "可吸收不想放入主房间的家具；储藏室里的家具不计房间得分，但满足\"已安装\"条件。",
+      "notes_en": "Absorbs furniture you don't want in the main rooms not counted for room scoring but satisfies the installed condition."
+    }
+  },
+  "pre_drawn": {
+    "doors": [
+      {
+        "cell": [
+          5,
+          2
+        ],
+        "edge": "W",
+        "target": "front_door_candidate",
+        "notes_zh": "西入口",
+        "notes_en": "West entrance",
+        "verify": true
+      },
+      {
+        "cell": [
+          13,
+          7
+        ],
+        "edge": "S",
+        "target": "front_door_candidate",
+        "notes_zh": "南入口",
+        "notes_en": "South entrance",
+        "verify": true
+      }
+    ],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "走廊规则放宽；房间可互相直连",
+      "notes_en": "Hallway rule relaxed rooms may interconnect"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          5,
+          2
+        ],
+        [
+          13,
+          7
+        ]
+      ]
+    },
+    "drawing": [
+      {
+        "id": "predetermined_furniture",
+        "kind": "drawing_constraint",
+        "text_zh": "此场景所有家具位置预先指定。对镜像对称家具，两种摆法里只算其中一种。",
+        "text_en": "All furniture positions in this scenario are predetermined. For mirror-symmetric pieces only one of the two valid placements counts."
+      },
+      {
+        "id": "storage_room_overflow",
+        "kind": "drawing_constraint",
+        "text_zh": "储藏室可吸收不放进 5 间主房间的家具，也可额外画家具。",
+        "text_en": "Storage room absorbs furniture not placed in the 5 main rooms and may also hold extra furniture."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "每一扇门（含大门）",
+      "text_en": "Per door (including the front door)",
+      "points": 1,
+      "condition": {
+        "count_doors": {}
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 168,
+      "indoor": 88
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      6,
+      15,
+      16
+    ],
+    "pre_drawn_counts": {
+      "doors": 2,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 5,
+    "bonus_points": 1
+  }
+}

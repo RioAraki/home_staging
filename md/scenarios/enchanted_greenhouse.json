@@ -1,0 +1,116 @@
+{
+  "id": "enchanted_greenhouse",
+  "title_zh": "魔法温室",
+  "title_en": "The Enchanted Greenhouse",
+  "chapter_zh": "沙坑情缘",
+  "difficulty": "hard",
+  "pages_in_book": [
+    64,
+    65
+  ],
+  "page_image": "images/scenarios/page_33.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "温室",
+      "name_en": "Greenhouse",
+      "furniture_numbers": [
+        13,
+        18,
+        19,
+        21,
+        23,
+        24,
+        26
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n................\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊",
+      "notes_en": "No hallway"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "plants_on_open_space",
+        "kind": "drawing_constraint",
+        "text_zh": "植物（18、19）可以画在其他家具的自由空间格上，必须画成相连成片的「植物群」。其余开放空间规则照常。",
+        "text_en": "Plants (18",
+        "19) may also be drawn on other furniture open-space cells and must form connected colonies. Open-space rules apply normally otherwise.": null
+      },
+      {
+        "id": "setup_special_install_order",
+        "kind": "setup",
+        "text_zh": "儿童玩具（23）和宠物配件（24）必须先安装。开局玩家选其中之一，下家选另一。其余家具卡按常规继续。",
+        "text_en": "Children's toys (23) and pet accessories (24) must be installed first. Starting player picks one",
+        "next player picks the other. Then remaining furniture cards continue as normal.": null
+      },
+      {
+        "id": "setup_neighbor_water",
+        "kind": "setup_inter_player",
+        "text_zh": "开局可在右手玩家户型上画若干水管接口，被植物连接才会得分。",
+        "text_en": "At setup may draw water connections on right neighbor floor plan; only counted if connected by plants."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "每片植物群（被植物连接的水管接口）",
+      "text_en": "Per water connection built upon by a plant (plant colony)",
+      "points": 3,
+      "condition": {
+        "count_plant_colonies_on_water_connection": {
+          "plants": [
+            18,
+            19
+          ]
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 184,
+      "indoor": 72
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      4,
+      11,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 1,
+    "bonus_points": 1
+  }
+}

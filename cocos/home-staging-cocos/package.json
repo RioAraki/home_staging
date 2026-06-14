@@ -6,6 +6,9 @@
   },
   "scripts": {
     "data:build": "node tools/yaml2json.cjs",
+    "scenarios:split": "node tools/scenarios-split.cjs",
+    "scenarios:bundle": "node tools/scenarios-bundle.cjs",
+    "scenarios:build": "node tools/scenarios-bundle.cjs && node tools/yaml2json.cjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

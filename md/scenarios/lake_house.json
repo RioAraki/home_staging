@@ -1,0 +1,167 @@
+{
+  "id": "lake_house",
+  "title_zh": "湖畔小屋",
+  "title_en": "The Lake House",
+  "chapter_zh": "沙坑情缘",
+  "difficulty": "hard",
+  "pages_in_book": [
+    68,
+    69
+  ],
+  "page_image": "images/scenarios/page_35.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        1,
+        4,
+        6,
+        15,
+        19,
+        32
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "主卧",
+      "name_en": "Bedroom",
+      "furniture_numbers": [
+        12,
+        15
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "客房 I",
+      "name_en": "Guest room I",
+      "furniture_numbers": [
+        20,
+        21,
+        23
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "客房 II",
+      "name_en": "Guest room II",
+      "furniture_numbers": [
+        13,
+        22
+      ]
+    },
+    {
+      "slot": "V",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10,
+        11
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n......IIII......\n......IIII......\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "起居/餐厅有能看见湖的窗",
+      "text_en": "Living/dining room has window with view of the lake",
+      "points": 3,
+      "condition": {
+        "window_with_view": {
+          "from_room": "I",
+          "to": "lake"
+        }
+      }
+    },
+    {
+      "text_zh": "起居/餐厅至少 35 格大",
+      "text_en": "Living/dining room ≥ 35 squares",
+      "points": 3,
+      "condition": {
+        "room_size_min": {
+          "room_slot": "I",
+          "min": 35
+        }
+      }
+    },
+    {
+      "text_zh": "每展示一件艺术品",
+      "text_en": "Per piece of art (32) displayed",
+      "points": 2,
+      "condition": {
+        "count_installed": {
+          "furniture": 32,
+          "min": 1,
+          "per_unit": true
+        }
+      }
+    },
+    {
+      "text_zh": "每个有 1 格紧邻浴室的主卧/客房",
+      "text_en": "Per bedroom/guest room with at least 1 square adjacent to bathroom",
+      "points": 3,
+      "condition": {
+        "per_room_adjacent_to_room": {
+          "room_slots": [
+            "II",
+            "III",
+            "IV"
+          ],
+          "adjacent_to": "V"
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 168,
+      "indoor": 88
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      2,
+      3,
+      12,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 5,
+    "bonus_points": 4
+  }
+}

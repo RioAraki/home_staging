@@ -1,0 +1,186 @@
+{
+  "id": "state_of_the_art_villa",
+  "title_zh": "顶配私人别墅",
+  "title_en": "The State-of-the-Art Villa",
+  "chapter_zh": "成功故事",
+  "difficulty": "medium",
+  "pages_in_book": [
+    34,
+    35
+  ],
+  "page_image": "images/scenarios/page_18.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "家用办公室",
+      "name_en": "Home office",
+      "furniture_numbers": [
+        15,
+        17
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        11,
+        19
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "厨房",
+      "name_en": "Kitchen",
+      "furniture_numbers": [
+        6,
+        14
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "客餐厅",
+      "name_en": "Living/dining area",
+      "furniture_numbers": [
+        4,
+        20,
+        26,
+        29,
+        32
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n................\n................\n................\n.IIIII....IIIII.\n.IIIII....IIIII.\n.IIIII....IIIII.\n.IIIIIIIIIIIIII.\n.IIIIIIIIIIIIII.\n.IIIIIIIIIIIIII.\n.IIIIIIIIIIIIII.\n.IIIIIIIIIIIIII.\n.IIIIIIIIIIIIII.\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [
+      {
+        "cell": [
+          2,
+          7
+        ],
+        "edge": "N",
+        "target": "front_door",
+        "notes_zh": "北侧入口走廊",
+        "notes_en": "North entrance hallway",
+        "verify": true
+      }
+    ],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true,
+      "notes_zh": "走廊必须包含预设开放空间脊",
+      "notes_en": "Hallway must include the marked open-space spine"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          2,
+          7
+        ],
+        [
+          3,
+          7
+        ]
+      ]
+    },
+    "drawing": [
+      {
+        "id": "tower_view_window",
+        "kind": "drawing_constraint",
+        "text_zh": "家用办公室必须有一扇窗能从中看到那座塔",
+        "text_en": "Home office must have a window with view of the tower"
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "家用办公室有朝北的窗",
+      "text_en": "Home office north-facing window",
+      "points": 3,
+      "condition": {
+        "room_has_window_facing": {
+          "room_slot": "I",
+          "direction": "N"
+        }
+      }
+    },
+    {
+      "text_zh": "每个正方形的房间",
+      "text_en": "Per room with a square footprint",
+      "points": 5,
+      "condition": {
+        "per_square_room": {}
+      }
+    },
+    {
+      "text_zh": "每个矩形（非正方）的房间",
+      "text_en": "Per rectangular non-square room",
+      "points": 3,
+      "condition": {
+        "per_rectangular_non_square_room": {}
+      }
+    },
+    {
+      "text_zh": "安装了养生区（11）",
+      "text_en": "Wellness area (11) installed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 11,
+          "min": 1
+        }
+      }
+    },
+    {
+      "text_zh": "展示了 2 件艺术品（32）",
+      "text_en": "2 pieces of art (32) displayed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 32,
+          "min": 2
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 142,
+      "indoor": 114
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      6,
+      1,
+      15,
+      15
+    ],
+    "pre_drawn_counts": {
+      "doors": 1,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 4,
+    "bonus_points": 5
+  }
+}

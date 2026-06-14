@@ -1,0 +1,154 @@
+{
+  "id": "tiny_houses",
+  "title_zh": "微型小屋",
+  "title_en": "Tiny Houses",
+  "chapter_zh": "俱乐部生活",
+  "difficulty": "medium",
+  "pages_in_book": [
+    28,
+    29
+  ],
+  "page_image": "images/scenarios/page_15.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "3 × 起居/餐厅",
+      "name_en": "3 × Living/dining",
+      "furniture_numbers": [
+        5,
+        7,
+        12,
+        19,
+        20,
+        21,
+        29
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "3 × 浴室",
+      "name_en": "3 × Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n.IIIIII..IIIIII.\n.IIIIII..IIIIII.\n.IIIIII..IIIIII.\n.III.....IIIIII.\n.III........III.\n.III............\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIIII....\n..........II....\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {
+    "tiny_house_a": {
+      "name_zh": "小屋甲",
+      "name_en": "Tiny house A"
+    },
+    "tiny_house_b": {
+      "name_zh": "小屋乙",
+      "name_en": "Tiny house B"
+    },
+    "tiny_house_c": {
+      "name_zh": "小屋丙",
+      "name_en": "Tiny house C"
+    }
+  },
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊；浴室直接连到起居/餐厅",
+      "notes_en": "No hallway; bathroom connects directly to the living/dining room"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "identical_furnishing",
+        "kind": "drawing_constraint",
+        "text_zh": "三栋小屋家具完全相同，不能压在彼此或外扩占地。每栋户型不同（手画），但占用方格分布必须一致。",
+        "text_en": "All three tiny houses must be furnished identically; each has a different outline but the same occupied-square pattern."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "所有大门朝同一方向",
+      "text_en": "All front doors point in the same direction",
+      "points": 5,
+      "condition": {
+        "all_front_doors_same_direction": {}
+      }
+    },
+    {
+      "text_zh": "三栋家具完全相同",
+      "text_en": "The three houses are furnished identically",
+      "points": 5,
+      "condition": {
+        "all_zones_furnished_identically": {
+          "zones": [
+            "tiny_house_a",
+            "tiny_house_b",
+            "tiny_house_c"
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "每栋里浴室（8）紧邻小厨房（7）",
+      "text_en": "In each house, bathroom (8) adjacent to small kitchen (7)",
+      "points": 5,
+      "condition": {
+        "per_zone": {
+          "zones": [
+            "tiny_house_a",
+            "tiny_house_b",
+            "tiny_house_c"
+          ],
+          "require": {
+            "adjacent": {
+              "a": 8,
+              "b": 7
+            }
+          }
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 175,
+      "indoor": 81
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      1,
+      14,
+      15
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 2,
+    "bonus_points": 3
+  }
+}

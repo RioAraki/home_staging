@@ -1,0 +1,111 @@
+{
+  "id": "photo_studio_freespace",
+  "title_zh": "自由空间摄影棚",
+  "title_en": "Photo Studio \"Freespace\"",
+  "chapter_zh": "沙坑情缘",
+  "difficulty": "medium",
+  "pages_in_book": [
+    58,
+    59
+  ],
+  "page_image": "images/scenarios/page_30.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "摄影棚",
+      "name_en": "Photo studio",
+      "furniture_numbers": [
+        1,
+        3,
+        7,
+        17,
+        20,
+        23,
+        24,
+        26,
+        27,
+        32
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n................\n.......IIII.....\n.......IIII.....\n...IIIIIIII.....\n...IIIIIIII.....\n...IIIIIIII.....\n...IIIIIIII.....\n...IIIIIIII.....\n...IIIIIIII.....\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊",
+      "notes_en": "No hallway"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "neighbor_free_spaces",
+        "kind": "setup_inter_player",
+        "text_zh": "开局可在右手玩家户型任意位置画若干自由空间格",
+        "text_en": "At setup may draw free-space cells at any locations on right neighbor floor plan"
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "一条至少 3 格宽、连接两面外墙的连续开放通道",
+      "text_en": "Open space ≥ 3 cells wide connecting two exterior walls",
+      "points": 3,
+      "condition": {
+        "open_corridor_connects_walls": {
+          "min_width": 3,
+          "walls": 2
+        }
+      }
+    },
+    {
+      "text_zh": "每一个紧邻内墙拐角的自由空间格",
+      "text_en": "Per open-space cell adjacent to an interior wall corner",
+      "points": 3,
+      "condition": {
+        "per_open_space_at_interior_corner": {}
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 200,
+      "indoor": 56
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      4,
+      3,
+      12,
+      11
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 1,
+    "bonus_points": 2
+  }
+}

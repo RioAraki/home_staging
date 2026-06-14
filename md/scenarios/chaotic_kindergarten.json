@@ -1,0 +1,153 @@
+{
+  "id": "chaotic_kindergarten",
+  "title_zh": "喧闹的幼儿园",
+  "title_en": "The Chaotic Kindergarten",
+  "chapter_zh": "沙坑情缘",
+  "difficulty": "medium",
+  "pages_in_book": [
+    56,
+    57
+  ],
+  "page_image": "images/scenarios/page_29.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "厨房",
+      "name_en": "Kitchen",
+      "furniture_numbers": [
+        4,
+        6
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "活动室",
+      "name_en": "Group room",
+      "furniture_numbers": [
+        2,
+        5,
+        15,
+        21,
+        22,
+        23,
+        33
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n........IIIII...\n........IIIII...\n........IIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIIIIIIII...\n...IIIII........\n...IIIII........\n...IIIII........\n..........II....\n............II..\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "four_markers_on_23",
+        "kind": "setup",
+        "text_zh": "在 23 号家具（儿童玩具）上放 4 枚标记盘。",
+        "text_en": "Place 4 furniture markers on card 23 (children's toys)."
+      },
+      {
+        "id": "no_furniture_on_carpet",
+        "kind": "drawing_constraint",
+        "text_zh": "不要把家具压在地毯上。",
+        "text_en": "Do not place furniture on the carpet."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "厨房有能看见树的窗",
+      "text_en": "Kitchen has window with view of a tree",
+      "points": 5,
+      "condition": {
+        "window_with_view": {
+          "from_room": "I",
+          "to": "tree"
+        }
+      }
+    },
+    {
+      "text_zh": "23 号家具两种变体都装齐",
+      "text_en": "Both variants of children's toy (23) installed",
+      "points": 5,
+      "condition": {
+        "all_variants_installed": {
+          "furniture": 23
+        }
+      }
+    },
+    {
+      "text_zh": "铺了地毯",
+      "text_en": "Carpet (33) placed",
+      "points": 5,
+      "condition": {
+        "count_installed": {
+          "furniture": 33,
+          "min": 1
+        }
+      }
+    },
+    {
+      "text_zh": "活动室里每件家具都至少装了一份",
+      "text_en": "Every group-room furniture installed at least once",
+      "points": 5,
+      "condition": {
+        "all_installed_in_room": {
+          "room_slot": "II",
+          "furniture": [
+            2,
+            5,
+            15,
+            21,
+            22,
+            23,
+            33
+          ]
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 172,
+      "indoor": 84
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      2,
+      3,
+      15,
+      14
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 2,
+    "bonus_points": 4
+  }
+}

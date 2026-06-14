@@ -1,0 +1,260 @@
+{
+  "id": "game_store_old_town",
+  "title_zh": "老城里的桌游店",
+  "title_en": "The Game Store in the Old Town",
+  "chapter_zh": "奇幻迷",
+  "difficulty": "easy",
+  "pages_in_book": [
+    18,
+    19
+  ],
+  "page_image": "images/scenarios/page_10.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "桌游店",
+      "name_en": "Salesroom",
+      "furniture_numbers": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        4,
+        5,
+        5,
+        15,
+        15,
+        15,
+        15,
+        20,
+        20,
+        23,
+        30,
+        33
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIIII.....\n....IIIIII......\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [
+      {
+        "cell": [
+          13,
+          10
+        ],
+        "edge": "W",
+        "target": "front_door",
+        "notes_zh": "大门在 14K 的左边（西墙），固定不可移动",
+        "notes_en": "Front door is on the west edge of 14K (fixed, not movable)"
+      }
+    ],
+    "windows": [
+      {
+        "cell": [
+          13,
+          4
+        ],
+        "edge": "S",
+        "notes_zh": "南墙大橱窗（14E）"
+      },
+      {
+        "cell": [
+          13,
+          5
+        ],
+        "edge": "S",
+        "notes_zh": "南墙大橱窗（14F）"
+      },
+      {
+        "cell": [
+          13,
+          6
+        ],
+        "edge": "S",
+        "notes_zh": "南墙大橱窗（14G）"
+      },
+      {
+        "cell": [
+          13,
+          7
+        ],
+        "edge": "S",
+        "notes_zh": "南墙大橱窗（14H）"
+      },
+      {
+        "cell": [
+          13,
+          8
+        ],
+        "edge": "S",
+        "notes_zh": "南墙大橱窗（14I）"
+      },
+      {
+        "cell": [
+          13,
+          9
+        ],
+        "edge": "S",
+        "notes_zh": "南墙大橱窗（14J）"
+      }
+    ],
+    "walls_interior": [],
+    "markers": [
+      {
+        "cell": [
+          4,
+          7
+        ],
+        "id": "socket_marker",
+        "symbol": "S",
+        "notes_zh": "网线/插座 — 用 30 号吧台覆盖可加 5 分",
+        "notes_en": "Network socket — covering with"
+      }
+    ]
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊。",
+      "notes_en": "No hallway."
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          13,
+          10
+        ]
+      ],
+      "notes_zh": "大门在 14K（东南角缺角处），南墙橱窗右侧。",
+      "notes_en": "Front door at 14K — the south-east corner wedge."
+    },
+    "drawing": [
+      {
+        "id": "window_area_no_cover",
+        "kind": "drawing_constraint",
+        "text_zh": "南墙橱窗前的 14E–14J 必须保持可走，不能被家具覆盖",
+        "text_en": "South-window strip (14E–14J) must stay walkable; no furniture allowed",
+        "cells": [
+          [
+            13,
+            4
+          ],
+          [
+            13,
+            5
+          ],
+          [
+            13,
+            6
+          ],
+          [
+            13,
+            7
+          ],
+          [
+            13,
+            8
+          ],
+          [
+            13,
+            9
+          ]
+        ]
+      },
+      {
+        "id": "socket_constraint",
+        "kind": "drawing_constraint",
+        "text_zh": "网线 S 在 5H — 用 30 号吧台覆盖以拿 +5 奖励",
+        "text_en": "Network socket S at 5H — cover with the"
+      },
+      {
+        "id": "no_furniture_on_carpet",
+        "kind": "drawing_constraint",
+        "text_zh": "不要把家具压在地毯上。",
+        "text_en": "Do not place furniture on the carpet."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "摆了 5 个置物架（3）",
+      "text_en": "5 shelves (3) placed",
+      "points": 5,
+      "condition": {
+        "count_installed": {
+          "furniture": 3,
+          "min": 5
+        }
+      }
+    },
+    {
+      "text_zh": "吧台（30）覆盖了橱窗前的插座",
+      "text_en": "Counter (30) covers the shop-window socket",
+      "points": 5,
+      "condition": {
+        "covers_marker": {
+          "furniture": 30,
+          "marker": "socket_marker"
+        }
+      }
+    },
+    {
+      "text_zh": "装了儿童玩具（23）",
+      "text_en": "Children's toys (23) installed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 23,
+          "min": 1
+        }
+      }
+    },
+    {
+      "text_zh": "铺了地毯（33）",
+      "text_en": "Carpet (33) placed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 33,
+          "min": 1
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 173,
+      "indoor": 83
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      2,
+      4,
+      14,
+      11
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 1,
+      "walls_interior": 0
+    },
+    "rooms": 1,
+    "bonus_points": 4
+  }
+}

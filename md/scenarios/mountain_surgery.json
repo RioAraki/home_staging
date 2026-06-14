@@ -1,0 +1,153 @@
+{
+  "id": "mountain_surgery",
+  "title_zh": "山中诊所",
+  "title_en": "The Mountain Surgery",
+  "chapter_zh": "高山疗养",
+  "difficulty": "easy",
+  "pages_in_book": [
+    10,
+    11
+  ],
+  "page_image": "images/scenarios/page_06.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "主办公室",
+      "name_en": "Main office",
+      "furniture_numbers": [
+        16,
+        18,
+        21,
+        21,
+        24,
+        31,
+        32,
+        32,
+        32,
+        33
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "等待室",
+      "name_en": "Waiting room",
+      "furniture_numbers": [
+        1,
+        1,
+        19,
+        19
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "接待区",
+      "name_en": "Reception",
+      "furniture_numbers": [
+        3,
+        3,
+        17
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n...IIIIIIIII....\n...IIIIIIIII....\n...IIIIIIIII....\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n...IIIIIIIII....\n...IIIIIIIII....\n...IIIIIIIII....\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "no_furniture_on_carpet",
+        "kind": "drawing_constraint",
+        "text_zh": "地毯上不能放置家具。",
+        "text_en": "Do not place furniture on top of the carpet."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "主办公室的每张家具卡都至少装了一份",
+      "text_en": "Every main-office furniture card has at least one piece placed",
+      "points": 10,
+      "condition": {
+        "all_installed_in_room": {
+          "room_slot": "I",
+          "furniture": [
+            16,
+            18,
+            21,
+            24,
+            31,
+            32,
+            33
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "等待室和接待区的门距离最多 2 格",
+      "text_en": "Distance between waiting-room and reception doors is at most 2",
+      "points": 3,
+      "condition": {
+        "door_distance_between_rooms_max": {
+          "room_a": "II",
+          "room_b": "III",
+          "max": 2
+        }
+      }
+    },
+    {
+      "text_zh": "接待区有一个朝北的窗户",
+      "text_en": "Reception has a north-facing window",
+      "points": 3,
+      "condition": {
+        "room_has_window_facing": {
+          "room_slot": "III",
+          "direction": "N"
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 175,
+      "indoor": 81
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      3,
+      12,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 3,
+    "bonus_points": 3
+  }
+}

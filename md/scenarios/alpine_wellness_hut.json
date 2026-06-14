@@ -1,0 +1,129 @@
+{
+  "id": "alpine_wellness_hut",
+  "title_zh": "阿尔卑斯疗养小屋",
+  "title_en": "The Alpine Wellness Hut",
+  "chapter_zh": "高山疗养",
+  "difficulty": "easy",
+  "pages_in_book": [
+    8,
+    9
+  ],
+  "page_image": "images/scenarios/page_05.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "厨房",
+      "name_en": "Kitchen",
+      "furniture_numbers": [
+        4,
+        7,
+        20,
+        20
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "通铺",
+      "name_en": "Dormitory",
+      "furniture_numbers": [
+        12,
+        13,
+        13,
+        13
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "疗养区",
+      "name_en": "Wellness oasis",
+      "furniture_numbers": [
+        8,
+        9,
+        10,
+        11,
+        11,
+        18,
+        18,
+        18,
+        21,
+        21,
+        31
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n..IIIIIIIIIIII..\n..IIIIIIIIIIII..\n..IIIIIIIIIIII..\n..IIIIIIIIIIII..\n..IIIIIIIIIIII..\n.......IIIIIII..\n.......IIIIIII..\n.......IIIIIII..\n.......IIIIIII..\n.......IIIIIII..\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "每张家具卡都至少装了一份",
+      "text_en": "At least 1 piece from every furniture card is placed",
+      "points": 5,
+      "condition": {
+        "at_least_one_per_card": {
+          "cards": [
+            4,
+            7,
+            20,
+            12,
+            13,
+            8,
+            9,
+            10,
+            11,
+            18,
+            21,
+            31
+          ]
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 161,
+      "indoor": 95
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      2,
+      13,
+      14
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 3,
+    "bonus_points": 1
+  }
+}

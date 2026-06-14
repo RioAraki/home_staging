@@ -1,0 +1,149 @@
+{
+  "id": "beutlers_end",
+  "title_zh": "Beutler 的归宿",
+  "title_en": "Beutler's End",
+  "chapter_zh": "奇幻迷",
+  "difficulty": "medium",
+  "pages_in_book": [
+    20,
+    21
+  ],
+  "page_image": "images/scenarios/page_11.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "男人窝",
+      "name_en": "Mancave",
+      "furniture_numbers": [
+        1,
+        4,
+        7,
+        13,
+        14,
+        19,
+        21,
+        23,
+        24,
+        25,
+        27,
+        29,
+        31
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n..III.......I...\n.IIIII.III.III..\n.IIIIIIIIIIIIII.\n.IIIIIIIII.III..\n..IIIIIII...I...\n...IIIIIII.II...\n..IIIIIIII..I...\n.IIIIIIIII......\n.IIIIIIIII......\n.IIIII.III......\n..III...........\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {
+    "mancave": {
+      "room_slot": "I",
+      "name_zh": "男人窝",
+      "name_en": "Mancave"
+    },
+    "bathroom": {
+      "room_slot": null,
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "connects_to": [
+        "mancave"
+      ]
+    }
+  },
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊；男人窝只直接连到浴室。",
+      "notes_en": "No hallway; mancave only connects directly to the bathroom."
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "多台电视（29）之间至少相距 6 格",
+      "text_en": "TVs (29) are at least 6 squares apart",
+      "points": 5,
+      "condition": {
+        "pairwise_distance_min": {
+          "furniture": 29,
+          "min": 6
+        }
+      }
+    },
+    {
+      "text_zh": "小厨房（7）与大桌（4）相距不超 4 格",
+      "text_en": "Small kitchen (7) and large table (4) ≤ 4 squares apart",
+      "points": 5,
+      "condition": {
+        "distance_at_most": {
+          "a": 7,
+          "b": 4,
+          "max": 4
+        }
+      }
+    },
+    {
+      "text_zh": "小床（13）与大冰箱（14）相距不超 4 格",
+      "text_en": "Small bed (13) and large fridge (14) ≤ 4 squares apart",
+      "points": 5,
+      "condition": {
+        "distance_at_most": {
+          "a": 13,
+          "b": 14,
+          "max": 4
+        }
+      }
+    },
+    {
+      "text_zh": "沙发组（21）与壁炉（31）相距不超 4 格",
+      "text_en": "Lounge (21) and fireplace (31) ≤ 4 squares apart",
+      "points": 5,
+      "condition": {
+        "distance_at_most": {
+          "a": 21,
+          "b": 31,
+          "max": 4
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 160,
+      "indoor": 96
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      2,
+      1,
+      13,
+      15
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 1,
+    "bonus_points": 4
+  }
+}

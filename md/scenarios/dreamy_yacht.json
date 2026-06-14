@@ -1,0 +1,218 @@
+{
+  "id": "dreamy_yacht",
+  "title_zh": "梦幻游艇",
+  "title_en": "The Dreamy Yacht",
+  "chapter_zh": "海之呼唤",
+  "difficulty": "hard",
+  "pages_in_book": [
+    52,
+    53
+  ],
+  "page_image": "images/scenarios/page_27.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "船舱卧室",
+      "name_en": "Berth",
+      "furniture_numbers": [
+        13,
+        15
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "厨房",
+      "name_en": "Galley",
+      "furniture_numbers": [
+        5,
+        7
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "客厅",
+      "name_en": "Lounge",
+      "furniture_numbers": [
+        1,
+        4,
+        14,
+        19,
+        29
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n...III..........\n..IIIII.........\n..IIIII.........\n..IIIII...III...\n..IIIII..IIIII..\n..IIIII...IIII..\n...IIII..IIIII..\n..IIIII..IIIII..\n..IIIII.........\n..IIIII.........\n..IIIII.........\n...III..........\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {
+    "lower_deck": {
+      "name_zh": "下甲板",
+      "name_en": "Lower deck",
+      "level": 1
+    },
+    "upper_deck": {
+      "name_zh": "上甲板",
+      "name_en": "Upper deck",
+      "level": 2
+    }
+  },
+  "pre_drawn": {
+    "doors": [],
+    "windows": [
+      {
+        "cell": [
+          4,
+          4
+        ],
+        "edge": "W",
+        "notes": "hull window",
+        "verify": true
+      },
+      {
+        "cell": [
+          6,
+          3
+        ],
+        "edge": "W",
+        "notes": "hull window",
+        "verify": true
+      },
+      {
+        "cell": [
+          8,
+          3
+        ],
+        "edge": "W",
+        "notes": "hull window",
+        "verify": true
+      },
+      {
+        "cell": [
+          4,
+          9
+        ],
+        "edge": "E",
+        "notes": "hull window",
+        "verify": true
+      },
+      {
+        "cell": [
+          6,
+          11
+        ],
+        "edge": "E",
+        "notes": "hull window",
+        "verify": true
+      }
+    ],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊；所有房间在下甲板必须连通",
+      "notes_en": "No hallway all lower-deck rooms must connect"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "board_up_window",
+        "kind": "setup",
+        "text_zh": "开局时选 1 扇预设窗户，把它封死（在该窗上画 X），不再算作窗。",
+        "text_en": "At setup choose 1 pre-marked window and board it up (draw X over it). It no longer counts as a window."
+      },
+      {
+        "id": "berth_at_bow",
+        "kind": "drawing_constraint",
+        "text_zh": "船舱卧室必须位于船头（户型图上半部）。",
+        "text_en": "The berth must be at the bow (top of the floor plan)."
+      },
+      {
+        "id": "stairwell_S",
+        "kind": "layout_constraint",
+        "text_zh": "S 格是楼梯井，占 1 格、可走，是上下甲板唯一通道。",
+        "text_en": "S marks the stairwell",
+        "a single walkable cell that is the only path between decks.": null
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "每个至少有 1 扇窗的房间",
+      "text_en": "Per room with at least one window",
+      "points": 5,
+      "condition": {
+        "per_room_with_window": {}
+      }
+    },
+    {
+      "text_zh": "楼梯井 S 在船舱卧室里",
+      "text_en": "Stairwell S is located in the berth",
+      "points": 5,
+      "condition": {
+        "feature_in_room": {
+          "feature": "stairs_marker",
+          "room_slot": "I"
+        }
+      }
+    },
+    {
+      "text_zh": "大衣柜与大桌都在上甲板",
+      "text_en": "Large wardrobe and large table on the upper deck",
+      "points": 5,
+      "condition": {
+        "all_in_zone": {
+          "furniture": [
+            14,
+            4
+          ],
+          "zone": "upper_deck"
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 179,
+      "indoor": 77
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      1,
+      2,
+      13,
+      14
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 5,
+      "walls_interior": 0
+    },
+    "rooms": 4,
+    "bonus_points": 3
+  }
+}

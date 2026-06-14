@@ -1,0 +1,180 @@
+{
+  "id": "shared_apartment_good_connections",
+  "title_zh": "网速极佳的合租公寓",
+  "title_en": "Shared Apartment with Good Connections",
+  "chapter_zh": "成功故事",
+  "difficulty": "medium",
+  "pages_in_book": [
+    36,
+    37
+  ],
+  "page_image": "images/scenarios/page_19.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "房间 1",
+      "name_en": "Room 1",
+      "furniture_numbers": [
+        13,
+        23
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "房间 2",
+      "name_en": "Room 2",
+      "furniture_numbers": [
+        3,
+        13,
+        17
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "房间 3",
+      "name_en": "Room 3",
+      "furniture_numbers": [
+        12,
+        15
+      ]
+    },
+    {
+      "slot": "IV",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "slot": "V",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining room",
+      "furniture_numbers": [
+        4,
+        7,
+        29
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIIII..\n....IIIIIIIIII..\n....IIIIIIIIII..\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "房间 1 和房间 2 占用格数相同",
+      "text_en": "Rooms 1 and 2 have same number of squares",
+      "points": 3,
+      "condition": {
+        "rooms_same_size": {
+          "room_slots": [
+            "I",
+            "II"
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "房间 3 比房间 1、2 都大",
+      "text_en": "Room 3 bigger than rooms 1 and 2",
+      "points": 3,
+      "condition": {
+        "room_size_greater": {
+          "room_slot": "III",
+          "than": [
+            "I",
+            "II"
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "每个矩形房间",
+      "text_en": "Per rectangular room",
+      "points": 3,
+      "condition": {
+        "per_rectangular_room": {}
+      }
+    },
+    {
+      "text_zh": "房间 1、2、3 全部装满",
+      "text_en": "Rooms 1",
+      "2 and 3 fully furnished": null,
+      "points": 8,
+      "condition": {
+        "rooms_fully_furnished": {
+          "room_slots": [
+            "I",
+            "II",
+            "III"
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "房间 1、2、3 都不挨南侧外墙",
+      "text_en": "Rooms 1",
+      "2 and 3 do not touch southern exterior wall": null,
+      "points": 5,
+      "condition": {
+        "rooms_not_touching_edge": {
+          "room_slots": [
+            "I",
+            "II",
+            "III"
+          ],
+          "edge": "S"
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 172,
+      "indoor": 84
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      4,
+      12,
+      14
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 5,
+    "bonus_points": 5
+  }
+}

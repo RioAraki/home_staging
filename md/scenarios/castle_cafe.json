@@ -1,0 +1,177 @@
+{
+  "id": "castle_cafe",
+  "title_zh": "城堡咖啡馆",
+  "title_en": "\"Castle Café\"",
+  "chapter_zh": "高山疗养",
+  "difficulty": "easy",
+  "pages_in_book": [
+    12,
+    13
+  ],
+  "page_image": "images/scenarios/page_07.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "厨房",
+      "name_en": "Kitchen",
+      "furniture_numbers": [
+        3,
+        3,
+        7,
+        7
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "客用洗手间",
+      "name_en": "Guest restroom",
+      "furniture_numbers": [
+        8,
+        8,
+        9
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "用餐区",
+      "name_en": "Dining area",
+      "furniture_numbers": [
+        4,
+        4,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        19,
+        19,
+        30
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n..III......III..\n..III......III..\n..IIIIIIIIIIII..\n...IIIIIIIIII...\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n....IIIIIIII....\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [
+      {
+        "cell": [
+          9,
+          3
+        ],
+        "edge": "E",
+        "target": "front_door",
+        "notes_zh": "前门固定在 10D 西墙",
+        "notes_en": "Front door fixed at the west wall of cell row-10/col-D"
+      }
+    ],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊，所有房间直接与用餐区相连。",
+      "notes_en": "No hallway; all rooms connect directly to the dining area."
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          9,
+          3
+        ]
+      ]
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "用餐区至少 16 把椅子",
+      "text_en": "Dining area has at least 16 chairs",
+      "points": 5,
+      "condition": {
+        "chairs_in_room_min": {
+          "room_slot": "III",
+          "min": 16
+        }
+      }
+    },
+    {
+      "text_zh": "至少装 1 个马桶（8）和 1 个洗手台（9）",
+      "text_en": "At least 1 toilet (8) and 1 sink (9) installed",
+      "points": 5,
+      "condition": {
+        "all_installed": {
+          "furniture": [
+            8,
+            9
+          ]
+        }
+      }
+    },
+    {
+      "text_zh": "装了 2 个置物架（3）",
+      "text_en": "2 shelves (3) installed",
+      "points": 3,
+      "condition": {
+        "count_installed": {
+          "furniture": 3,
+          "min": 2
+        }
+      }
+    },
+    {
+      "text_zh": "装了吧台（30）",
+      "text_en": "Counter (30) installed",
+      "points": 5,
+      "condition": {
+        "count_installed": {
+          "furniture": 30,
+          "min": 1
+        }
+      }
+    },
+    {
+      "text_zh": "每张紧邻至少 1 株植物的桌子",
+      "text_en": "Per table adjacent to at least one plant",
+      "points": 1,
+      "condition": {
+        "per_table_adjacent_to_plant": {}
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 158,
+      "indoor": 98
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      2,
+      2,
+      14,
+      14
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 3,
+    "bonus_points": 5
+  }
+}

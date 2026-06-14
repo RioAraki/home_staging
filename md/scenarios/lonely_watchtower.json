@@ -1,0 +1,211 @@
+{
+  "id": "lonely_watchtower",
+  "title_zh": "孤独的瞭望塔",
+  "title_en": "The Lonely Watchtower",
+  "chapter_zh": "海之呼唤",
+  "difficulty": "hard",
+  "pages_in_book": [
+    50,
+    51
+  ],
+  "page_image": "images/scenarios/page_26.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "浴室",
+      "name_en": "Bathroom",
+      "furniture_numbers": [
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "起居/餐厅",
+      "name_en": "Living/dining area",
+      "furniture_numbers": [
+        2,
+        3,
+        5,
+        7,
+        13,
+        15,
+        19,
+        21,
+        25,
+        29,
+        31
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "...........II...\n..........IIIII.\n..........IIII..\n...........II...\n.......III......\n......IIIII.....\n......IIIIII....\n......IIIII.....\n.......III......\n..IIII..........\n.IIIIII.........\n.IIIIII.........\n.IIIIIII........\n.IIIIII.........\n..IIII..........\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {
+    "top_floor": {
+      "room_slot": "II",
+      "name_zh": "顶层",
+      "name_en": "Top floor",
+      "level": 3
+    },
+    "upper_floor": {
+      "room_slot": "II",
+      "name_zh": "上层",
+      "name_en": "Upper floor",
+      "level": 2
+    },
+    "ground_floor": {
+      "room_slot": "II",
+      "name_zh": "底层",
+      "name_en": "Ground floor",
+      "level": 1
+    }
+  },
+  "pre_drawn": {
+    "walls_interior": [],
+    "doors": [],
+    "windows": [
+      {
+        "cell": [
+          2,
+          14
+        ],
+        "edge": "E",
+        "notes": "top floor east window",
+        "verify": true
+      },
+      {
+        "cell": [
+          6,
+          4
+        ],
+        "edge": "W",
+        "notes": "upper floor west window",
+        "verify": true
+      },
+      {
+        "cell": [
+          10,
+          1
+        ],
+        "edge": "W",
+        "notes": "ground floor west window",
+        "verify": true
+      }
+    ]
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无内部隔断（除浴室外）。三层共同视作起居/餐厅。",
+      "notes_en": "No interior partition walls (except the bathroom). All three floors are treated as one living/dining area."
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "external_staircase",
+        "kind": "layout_constraint",
+        "text_zh": "三层之间没有内部楼梯，靠外部楼梯相连。每一层都是独立的连通区。",
+        "text_en": "No interior staircase between floors; an external stair connects them. Each floor is its own connected region."
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "每层楼都有一台电视（29）",
+      "text_en": "There is a television (29) on each floor",
+      "points": 5,
+      "condition": {
+        "per_zone": {
+          "zones": [
+            "top_floor",
+            "upper_floor",
+            "ground_floor"
+          ],
+          "require": {
+            "count_installed": {
+              "furniture": 29,
+              "min": 1
+            }
+          }
+        }
+      }
+    },
+    {
+      "text_zh": "小厨房（7）与小桌（5）在同一层",
+      "text_en": "Small kitchen (7) and small table (5) are on the same floor",
+      "points": 5,
+      "condition": {
+        "same_zone": {
+          "a": 7,
+          "b": 5
+        }
+      }
+    },
+    {
+      "text_zh": "小床（13）与小衣柜（15）在同一层",
+      "text_en": "Small bed (13) and small wardrobe (15) are on the same floor",
+      "points": 5,
+      "condition": {
+        "same_zone": {
+          "a": 13,
+          "b": 15
+        }
+      }
+    },
+    {
+      "text_zh": "小沙发（2）与壁炉（31）在同一层",
+      "text_en": "Small sofa (2) and fireplace (31) are on the same floor",
+      "points": 5,
+      "condition": {
+        "same_zone": {
+          "a": 2,
+          "b": 31
+        }
+      }
+    },
+    {
+      "text_zh": "每个指定窗户前的自由空间格",
+      "text_en": "Per open-space cell in front of a specified window",
+      "points": 2,
+      "condition": {
+        "per_open_space_in_front_of_preset_window": {}
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 188,
+      "indoor": 68
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      0,
+      1,
+      15,
+      15
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 3,
+      "walls_interior": 0
+    },
+    "rooms": 2,
+    "bonus_points": 5
+  }
+}

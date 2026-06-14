@@ -1,0 +1,122 @@
+{
+  "id": "renovated_clubhouse",
+  "title_zh": "翻新过的俱乐部",
+  "title_en": "The Renovated Clubhouse",
+  "chapter_zh": "俱乐部生活",
+  "difficulty": "medium",
+  "pages_in_book": [
+    24,
+    25
+  ],
+  "page_image": "images/scenarios/page_13.png",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "俱乐部",
+      "name_en": "Clubroom",
+      "furniture_numbers": [
+        5,
+        7,
+        20,
+        21,
+        22,
+        25,
+        28,
+        30
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n....IIIIIIIII...\n................\n................\n................\n................\n",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    },
+    "verify": true
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [],
+    "windows": [],
+    "walls_interior": []
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "notes_zh": "无走廊",
+      "notes_en": "No hallway"
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": true,
+      "forced_cells": []
+    },
+    "drawing": [
+      {
+        "id": "fire_damage_x_marks",
+        "kind": "setup_inter_player",
+        "text_zh": "开局时，每位玩家在【左手玩家】的户型上画 10 个 X 交叉记号，代表火灾损坏。\n所有 X 必须紧贴外墙；之后这些格子不能被覆盖。\n其后，4/10 的 X 可以在翻开第一张家具卡前被「修复」（擦掉）。\n",
+        "text_en": "At setup, each player draws 10 X marks (fire damage) on the floor plan of\nthe player to their left. All Xs must be adjacent to an exterior wall and\ncannot be built over. After that, 4 of the 10 may be erased before the\nfirst furniture card is revealed.\n",
+        "adds_cell_feature": "charred"
+      }
+    ],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "大门朝北",
+      "text_en": "Front door faces north",
+      "points": 3,
+      "condition": {
+        "front_door_facing": {
+          "direction": "N"
+        }
+      }
+    },
+    {
+      "text_zh": "所有爱好装备（25）都装齐",
+      "text_en": "All hobby equipment (25) installed",
+      "points": 5,
+      "condition": {
+        "all_variants_installed": {
+          "furniture": 25
+        }
+      }
+    },
+    {
+      "text_zh": "吧台（30）距大门不超 2 格",
+      "text_en": "Counter (30) ≤ 2 squares from front door",
+      "points": 3,
+      "condition": {
+        "distance_to_front_door_at_most": {
+          "furniture": 30,
+          "max": 2
+        }
+      }
+    }
+  ],
+  "stats": {
+    "cells_total": 256,
+    "cells_by_terrain": {
+      "outdoor": 175,
+      "indoor": 81
+    },
+    "cells_by_zone": {},
+    "building_bbox": [
+      3,
+      4,
+      12,
+      13
+    ],
+    "pre_drawn_counts": {
+      "doors": 0,
+      "windows": 0,
+      "walls_interior": 0
+    },
+    "rooms": 1,
+    "bonus_points": 3
+  }
+}
