@@ -5,7 +5,7 @@ import { analyseAccessibility, isRoomAccessible, computeFloorReachability } from
 import type { RoomSlot } from '../core/types';
 import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
-import { pieceOpenSpaceCells } from '../core/pieces';
+import { pieceShapeCells, pieceOpenSpaceCells } from '../core/pieces';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloorPlan')
@@ -240,37 +240,38 @@ export class FloorPlan extends Component {
     return this.inaccessibleLayer.getComponent(Graphics);
   }
 
-  /** Red wash on every open-space cell that is walkable but unreachable
-   *  from any door (pre-drawn + player + front door) via walkable floor.
-   *  Skipped during the wall-drawing phase: open cells may be temporarily
-   *  enclosed while drawing walls; the check resumes once doors are added. */
+  /** Red wash on every placed piece whose open spaces can't be reached from
+   *  the outside (door / front door / pre-drawn door, or — with no door yet —
+   *  the open floor). A trapped piece is washed WHOLE: its furniture footprint
+   *  AND its unreachable open cells, mirroring the ghost preview, so the player
+   *  sees the same red after dropping. Per the rulebook a piece with ANY
+   *  unreachable open cell is ignored at scoring, so the whole piece is flagged.
+   *
+   *  Skipped while actively constructing a room (open cells may be temporarily
+   *  enclosed mid wall-draw / before a door exists). See shouldSuppressOpenCellCheck. */
   private redrawInaccessibleOpen() {
     const g = this.ensureInaccessibleLayer();
     if (!g) return;
     const s = gameStore.getState();
     if (!s.scenario) { g.clear(); return; }
-    // Suppress only while actively constructing a room (drawing walls, or
-    // placing its door before any door exists). During furniture placement the
-    // check must run. See shouldSuppressOpenCellCheck.
     if (shouldSuppressOpenCellCheck(s)) { g.clear(); return; }
 
-    // ── 1. all open_spaces (placed pieces) ───────────────────────────────
-    const allOpenSpaces = new Set<string>();
-    for (const p of s.placedPieces) {
-      for (const [r, c] of pieceOpenSpaceCells(p)) allOpenSpaces.add(`${r},${c}`);
-    }
-    if (allOpenSpaces.size === 0) { g.clear(); return; }
-
-    // ── 2. walkable + reachable via shared core (no ghost) ───────────────
     const { walkable, reachable } = computeFloorReachability(
       s.scenario, s.placedPieces, s.walls, s.doors, s.frontDoorEdge,
     );
+    const isTrapped = (k: string) => walkable.has(k) && !reachable.has(k);
 
-    // ── 3. inaccessible = open_spaces walkable but not reachable ─────────
-    const inaccessible: string[] = [];
-    for (const k of allOpenSpaces) {
-      if (walkable.has(k) && !reachable.has(k)) inaccessible.push(k);
+    // For each piece: if ANY open cell is unreachable, wash its shape + its
+    // unreachable open cells. (drawCellWash clears + fills once, so collect the
+    // union and emit a single call.)
+    const wash: string[] = [];
+    for (const p of s.placedPieces) {
+      const trappedOpens = Array.from(pieceOpenSpaceCells(p), ([r, c]) => `${r},${c}`)
+        .filter(isTrapped);
+      if (trappedOpens.length === 0) continue;
+      wash.push(...trappedOpens);
+      for (const [r, c] of pieceShapeCells(p)) wash.push(`${r},${c}`);
     }
-    drawCellWash(g, inaccessible, new Color(255, 60, 60, 140));
+    drawCellWash(g, wash, new Color(255, 60, 60, 140));
   }
 }
