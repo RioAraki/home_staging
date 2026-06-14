@@ -1,5 +1,5 @@
 import { _decorator, Component, Graphics, Color } from 'cc';
-import { gameStore } from '../state/gameStore';
+import { gameStore, shouldSuppressOpenCellCheck } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
 import { validatePlacement } from '../core/validation';
@@ -150,13 +150,10 @@ export class GhostPiece extends Component {
     // decided by validatePlacement above (the ghost may stay yellow/placeable).
     //
     // Suppressed in the same phases as FloorPlan.redrawInaccessibleOpen:
-    // while drawing walls, and while placing doors before the active room has
-    // any door — open cells are expected to be enclosed then.
-    const doorsForRoom = s.doors as Record<string, string>;
-    const suppress = s.wallPhase === 'walls' ||
-      (s.wallPhase === 'door' && !!s.activeRoomSlot &&
-        !Object.values(doorsForRoom).includes(s.activeRoomSlot));
-    if (s.scenario && !suppress) {
+    // only while actively constructing a room (drawing walls, or placing its
+    // door before any door exists). During furniture placement — when this
+    // ghost is being dragged — the check runs. See shouldSuppressOpenCellCheck.
+    if (s.scenario && !shouldSuppressOpenCellCheck(s)) {
       const { walkable, reachable } = computeFloorReachability(
         s.scenario, s.placedPieces, s.walls, s.doors, s.frontDoorEdge, ghostShapeCells,
       );

@@ -5,7 +5,7 @@ import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '..
 import { resolveOption, pieceShapeCells, pieceFootprintCells } from '../core/pieces';
 import { audioManager } from '../platform/audio';
 import { loadAudioSettings, saveAudioSettings } from '../platform/audioSettings';
-import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, type RoomPhase } from './roomFlow';
+import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, suppressOpenCellCheck, type RoomPhase } from './roomFlow';
 
 export type Variant = 'A' | 'B';
 export type Rotation = 0 | 1 | 2 | 3;
@@ -221,6 +221,27 @@ export function getRoomPhase(s: GameState): RoomPhase {
   const room = activeRoom(s);
   if (!room) return 'furniture';
   return phaseOf(room.furniture_numbers.length, currentCardIndexOf(s));
+}
+
+/** Whether the "inaccessible open cell" / "trapped furniture" overlay should be
+ *  suppressed. Only suppress while the player is actively CONSTRUCTING a room:
+ *  drawing its walls (open cells get temporarily enclosed mid-draw), or placing
+ *  its door before any door exists. During the FURNITURE phase — when furniture
+ *  is dragged/placed — the check MUST run, because that's exactly when a piece
+ *  can wall off another piece's open cells.
+ *
+ *  NOTE: `wallPhase` defaults to 'walls' and stays there for the whole furniture
+ *  phase, so gating on `wallPhase === 'walls'` alone (the old behaviour) wrongly
+ *  suppressed the check during placement — the bug this guard fixes. */
+export function shouldSuppressOpenCellCheck(s: GameState): boolean {
+  const hasDoorForActiveRoom = !!s.activeRoomSlot &&
+    Object.values(s.doors as Record<string, string>).includes(s.activeRoomSlot);
+  return suppressOpenCellCheck({
+    roomPhase: getRoomPhase(s),
+    wallPhase: s.wallPhase,
+    activeRoomSlot: s.activeRoomSlot,
+    hasDoorForActiveRoom,
+  });
 }
 
 /**

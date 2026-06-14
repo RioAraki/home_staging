@@ -1,5 +1,5 @@
 import { _decorator, Component, Graphics, Node, UITransform, view, Label, Color } from 'cc';
-import { gameStore, getRoomPhase, isActiveRoomEnclosed } from '../state/gameStore';
+import { gameStore, getRoomPhase, isActiveRoomEnclosed, shouldSuppressOpenCellCheck } from '../state/gameStore';
 import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn, drawCellWash } from './LayerRenderer';
 import { analyseAccessibility, isRoomAccessible, computeFloorReachability } from '../core/regions';
 import type { RoomSlot } from '../core/types';
@@ -249,15 +249,10 @@ export class FloorPlan extends Component {
     if (!g) return;
     const s = gameStore.getState();
     if (!s.scenario) { g.clear(); return; }
-    // Suppress during wall-drawing phase — doors haven't been placed yet.
-    if (s.wallPhase === 'walls') { g.clear(); return; }
-    // Also suppress during door-placement phase until the player has placed
-    // at least one door for the active room. Before any door exists the
-    // enclosed open cells are expected; only flag them once a door is open.
-    if (s.wallPhase === 'door' && s.activeRoomSlot &&
-        !Object.values(s.doors as Record<string, string>).includes(s.activeRoomSlot)) {
-      g.clear(); return;
-    }
+    // Suppress only while actively constructing a room (drawing walls, or
+    // placing its door before any door exists). During furniture placement the
+    // check must run. See shouldSuppressOpenCellCheck.
+    if (shouldSuppressOpenCellCheck(s)) { g.clear(); return; }
 
     // ── 1. all open_spaces (placed pieces) ───────────────────────────────
     const allOpenSpaces = new Set<string>();
