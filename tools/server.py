@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Dev server for sprite tools.
+Dev server for sprite + level tools.
 Serves the project root as static files on port 8777, plus:
-  GET  /api/sheets — list the *.png sprite sheets in asset/
-  POST /api/crop   — save <stem>.annotations.json and re-run crop.py for one sheet
+  GET  /api/sheets     — list the *.png sprite sheets in asset/
+  POST /api/crop       — save <stem>.annotations.json and re-run crop.py for one sheet
+  GET  /api/scenarios  — list level scenarios (md/scenarios/*.json)
+  POST /api/scenario   — save one scenario JSON + rebundle maps_data.yaml/json
 """
-import json, os, subprocess, sys
+import json, os, re, subprocess, sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,6 +16,12 @@ PORT = 8777
 CROP_SCRIPT = os.path.join(ROOT, 'tools', 'sprite-annotator', 'crop.py')
 ASSET_DIR   = os.path.join(ROOT, 'asset')
 OUT_DIR     = os.path.join(ASSET_DIR, 'tiles')
+
+SCEN_DIR    = os.path.join(ROOT, 'md', 'scenarios')
+COCOS_TOOLS = os.path.join(ROOT, 'cocos', 'home-staging-cocos', 'tools')
+BUNDLE_JS   = os.path.join(COCOS_TOOLS, 'scenarios-bundle.cjs')
+YAML2JSON_JS = os.path.join(COCOS_TOOLS, 'yaml2json.cjs')
+SLUG_RE     = re.compile(r'^[a-z0-9_]+$')
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -29,14 +37,19 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path.split('?', 1)[0] == '/api/sheets':
+        route = self.path.split('?', 1)[0]
+        if route == '/api/sheets':
             self._handle_sheets()
+        elif route == '/api/scenarios':
+            self._handle_scenarios()
         else:
             super().do_GET()
 
     def do_POST(self):
         if self.path == '/api/crop':
             self._handle_crop()
+        elif self.path == '/api/scenario':
+            self._handle_save_scenario()
         else:
             self.send_response(404)
             self._cors()
@@ -106,6 +119,73 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception as e:
             self._send_json(500, {'ok': False, 'error': str(e)})
 
+    # ── level scenarios ──────────────────────────────────────────────────
+    def _read_index(self):
+        idx_path = os.path.join(SCEN_DIR, '_index.json')
+        if os.path.isfile(idx_path):
+            with open(idx_path, encoding='utf-8') as f:
+                return json.load(f)
+        return []
+
+    def _handle_scenarios(self):
+        try:
+            index = self._read_index()
+            on_disk = sorted(
+                f[:-5] for f in os.listdir(SCEN_DIR)
+                if f.endswith('.json') and f != '_index.json'
+            ) if os.path.isdir(SCEN_DIR) else []
+            ordered = list(index) + [i for i in on_disk if i not in index]
+            out = []
+            for sid in ordered:
+                p = os.path.join(SCEN_DIR, f'{sid}.json')
+                if not os.path.isfile(p):
+                    continue
+                try:
+                    with open(p, encoding='utf-8') as f:
+                        s = json.load(f)
+                    out.append({'id': sid, 'title_zh': s.get('title_zh', ''),
+                                'difficulty': s.get('difficulty', '')})
+                except Exception:
+                    out.append({'id': sid, 'title_zh': '(parse error)', 'difficulty': ''})
+            self._send_json(200, {'ok': True, 'scenarios': out})
+        except Exception as e:
+            self._send_json(500, {'ok': False, 'error': str(e)})
+
+    def _handle_save_scenario(self):
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            data = json.loads(self.rfile.read(length))
+            sid = (data.get('id') or '').strip()
+            if not SLUG_RE.match(sid):
+                raise RuntimeError(f'invalid scenario id (need slug [a-z0-9_]): {sid!r}')
+
+            os.makedirs(SCEN_DIR, exist_ok=True)
+            path = os.path.join(SCEN_DIR, f'{sid}.json')
+            is_new = not os.path.isfile(path)
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.write('\n')
+
+            # keep _index.json append-only for new ids (preserve existing order)
+            index = self._read_index()
+            if sid not in index:
+                index.append(sid)
+                with open(os.path.join(SCEN_DIR, '_index.json'), 'w', encoding='utf-8') as f:
+                    json.dump(index, f, ensure_ascii=False, indent=2)
+                    f.write('\n')
+
+            # rebundle md/maps_data.yaml then regenerate cocos JSON
+            for script in (BUNDLE_JS, YAML2JSON_JS):
+                r = subprocess.run(['node', script], capture_output=True, text=True)
+                print(r.stdout.strip())
+                if r.returncode != 0:
+                    raise RuntimeError(f'{os.path.basename(script)} failed: {r.stderr.strip()}')
+
+            print(f'[scenario] saved {sid} ({"new" if is_new else "update"}) + rebuilt')
+            self._send_json(200, {'ok': True, 'id': sid, 'new': is_new})
+        except Exception as e:
+            self._send_json(500, {'ok': False, 'error': str(e)})
+
     def _cors(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -117,6 +197,8 @@ if __name__ == '__main__':
     httpd = HTTPServer(('', PORT), Handler)
     print(f'Sprite tools server → http://localhost:{PORT}')
     print(f'  Static root : {ROOT}')
-    print(f'  GET  /api/sheets  → list asset/*.png')
-    print(f'  POST /api/crop    → annotate + crop one sheet (shared tiles/)')
+    print(f'  GET  /api/sheets     → list asset/*.png')
+    print(f'  POST /api/crop       → annotate + crop one sheet (shared tiles/)')
+    print(f'  GET  /api/scenarios  → list md/scenarios/*.json')
+    print(f'  POST /api/scenario   → save one scenario + rebundle')
     httpd.serve_forever()
