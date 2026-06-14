@@ -1,0 +1,5941 @@
+{
+  "furniture": [
+    {
+      "name": "长沙发 1A-1",
+      "id": "1A_1",
+      "source": "card",
+      "number": 1,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "长沙发",
+      "name_en": "Long sofa",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "围坐在温暖的灯光下 1A-2",
+      "id": "1A_2",
+      "source": "card",
+      "number": 1,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "围坐在温暖的灯光下",
+      "name_en": "Seating with warm lamp",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有植物的沙发 1B-1",
+      "id": "1B_1",
+      "source": "card",
+      "number": 1,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有植物的沙发",
+      "name_en": "Sofa with plant",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角沙发 1B-2",
+      "id": "1B_2",
+      "source": "card",
+      "number": 1,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "转角沙发",
+      "name_en": "Corner sofa",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "折叠转角沙发 2A-1",
+      "id": "2A_1",
+      "source": "card",
+      "number": 2,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "折叠转角沙发",
+      "name_en": "Folding corner sofa",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "折叠沙发 2A-2",
+      "id": "2A_2",
+      "source": "card",
+      "number": 2,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "折叠沙发",
+      "name_en": "Folding sofa",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "围坐在一起 2B-1",
+      "id": "2B_1",
+      "source": "card",
+      "number": 2,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "围坐在一起",
+      "name_en": "Gathered seating",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有植物的沙发 2B-2",
+      "id": "2B_2",
+      "source": "card",
+      "number": 2,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "带有植物的沙发",
+      "name_en": "Small sofa with plant",
+      "bbox": [
+        3,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "陈列架 3A-1",
+      "id": "3A_1",
+      "source": "card",
+      "number": 3,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "陈列架",
+      "name_en": "Display shelf",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "游戏架 3A-2",
+      "id": "3A_2",
+      "source": "card",
+      "number": 3,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "游戏架",
+      "name_en": "Game cabinet",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "书架 3B-1",
+      "id": "3B_1",
+      "source": "card",
+      "number": 3,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "书架",
+      "name_en": "Bookshelf",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角书架 3B-2",
+      "id": "3B_2",
+      "source": "card",
+      "number": 3,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "转角书架",
+      "name_en": "Corner bookshelf",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "游戏桌 4A-1",
+      "id": "4A_1",
+      "source": "card",
+      "number": 4,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "游戏桌",
+      "name_en": "Game table",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有酒吧圆凳的高桌子 4A-2",
+      "id": "4A_2",
+      "source": "card",
+      "number": 4,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "带有酒吧圆凳的高桌子",
+      "name_en": "High table with bar stools",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "餐桌 4B-1",
+      "id": "4B_1",
+      "source": "card",
+      "number": 4,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "餐桌",
+      "name_en": "Dining table",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "厨房餐桌 4B-2",
+      "id": "4B_2",
+      "source": "card",
+      "number": 4,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "厨房餐桌",
+      "name_en": "Kitchen dining table",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有植物的小桌子 5A-1",
+      "id": "5A_1",
+      "source": "card",
+      "number": 5,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有植物的小桌子",
+      "name_en": "Small table with plant",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角小桌子 5A-2",
+      "id": "5A_2",
+      "source": "card",
+      "number": 5,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "转角小桌子",
+      "name_en": "Corner small table",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "小桌子 5B-1",
+      "id": "5B_1",
+      "source": "card",
+      "number": 5,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "小桌子",
+      "name_en": "Small table",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带灯的转角小桌子 5B-2",
+      "id": "5B_2",
+      "source": "card",
+      "number": 5,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "带灯的转角小桌子",
+      "name_en": "Corner small table with lamp",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "U型厨房设备 6A-1",
+      "id": "6A_1",
+      "source": "card",
+      "number": 6,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "U型厨房设备",
+      "name_en": "U-shaped kitchen",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "分隔灶台 6A-2",
+      "id": "6A_2",
+      "source": "card",
+      "number": 6,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "分隔灶台",
+      "name_en": "Split-counter kitchen",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角厨房设备 6B-1",
+      "id": "6B_1",
+      "source": "card",
+      "number": 6,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "转角厨房设备",
+      "name_en": "Corner kitchen",
+      "bbox": [
+        4,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "一体式长厨房设备 6B-2",
+      "id": "6B_2",
+      "source": "card",
+      "number": 6,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "一体式长厨房设备",
+      "name_en": "Integrated long kitchen",
+      "bbox": [
+        3,
+        5
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          4
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "一体式转角厨房设备 7A-1",
+      "id": "7A_1",
+      "source": "card",
+      "number": 7,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "一体式转角厨房设备",
+      "name_en": "Integrated corner kitchen",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "一体式小厨房设备 7A-2",
+      "id": "7A_2",
+      "source": "card",
+      "number": 7,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "一体式小厨房设备",
+      "name_en": "Integrated small kitchen",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有独立灶台的一体式厨房设备 7B-1",
+      "id": "7B_1",
+      "source": "card",
+      "number": 7,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有独立灶台的一体式厨房设备",
+      "name_en": "Kitchen with separate stove",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "一体式直线厨房设备 7B-2",
+      "id": "7B_2",
+      "source": "card",
+      "number": 7,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "一体式直线厨房设备",
+      "name_en": "Integrated straight kitchen",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "马桶 8A-1",
+      "id": "8A_1",
+      "source": "card",
+      "number": 8,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "马桶",
+      "name_en": "Toilet",
+      "bbox": [
+        1,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有植物的马桶 8A-2",
+      "id": "8A_2",
+      "source": "card",
+      "number": 8,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "带有植物的马桶",
+      "name_en": "Toilet with plant",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有洗手设备的马桶 8B-1",
+      "id": "8B_1",
+      "source": "card",
+      "number": 8,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有洗手设备的马桶",
+      "name_en": "Toilet with sink",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有置物架的马桶 8B-2",
+      "id": "8B_2",
+      "source": "card",
+      "number": 8,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "带有置物架的马桶",
+      "name_en": "Toilet with shelf",
+      "bbox": [
+        3,
+        1
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有置物架的洗漱池 9A-1",
+      "id": "9A_1",
+      "source": "card",
+      "number": 9,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有置物架的洗漱池",
+      "name_en": "Sink with shelf",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "并排洗手池 9A-2",
+      "id": "9A_2",
+      "source": "card",
+      "number": 9,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "并排洗手池",
+      "name_en": "Side-by-side sinks",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有烘干器的洗漱池 9B-1",
+      "id": "9B_1",
+      "source": "card",
+      "number": 9,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有烘干器的洗漱池",
+      "name_en": "Sink with hand dryer",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "独立洗漱池 9B-2",
+      "id": "9B_2",
+      "source": "card",
+      "number": 9,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "独立洗漱池",
+      "name_en": "Standalone sink",
+      "bbox": [
+        2,
+        1
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "浴缸 10A-1",
+      "id": "10A_1",
+      "source": "card",
+      "number": 10,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "浴缸",
+      "name_en": "Bathtub",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "淋浴 10A-2",
+      "id": "10A_2",
+      "source": "card",
+      "number": 10,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "淋浴",
+      "name_en": "Shower",
+      "bbox": [
+        2,
+        1
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有浴帘的浴缸 10B-1",
+      "id": "10B_1",
+      "source": "card",
+      "number": 10,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有浴帘的浴缸",
+      "name_en": "Bathtub with shower curtain",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "漩涡浴缸 10B-2",
+      "id": "10B_2",
+      "source": "card",
+      "number": 10,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "漩涡浴缸",
+      "name_en": "Whirlpool / Jacuzzi",
+      "bbox": [
+        3,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "桑拿设备 11A-1",
+      "id": "11A_1",
+      "source": "card",
+      "number": 11,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "桑拿设备",
+      "name_en": "Sauna",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "按摩浴缸 11A-2",
+      "id": "11A_2",
+      "source": "card",
+      "number": 11,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "按摩浴缸",
+      "name_en": "Massage tub / whirlpool",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角桑拿设备 11B-1",
+      "id": "11B_1",
+      "source": "card",
+      "number": 11,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "转角桑拿设备",
+      "name_en": "Corner sauna",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "长浴缸 11B-2",
+      "id": "11B_2",
+      "source": "card",
+      "number": 11,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "长浴缸",
+      "name_en": "Long bathtub",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有储物柜的两张床 12A-1",
+      "id": "12A_1",
+      "source": "card",
+      "number": 12,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有储物柜的两张床",
+      "name_en": "Two beds with storage cabinets",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "双人床 12A-2",
+      "id": "12A_2",
+      "source": "card",
+      "number": 12,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "双人床",
+      "name_en": "Double bed",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有床头柜的双人床 12B-1",
+      "id": "12B_1",
+      "source": "card",
+      "number": 12,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有床头柜的双人床",
+      "name_en": "Double bed with nightstands",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "分开的两张床 12B-2",
+      "id": "12B_2",
+      "source": "card",
+      "number": 12,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "分开的两张床",
+      "name_en": "Two separate beds",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "双层床 13A-1",
+      "id": "13A_1",
+      "source": "card",
+      "number": 13,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "双层床",
+      "name_en": "Bunk bed",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "单人床 13A-2",
+      "id": "13A_2",
+      "source": "card",
+      "number": 13,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "单人床",
+      "name_en": "Single bed",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有灯的单人床 13B-1",
+      "id": "13B_1",
+      "source": "card",
+      "number": 13,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有灯的单人床",
+      "name_en": "Single bed with lamp",
+      "bbox": [
+        3,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "从床尾进入的单人床 13B-2",
+      "id": "13B_2",
+      "source": "card",
+      "number": 13,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "从床尾进入的单人床",
+      "name_en": "Single bed entered from the foot",
+      "bbox": [
+        3,
+        1
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          2,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "五斗橱 14A-1",
+      "id": "14A_1",
+      "source": "card",
+      "number": 14,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "五斗橱",
+      "name_en": "Chest of drawers",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "一体式壁橱 14A-2",
+      "id": "14A_2",
+      "source": "card",
+      "number": 14,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "一体式壁橱",
+      "name_en": "Built-in wardrobe",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有灯的五斗橱 14B-1",
+      "id": "14B_1",
+      "source": "card",
+      "number": 14,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有灯的五斗橱",
+      "name_en": "Chest of drawers with lamp",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "一体式转角壁橱 14B-2",
+      "id": "14B_2",
+      "source": "card",
+      "number": 14,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "一体式转角壁橱",
+      "name_en": "Built-in corner wardrobe",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "小五斗橱 15A-1",
+      "id": "15A_1",
+      "source": "card",
+      "number": 15,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "小五斗橱",
+      "name_en": "Small chest of drawers",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角橱柜 15A-2",
+      "id": "15A_2",
+      "source": "card",
+      "number": 15,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "转角橱柜",
+      "name_en": "Corner cabinet",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有灯的小五斗橱 15B-1",
+      "id": "15B_1",
+      "source": "card",
+      "number": 15,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带有灯的小五斗橱",
+      "name_en": "Small chest of drawers with lamp",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有植物的小橱柜 15B-2",
+      "id": "15B_2",
+      "source": "card",
+      "number": 15,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "带有植物的小橱柜",
+      "name_en": "Small cabinet with plant",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有文件柜的办公桌 16A-1",
+      "id": "16A_1",
+      "source": "card",
+      "number": 16,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有文件柜的办公桌",
+      "name_en": "Desk with file cabinet",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有两个座位的长办公桌 16A-2",
+      "id": "16A_2",
+      "source": "card",
+      "number": 16,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "带有两个座位的长办公桌",
+      "name_en": "Long desk with two seats",
+      "bbox": [
+        2,
+        5
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角办公桌 16B-1",
+      "id": "16B_1",
+      "source": "card",
+      "number": 16,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "转角办公桌",
+      "name_en": "Corner desk",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有书架的办公桌 16B-2",
+      "id": "16B_2",
+      "source": "card",
+      "number": 16,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "带有书架的办公桌",
+      "name_en": "Desk with bookshelf",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "小办公桌 17A-1",
+      "id": "17A_1",
+      "source": "card",
+      "number": 17,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "小办公桌",
+      "name_en": "Small desk",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角小办公桌 17A-2",
+      "id": "17A_2",
+      "source": "card",
+      "number": 17,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "转角小办公桌",
+      "name_en": "Corner small desk",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "长办公桌 17B-1",
+      "id": "17B_1",
+      "source": "card",
+      "number": 17,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "长办公桌",
+      "name_en": "Long desk",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "办公桌 17B-2",
+      "id": "17B_2",
+      "source": "card",
+      "number": 17,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "办公桌",
+      "name_en": "Office desk",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "棕榈树 18A-1",
+      "id": "18A_1",
+      "source": "card",
+      "number": 18,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "棕榈树",
+      "name_en": "Palm tree",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "龟背竹 18A-2",
+      "id": "18A_2",
+      "source": "card",
+      "number": 18,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "龟背竹",
+      "name_en": "Monstera",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "橡胶树 18B-1",
+      "id": "18B_1",
+      "source": "card",
+      "number": 18,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "橡胶树",
+      "name_en": "Rubber tree",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "仙人掌 18B-2",
+      "id": "18B_2",
+      "source": "card",
+      "number": 18,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "仙人掌",
+      "name_en": "Cactus",
+      "bbox": [
+        1,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "玫瑰 19A-1",
+      "id": "19A_1",
+      "source": "card",
+      "number": 19,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "玫瑰",
+      "name_en": "Rose",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "郁金香 19A-2",
+      "id": "19A_2",
+      "source": "card",
+      "number": 19,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "郁金香",
+      "name_en": "Tulip",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "吊兰 19B-1",
+      "id": "19B_1",
+      "source": "card",
+      "number": 19,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "吊兰",
+      "name_en": "Spider plant",
+      "bbox": [
+        1,
+        1
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "金钱树 19B-2",
+      "id": "19B_2",
+      "source": "card",
+      "number": 19,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "金钱树",
+      "name_en": "Money tree",
+      "bbox": [
+        1,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "落地钟 20A-1",
+      "id": "20A_1",
+      "source": "card",
+      "number": 20,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "落地钟",
+      "name_en": "Floor / grandfather clock",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "两个陈列柜 20A-2",
+      "id": "20A_2",
+      "source": "card",
+      "number": 20,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "两个陈列柜",
+      "name_en": "Two display cabinets",
+      "bbox": [
+        1,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "扶手椅 20B-1",
+      "id": "20B_1",
+      "source": "card",
+      "number": 20,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "扶手椅",
+      "name_en": "Armchair",
+      "bbox": [
+        2,
+        1
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "衣帽架 20B-2",
+      "id": "20B_2",
+      "source": "card",
+      "number": 20,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "衣帽架",
+      "name_en": "Coat rack / wardrobe rack",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有植物的长椅 21A-1",
+      "id": "21A_1",
+      "source": "card",
+      "number": 21,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有植物的长椅",
+      "name_en": "Long bench with plants",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有灯的贵妃椅 21A-2",
+      "id": "21A_2",
+      "source": "card",
+      "number": 21,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "带有灯的贵妃椅",
+      "name_en": "Chaise lounge with lamp",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "吊床 21B-1",
+      "id": "21B_1",
+      "source": "card",
+      "number": 21,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "吊床",
+      "name_en": "Hammock",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "沙滩躺椅 21B-2",
+      "id": "21B_2",
+      "source": "card",
+      "number": 21,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "沙滩躺椅",
+      "name_en": "Beach chair / sun lounger",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有垃圾桶的婴儿尿布台 22A-1",
+      "id": "22A_1",
+      "source": "card",
+      "number": 22,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有垃圾桶的婴儿尿布台",
+      "name_en": "Diaper changing table with trash can",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "爬行垫 22A-2",
+      "id": "22A_2",
+      "source": "card",
+      "number": 22,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "爬行垫",
+      "name_en": "Crawling mat",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "婴儿床 22B-1",
+      "id": "22B_1",
+      "source": "card",
+      "number": 22,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "婴儿床",
+      "name_en": "Crib / baby bed",
+      "bbox": [
+        3,
+        2
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有枕头的抱毯 22B-2",
+      "id": "22B_2",
+      "source": "card",
+      "number": 22,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "带有枕头的抱毯",
+      "name_en": "Blanket with pillows",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "玩具火车 23A-1",
+      "id": "23A_1",
+      "source": "card",
+      "number": 23,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "玩具火车",
+      "name_en": "Toy train",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "攀爬架 23A-2",
+      "id": "23A_2",
+      "source": "card",
+      "number": 23,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "攀爬架",
+      "name_en": "Climbing frame",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "蹦床 23B-1",
+      "id": "23B_1",
+      "source": "card",
+      "number": 23,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "蹦床",
+      "name_en": "Trampoline",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "滑梯 23B-2",
+      "id": "23B_2",
+      "source": "card",
+      "number": 23,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "滑梯",
+      "name_en": "Slide",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          2
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有地毯的狗屋 24A-1",
+      "id": "24A_1",
+      "source": "card",
+      "number": 24,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有地毯的狗屋",
+      "name_en": "Dog house with carpet",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "猫爬架 24A-2",
+      "id": "24A_2",
+      "source": "card",
+      "number": 24,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "猫爬架",
+      "name_en": "Cat tree",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "两个育养箱 24B-1",
+      "id": "24B_1",
+      "source": "card",
+      "number": 24,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "两个育养箱",
+      "name_en": "Two terrariums",
+      "bbox": [
+        2,
+        5
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          4
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "鱼缸 24B-2",
+      "id": "24B_2",
+      "source": "card",
+      "number": 24,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "鱼缸",
+      "name_en": "Fish tank",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "象棋桌 25A-1",
+      "id": "25A_1",
+      "source": "card",
+      "number": 25,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "象棋桌",
+      "name_en": "Chess table",
+      "bbox": [
+        1,
+        5
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "高尔夫垫 25A-2",
+      "id": "25A_2",
+      "source": "card",
+      "number": 25,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "高尔夫垫",
+      "name_en": "Golf mat",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "工作台 25B-1",
+      "id": "25B_1",
+      "source": "card",
+      "number": 25,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "工作台",
+      "name_en": "Workbench",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有织物储存区的缝纫机 25B-2",
+      "id": "25B_2",
+      "source": "card",
+      "number": 25,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "带有织物储存区的缝纫机",
+      "name_en": "Sewing machine with fabric storage",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "跑步机和单车 26A-1",
+      "id": "26A_1",
+      "source": "card",
+      "number": 26,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "跑步机和单车",
+      "name_en": "Treadmill and bike",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "划船机 26A-2",
+      "id": "26A_2",
+      "source": "card",
+      "number": 26,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "划船机",
+      "name_en": "Rowing machine",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "乒乓球台 26B-1",
+      "id": "26B_1",
+      "source": "card",
+      "number": 26,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "乒乓球台",
+      "name_en": "Ping pong table",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "镖靶 26B-2",
+      "id": "26B_2",
+      "source": "card",
+      "number": 26,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "镖靶",
+      "name_en": "Dart board",
+      "bbox": [
+        1,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带有灯的钢琴 27A-1",
+      "id": "27A_1",
+      "source": "card",
+      "number": 27,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "带有灯的钢琴",
+      "name_en": "Piano with lamp",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "架子鼓 27A-2",
+      "id": "27A_2",
+      "source": "card",
+      "number": 27,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "架子鼓",
+      "name_en": "Drum set",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "吉他和麦克风 27B-1",
+      "id": "27B_1",
+      "source": "card",
+      "number": 27,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "吉他和麦克风",
+      "name_en": "Guitar and microphone",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "竖琴 27B-2",
+      "id": "27B_2",
+      "source": "card",
+      "number": 27,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "竖琴",
+      "name_en": "Harp",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "大型音响设备 28A-1",
+      "id": "28A_1",
+      "source": "card",
+      "number": 28,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "大型音响设备",
+      "name_en": "Large sound system",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "音箱 28A-2",
+      "id": "28A_2",
+      "source": "card",
+      "number": 28,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "音箱",
+      "name_en": "Speakers pair",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "音响设备 28B-1",
+      "id": "28B_1",
+      "source": "card",
+      "number": 28,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "音响设备",
+      "name_en": "Sound system",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "小音箱 28B-2",
+      "id": "28B_2",
+      "source": "card",
+      "number": 28,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "小音箱",
+      "name_en": "Small speakers",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "小电视 29A-1",
+      "id": "29A_1",
+      "source": "card",
+      "number": 29,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "小电视",
+      "name_en": "Small TV",
+      "bbox": [
+        2,
+        1
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "大电视 29A-2",
+      "id": "29A_2",
+      "source": "card",
+      "number": 29,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "大电视",
+      "name_en": "Large TV",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "带扩音器的小电视 29B-1",
+      "id": "29B_1",
+      "source": "card",
+      "number": 29,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "带扩音器的小电视",
+      "name_en": "Small TV with amplifier",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "转角大电视 29B-2",
+      "id": "29B_2",
+      "source": "card",
+      "number": 29,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "转角大电视",
+      "name_en": "Corner large TV",
+      "bbox": [
+        2,
+        2
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "啤酒吧台 30A-1",
+      "id": "30A_1",
+      "source": "card",
+      "number": 30,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "啤酒吧台",
+      "name_en": "Beer bar",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "wall_edges": [
+        "bottom"
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "鸡尾酒吧台 30A-2",
+      "id": "30A_2",
+      "source": "card",
+      "number": 30,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "鸡尾酒吧台",
+      "name_en": "Cocktail bar",
+      "bbox": [
+        3,
+        5
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      "wall_edges": [
+        "bottom"
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "葡萄酒吧台 30B-1",
+      "id": "30B_1",
+      "source": "card",
+      "number": 30,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "葡萄酒吧台",
+      "name_en": "Wine bar",
+      "bbox": [
+        3,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "wall_edges": [
+        "right",
+        [
+          0,
+          1,
+          "top"
+        ],
+        [
+          0,
+          2,
+          "top"
+        ],
+        [
+          0,
+          3,
+          "top"
+        ]
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "果汁吧台 30B-2",
+      "id": "30B_2",
+      "source": "card",
+      "number": 30,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "果汁吧台",
+      "name_en": "Juice bar",
+      "bbox": [
+        3,
+        5
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "wall_edges": [
+        "top"
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "火炉 31A-1",
+      "id": "31A_1",
+      "source": "card",
+      "number": 31,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "火炉",
+      "name_en": "Stove / fireplace",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [
+        "top"
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "皂石壁炉 31A-2",
+      "id": "31A_2",
+      "source": "card",
+      "number": 31,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "皂石壁炉",
+      "name_en": "Soapstone fireplace",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "wall_edges": [
+        "top",
+        "left"
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "瓷砖壁炉 31B-1",
+      "id": "31B_1",
+      "source": "card",
+      "number": 31,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "瓷砖壁炉",
+      "name_en": "Tile fireplace",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [
+        [
+          0,
+          0,
+          "left"
+        ],
+        [
+          1,
+          0,
+          "bottom"
+        ],
+        [
+          1,
+          1,
+          "bottom"
+        ]
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "欧式壁炉 31B-2",
+      "id": "31B_2",
+      "source": "card",
+      "number": 31,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "欧式壁炉",
+      "name_en": "European fireplace",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [
+        "top",
+        "left"
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "古代花瓶 32A-1",
+      "id": "32A_1",
+      "source": "card",
+      "number": 32,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "古代花瓶",
+      "name_en": "Antique vase",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "画架上的画 32A-2",
+      "id": "32A_2",
+      "source": "card",
+      "number": 32,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "画架上的画",
+      "name_en": "Painting on an easel",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "雕塑 32B-1",
+      "id": "32B_1",
+      "source": "card",
+      "number": 32,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "雕塑",
+      "name_en": "Sculpture",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          1,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "骑士甲胄 32B-2",
+      "id": "32B_2",
+      "source": "card",
+      "number": 32,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "骑士甲胄",
+      "name_en": "Knight's armor",
+      "bbox": [
+        1,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ]
+      ],
+      "open_cells": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "wall_edges": [
+        "top"
+      ],
+      "printed_markers": 0
+    },
+    {
+      "name": "波斯地毯 33A-1",
+      "id": "33A_1",
+      "source": "card",
+      "number": 33,
+      "variant": "A",
+      "option_index": 1,
+      "name_zh": "波斯地毯",
+      "name_en": "Persian carpet",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "两列式地毯 33A-2",
+      "id": "33A_2",
+      "source": "card",
+      "number": 33,
+      "variant": "A",
+      "option_index": 2,
+      "name_zh": "两列式地毯",
+      "name_en": "Two-strip carpet",
+      "bbox": [
+        2,
+        4
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "弗洛卡蒂地毯 33B-1",
+      "id": "33B_1",
+      "source": "card",
+      "number": 33,
+      "variant": "B",
+      "option_index": 1,
+      "name_zh": "弗洛卡蒂地毯",
+      "name_en": "Flokati rug",
+      "bbox": [
+        2,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    },
+    {
+      "name": "碎花地毯 33B-2",
+      "id": "33B_2",
+      "source": "card",
+      "number": 33,
+      "variant": "B",
+      "option_index": 2,
+      "name_zh": "碎花地毯",
+      "name_en": "Floral carpet",
+      "bbox": [
+        3,
+        3
+      ],
+      "shape": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ]
+      ],
+      "open_cells": [],
+      "wall_edges": [],
+      "printed_markers": 0
+    }
+  ]
+}

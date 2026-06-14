@@ -9,6 +9,7 @@
     "scenarios:split": "node tools/scenarios-split.cjs",
     "scenarios:bundle": "node tools/scenarios-bundle.cjs",
     "scenarios:build": "node tools/scenarios-bundle.cjs && node tools/yaml2json.cjs",
+    "furniture:cards": "node tools/cards-to-furniture.cjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

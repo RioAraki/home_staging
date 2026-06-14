@@ -123,7 +123,8 @@ export function parseScenario(s) {
     markers: (pd.markers || []).map((m) => ({ cell: m.cell, id: m.id, symbol: m.symbol })),
     rooms: (s.rooms || []).map((r) => ({
       slot: r.slot, name_zh: r.name_zh || '', name_en: r.name_en || '',
-      furniture_numbers: [...(r.furniture_numbers || [])],
+      furniture: [...(r.furniture || [])],           // named furniture (new)
+      _numbers: [...(r.furniture_numbers || [])],    // legacy card numbers (preserved)
     })),
     rules: {
       hallway_required: s.rules?.hallway?.required !== false,
@@ -178,7 +179,12 @@ export function buildScenario(m) {
     difficulty: m.meta.difficulty,
     pages_in_book: m.meta.pages_in_book,
     page_image: m.meta.page_image,
-    rooms: m.rooms.map((r) => ({ slot: r.slot, name_zh: r.name_zh, name_en: r.name_en, furniture_numbers: r.furniture_numbers })),
+    rooms: m.rooms.map((r) => {
+      const base = { slot: r.slot, name_zh: r.name_zh, name_en: r.name_en };
+      if ((r.furniture || []).length) return { ...base, furniture: r.furniture };
+      if ((r._numbers || []).length) return { ...base, furniture_numbers: r._numbers };
+      return { ...base, furniture: [] };
+    }),
     grid,
     zones: m._raw.zones || {},
     pre_drawn,
@@ -188,7 +194,9 @@ export function buildScenario(m) {
 }
 
 // ── validation ───────────────────────────────────────────────────────────
-export function validate(m, validFurnitureNumbers) {
+// `validFurnitureNames` — a Set/array of valid named-furniture names (unified
+// library = custom collection + card-converted). Empty/omitted skips the check.
+export function validate(m, validFurnitureNames) {
   const issues = [];
   const ok = (cond, msg) => { if (!cond) issues.push(msg); };
 
@@ -215,15 +223,15 @@ export function validate(m, validFurnitureNumbers) {
     ok(seen.size === indoor, `indoor 区域不连通（${indoor - seen.size} 格与主区域分离）`);
   }
 
-  // rooms / furniture
-  const valid = validFurnitureNumbers instanceof Set ? validFurnitureNumbers : new Set(validFurnitureNumbers || []);
+  // rooms / furniture (by name, against the unified library)
+  const valid = validFurnitureNames instanceof Set ? validFurnitureNames : new Set(validFurnitureNames || []);
   const slots = new Set();
   for (const room of m.rooms) {
     ok(!slots.has(room.slot), `房间 slot 重复：${room.slot}`);
     slots.add(room.slot);
     ok(!!room.name_zh, `房间 ${room.slot} 缺少中文名`);
-    for (const n of room.furniture_numbers) {
-      if (valid.size) ok(valid.has(n), `房间 ${room.slot} 引用了不存在的家具编号 ${n}`);
+    for (const n of (room.furniture || [])) {
+      if (valid.size) ok(valid.has(n), `房间 ${room.slot} 引用了不存在的家具：${n}`);
     }
   }
 

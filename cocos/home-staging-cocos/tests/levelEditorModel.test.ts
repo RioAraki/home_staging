@@ -27,7 +27,7 @@ describe('level-editor model', () => {
     for (let r = 4; r < 8; r++) for (let c = 4; c < 8; c++) m.terrain[r][c] = 'indoor';
     m.doors = ['h:4:5']; m.windows = ['v:6:4']; m.walls = ['v:5:6'];
     m.markers = [{ cell: [5, 5], id: 'socket', symbol: '*' }];
-    m.rooms = [{ slot: 'I', name_zh: '客厅', name_en: 'Living', furniture_numbers: [2, 19] }];
+    m.rooms = [{ slot: 'I', name_zh: '客厅', name_en: 'Living', furniture: ['长沙发 1A-1', '长沙发 1A-1'] }];
     m.bonus_points = [{ text_zh: '盖住插座', text_en: 'cover socket', points: 2, condition: { covers_marker: { marker: 'socket' } } }];
     const b1 = buildScenario(m);
     const b2 = buildScenario(parseScenario(b1));
@@ -46,16 +46,16 @@ describe('level-editor model', () => {
     }
   });
 
-  it('validate flags bad id, empty indoor, and unknown furniture', () => {
+  it('validate flags bad id, empty indoor, and unknown furniture (by name)', () => {
     const m = emptyModel(4, 4);
-    let issues = validate(m, new Set([1, 2]));
+    let issues = validate(m, new Set(['长沙发 1A-1']));
     expect(issues.some((x: string) => x.includes('id'))).toBe(true);
     expect(issues.some((x: string) => x.includes('indoor'))).toBe(true);
 
     m.meta.id = 'good_id'; m.meta.title_zh = 'T';
     m.terrain[1][1] = 'indoor';
-    m.rooms = [{ slot: 'I', name_zh: '房', name_en: 'R', furniture_numbers: [99] }];
-    issues = validate(m, new Set([1, 2]));
-    expect(issues.some((x: string) => x.includes('99'))).toBe(true);
+    m.rooms = [{ slot: 'I', name_zh: '房', name_en: 'R', furniture: ['不存在的家具'] }];
+    issues = validate(m, new Set(['长沙发 1A-1']));
+    expect(issues.some((x: string) => x.includes('不存在的家具'))).toBe(true);
   });
 });

@@ -60,7 +60,12 @@ export interface Room {
   slot: RoomSlot;
   name_zh: string;
   name_en: string;
-  furniture_numbers: number[];
+  /** Legacy: numbered board-game cards. Kept for the 27 book scenarios and the
+   *  current game until the named-furniture migration reaches the game. */
+  furniture_numbers?: number[];
+  /** Named furniture (unified library = custom collection + card-converted).
+   *  Editor-authored levels use this instead of furniture_numbers. */
+  furniture?: string[];
 }
 
 export interface CellAttrs {

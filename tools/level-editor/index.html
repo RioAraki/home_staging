@@ -134,8 +134,8 @@ const LS_KEY = 'level-editor-v1';
 const TERRAIN_COLOR = { indoor:'#2d3a4a', outdoor:'#15181c', water:'#1f3a4d', obstacle:'#3a2222', road:'#333a33' };
 
 let model = M.emptyModel(16, 16);
-let validFurn = new Set();   // valid furniture numbers
-let furnName = new Map();    // number -> name_zh
+let library = [];            // unified named furniture: [{name, source}]
+let validNames = new Set();  // valid furniture names
 let tool = 'terrain';        // terrain|feature|door|window|wall|marker|frontcell
 let terrainValue = 'indoor';
 
@@ -149,22 +149,21 @@ async function boot() {
   buildTerrainTools();
   buildFeatureOptions();
   wireTools(); wireMeta(); wireButtons();
-  await loadFurniture();
+  await loadLibrary();
   await reloadScenarioList();
   const saved = localStorage.getItem(LS_KEY);
   if (saved) { try { model = JSON.parse(saved); } catch(e){} }
   refreshAll(); resize(); fit(); render();
 }
 
-async function loadFurniture() {
-  try {
-    const r = await fetch('/cocos/home-staging-cocos/assets/resources/data/furniture_data.json');
-    const d = await r.json();
-    for (const card of (d.cards || [])) {
-      validFurn.add(card.number);
-      if (!furnName.has(card.number)) furnName.set(card.number, card.options?.[0]?.name_zh || '');
-    }
-  } catch(e) { console.warn('furniture_data load failed', e); }
+async function loadLibrary() {
+  library = [];
+  const add = (arr, source) => { for (const f of (arr || [])) if (f && f.name) library.push({ name: f.name, source }); };
+  try { const r = await fetch('/asset/furniture_collection.json?t=' + Date.now()); const d = await r.json(); add(d.furniture || d, 'custom'); } catch(e) { console.warn('collection load failed', e); }
+  try { const r = await fetch('/asset/cards_furniture.json?t=' + Date.now()); const d = await r.json(); add(d.furniture || d, 'card'); } catch(e) { console.warn('cards_furniture load failed', e); }
+  const seen = new Set();
+  library = library.filter(f => { if (seen.has(f.name)) return false; seen.add(f.name); return true; });
+  validNames = new Set(library.map(f => f.name));
 }
 
 async function reloadScenarioList() {
@@ -258,7 +257,7 @@ function wireButtons() {
 }
 
 async function saveScenario() {
-  const issues = M.validate(model, validFurn);
+  const issues = M.validate(model, validNames);
   if (issues.length && !confirm(`有 ${issues.length} 条校验问题，仍然保存？\n\n` + issues.join('\n'))) return;
   const scenario = M.buildScenario(model);
   setStatus('保存中…');
@@ -294,7 +293,6 @@ function renderRooms() {
   const box = $('rooms'); box.innerHTML='';
   model.rooms.forEach((room, i) => {
     const div = document.createElement('div'); div.className='listitem';
-    const names = (room.furniture_numbers||[]).map(n => `${n}${furnName.get(n)?'·'+furnName.get(n):''}`).join('、');
     div.innerHTML = `<div class="hd"><b>房间</b><button class="danger" data-x>✕</button></div>`;
     const mk = (label, val, on, ph='') => { const r=document.createElement('div'); r.className='row'; r.innerHTML=`<label class="k">${label}</label>`; const inp=document.createElement('input'); inp.type='text'; inp.value=val; inp.placeholder=ph; inp.oninput=()=>{on(inp.value);persist();refreshValidation();}; r.appendChild(inp); return r; };
     const slotRow=document.createElement('div'); slotRow.className='row'; slotRow.innerHTML='<label class="k">slot</label>';
@@ -302,8 +300,26 @@ function renderRooms() {
     div.appendChild(slotRow);
     div.appendChild(mk('中文名', room.name_zh, v=>room.name_zh=v));
     div.appendChild(mk('英文名', room.name_en, v=>room.name_en=v));
-    div.appendChild(mk('家具编号', (room.furniture_numbers||[]).join(','), v=>{room.furniture_numbers=v.split(',').map(s=>parseInt(s.trim(),10)).filter(n=>!isNaN(n));}, '逗号分隔'));
-    if (names) { const p=document.createElement('div'); p.className='mini'; p.textContent=names; div.appendChild(p); }
+    // furniture picker (unified named library)
+    const pickRow=document.createElement('div'); pickRow.className='row';
+    pickRow.innerHTML='<label class="k">家具</label>';
+    const fsel=document.createElement('select'); fsel.style.flex='1';
+    const groups={custom:[],card:[]}; for(const f of library)(groups[f.source]||groups.card).push(f.name);
+    for(const [g,label] of [['custom','自定义'],['card','卡牌']]){ if(!groups[g].length)continue; const og=document.createElement('optgroup'); og.label=label; for(const nm of groups[g]){const o=document.createElement('option');o.value=nm;o.textContent=nm;og.appendChild(o);} fsel.appendChild(og); }
+    pickRow.appendChild(fsel);
+    const addb=document.createElement('button'); addb.textContent='添加'; addb.style.flex='none';
+    addb.onclick=()=>{ if(fsel.value){ (room.furniture=room.furniture||[]).push(fsel.value); persist(); renderRooms(); refreshValidation(); } };
+    pickRow.appendChild(addb); div.appendChild(pickRow);
+    // chosen furniture list
+    (room.furniture||[]).forEach((nm, fi)=>{
+      const fr=document.createElement('div'); fr.className='row'; fr.style.gap='4px';
+      const sp=document.createElement('span'); sp.style.flex='1'; sp.style.fontSize='12px'; sp.textContent='· '+nm;
+      if(!validNames.has(nm)){ sp.style.color='var(--bad)'; sp.title='不在家具库中'; }
+      fr.appendChild(sp);
+      const x=document.createElement('button'); x.className='danger'; x.textContent='✕'; x.style.padding='2px 6px'; x.style.flex='none';
+      x.onclick=()=>{ room.furniture.splice(fi,1); persist(); renderRooms(); refreshValidation(); };
+      fr.appendChild(x); div.appendChild(fr);
+    });
     div.querySelector('[data-x]').onclick=()=>{ model.rooms.splice(i,1); persist(); renderRooms(); refreshValidation(); };
     box.appendChild(div);
   });
@@ -326,7 +342,7 @@ function renderBonuses() {
   });
 }
 function refreshValidation() {
-  const issues = M.validate(model, validFurn);
+  const issues = M.validate(model, validNames);
   const box = $('issues'); box.innerHTML='';
   if (!issues.length) { box.innerHTML='<div class="none">✓ 无问题</div>'; return; }
   for (const s of issues) { const d=document.createElement('div'); d.textContent='• '+s; box.appendChild(d); }
