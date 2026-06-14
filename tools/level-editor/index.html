@@ -139,6 +139,7 @@ let libByName = new Map();   // name -> entry
 let validNames = new Set();  // valid furniture names
 const TILE_BASE = '/asset/tiles/';
 const CARD_BASE = '/md/';
+const VECTOR_BASE = '/cocos/home-staging-cocos/assets/resources/cards/vector/';  // game's blueprint line-art
 let tool = 'terrain';        // terrain|feature|door|window|wall|marker|frontcell
 let terrainValue = 'indoor';
 
@@ -176,12 +177,17 @@ async function loadLibrary() {
 function furnitureThumb(name, px) {
   const e = libByName.get(name);
   if (!e) { const s = document.createElement('span'); s.textContent = '?'; return s; }
-  if (e.source === 'card' && e.image) {
+  if (e.source === 'card') {
+    // game-style blueprint line-art (white on transparent) on navy, like cocos/web
+    const box = document.createElement('div');
+    box.style.cssText = `height:${px}px;width:${px}px;flex:none;background:#102a47;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;`;
     const img = document.createElement('img');
-    img.src = CARD_BASE + e.image; img.loading = 'lazy';
-    img.style.height = px + 'px'; img.style.width = 'auto'; img.style.maxWidth = (px * 1.6) + 'px';
-    img.style.objectFit = 'contain'; img.style.background = '#fff'; img.style.borderRadius = '3px';
-    return img;
+    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+    if (e.vector) {
+      img.src = VECTOR_BASE + e.vector;
+      img.onerror = () => { img.onerror = null; if (e.image) img.src = CARD_BASE + e.image; };
+    } else if (e.image) { img.src = CARD_BASE + e.image; }
+    box.appendChild(img); return box;
   }
   // custom: composite tiles
   const rows = e.bbox?.[0] || 1, cols = e.bbox?.[1] || 1;
