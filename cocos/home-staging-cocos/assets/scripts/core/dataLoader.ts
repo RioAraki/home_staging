@@ -4,6 +4,16 @@ let _mapsData: MapsData | null = null;
 let _furnitureData: FurnitureData | null = null;
 
 export function setLoadedData(maps: MapsData, furniture: FurnitureData) {
+  // Normalize: editor-authored levels reference named furniture (`furniture`)
+  // and may omit the legacy `furniture_numbers`. The current game reads
+  // `furniture_numbers` everywhere, so guarantee it's an array — a room with no
+  // numbers loads as an empty (0-card) room (map/walls still work) instead of
+  // crashing on `furniture_numbers.length`. Named-furniture play comes later.
+  for (const scenario of maps.scenarios) {
+    for (const room of scenario.rooms) {
+      if (!Array.isArray(room.furniture_numbers)) room.furniture_numbers = [];
+    }
+  }
   _mapsData = maps;
   _furnitureData = furniture;
 }
@@ -35,6 +45,7 @@ export const AVAILABLE_SCENARIO_IDS = [
   'castle_cafe',
   'rehearsal_room_old_barn',
   'game_store_old_town',
+  'test_0',   // editor-authored (named furniture; minimal-load — furniture not placeable yet)
 ];
 
 export function availableScenarios(): Scenario[] {
