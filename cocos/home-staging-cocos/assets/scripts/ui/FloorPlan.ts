@@ -1,12 +1,11 @@
 import { _decorator, Component, Graphics, Node, UITransform, view, Label, Color } from 'cc';
 import { gameStore, getRoomPhase, isActiveRoomEnclosed } from '../state/gameStore';
 import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn, drawCellWash } from './LayerRenderer';
-import { analyseAccessibility, isRoomAccessible } from '../core/regions';
+import { analyseAccessibility, isRoomAccessible, computeFloorReachability } from '../core/regions';
 import type { RoomSlot } from '../core/types';
 import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
 import { PlacedPiece } from './PlacedPiece';
-import { CARPET_NUMBER, pieceShapeCells, pieceOpenSpaceCells } from '../core/pieces';
-import { doorEdgeKey } from '../core/walls';
+import { pieceOpenSpaceCells } from '../core/pieces';
 const { ccclass, property } = _decorator;
 
 @ccclass('FloorPlan')
@@ -260,84 +259,19 @@ export class FloorPlan extends Component {
       g.clear(); return;
     }
 
-    // ── 1. build blocked (non-carpet shape) and all open_spaces ──────────
-    const allBlocked = new Set<string>();
+    // ── 1. all open_spaces (placed pieces) ───────────────────────────────
     const allOpenSpaces = new Set<string>();
     for (const p of s.placedPieces) {
-      if (p.number !== CARPET_NUMBER) {
-        for (const [r, c] of pieceShapeCells(p)) allBlocked.add(`${r},${c}`);
-      }
       for (const [r, c] of pieceOpenSpaceCells(p)) allOpenSpaces.add(`${r},${c}`);
     }
     if (allOpenSpaces.size === 0) { g.clear(); return; }
 
-    // ── 2. walkable = indoor cells not blocked ────────────────────────────
-    const walkable = new Set<string>();
-    const ascii = s.scenario.grid.ascii.replace(/\n+$/, '').split('\n');
-    const legend = s.scenario.grid.legend;
-    for (let r = 0; r < ascii.length; r++) {
-      for (let c = 0; c < (ascii[r]?.length ?? 0); c++) {
-        const ch = ascii[r][c];
-        if (ch && legend[ch]?.terrain === 'indoor') {
-          const k = `${r},${c}`;
-          if (!allBlocked.has(k)) walkable.add(k);
-        }
-      }
-    }
+    // ── 2. walkable + reachable via shared core (no ghost) ───────────────
+    const { walkable, reachable } = computeFloorReachability(
+      s.scenario, s.placedPieces, s.walls, s.doors, s.frontDoorEdge,
+    );
 
-    // ── 3. BFS seeds: cells adjacent to any door ─────────────────────────
-    const seeds = new Set<string>();
-    const adjFromEdge = (ek: string) => {
-      const [type, rs, cs] = ek.split(':');
-      const r = parseInt(rs, 10), c = parseInt(cs, 10);
-      const pairs: [number,number][] = type === 'h' ? [[r-1,c],[r,c]] : [[r,c-1],[r,c]];
-      for (const [pr, pc] of pairs) {
-        const k = `${pr},${pc}`;
-        if (walkable.has(k)) seeds.add(k);
-      }
-    };
-    for (const ek of Object.keys(s.doors)) adjFromEdge(ek);
-    if (s.frontDoorEdge) adjFromEdge(s.frontDoorEdge);
-    for (const d of (s.scenario.pre_drawn?.doors ?? [])) {
-      if (d.edge) adjFromEdge(doorEdgeKey(d.cell, d.edge));
-    }
-    // fallback: if still no seeds, use ONE arbitrary walkable indoor cell
-    // that isn't itself an open_space (bare floor) as the anchor.
-    // Avoid outdoor-adjacent cells as fallback: those could be enclosed
-    // pockets that share an outdoor edge but are cut off from the rest.
-    if (seeds.size === 0) {
-      for (const k of walkable) {
-        if (!allOpenSpaces.has(k)) { seeds.add(k); break; }
-      }
-    }
-
-    // ── 4. BFS through walkable, respecting player walls ─────────────────
-    // Walls block traversal between adjacent cells. Doors are openings
-    // (their edge has NO wall entry), so BFS passes through them naturally.
-    const isWalled = (r: number, c: number, nr: number, nc: number): boolean => {
-      let edgeKey: string;
-      if      (nr === r - 1) edgeKey = `h:${r}:${c}`;
-      else if (nr === r + 1) edgeKey = `h:${r + 1}:${c}`;
-      else if (nc === c - 1) edgeKey = `v:${r}:${c}`;
-      else                   edgeKey = `v:${r}:${c + 1}`;
-      return !!s.walls[edgeKey];
-    };
-
-    const reachable = new Set<string>(seeds);
-    const queue = [...seeds];
-    while (queue.length) {
-      const curr = queue.shift()!;
-      const [r, c] = curr.split(',').map(Number);
-      for (const [nr, nc] of [[r-1,c],[r+1,c],[r,c-1],[r,c+1]]) {
-        const nk = `${nr},${nc}`;
-        if (walkable.has(nk) && !reachable.has(nk) && !isWalled(r, c, nr, nc)) {
-          reachable.add(nk);
-          queue.push(nk);
-        }
-      }
-    }
-
-    // ── 5. inaccessible = open_spaces walkable but not reachable ─────────
+    // ── 3. inaccessible = open_spaces walkable but not reachable ─────────
     const inaccessible: string[] = [];
     for (const k of allOpenSpaces) {
       if (walkable.has(k) && !reachable.has(k)) inaccessible.push(k);

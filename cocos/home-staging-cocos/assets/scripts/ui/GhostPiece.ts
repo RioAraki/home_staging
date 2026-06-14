@@ -3,6 +3,7 @@ import { gameStore } from '../state/gameStore';
 import { cardByNumberVariant } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
 import { validatePlacement } from '../core/validation';
+import { computeFloorReachability } from '../core/regions';
 import { layout, edgeX, edgeY, FULL_GRID_ROWS, FULL_GRID_COLS } from './viewport';
 const { ccclass } = _decorator;
 
@@ -140,6 +141,71 @@ export class GhostPiece extends Component {
         g.circle(cx, cy, hr);
         g.stroke();
       }
+    }
+
+    // Predictive "trapped furniture" highlight: would placing the ghost here
+    // enclose any piece's open cells so they can no longer be walked to? If so,
+    // paint that piece's shape AND its unreachable open cells red — including
+    // the ghost itself. This is a WARNING only; placement legality is still
+    // decided by validatePlacement above (the ghost may stay yellow/placeable).
+    //
+    // Suppressed in the same phases as FloorPlan.redrawInaccessibleOpen:
+    // while drawing walls, and while placing doors before the active room has
+    // any door — open cells are expected to be enclosed then.
+    const doorsForRoom = s.doors as Record<string, string>;
+    const suppress = s.wallPhase === 'walls' ||
+      (s.wallPhase === 'door' && !!s.activeRoomSlot &&
+        !Object.values(doorsForRoom).includes(s.activeRoomSlot));
+    if (s.scenario && !suppress) {
+      const { walkable, reachable } = computeFloorReachability(
+        s.scenario, s.placedPieces, s.walls, s.doors, s.frontDoorEdge, ghostShapeCells,
+      );
+      const isTrappedCell = (k: string) => walkable.has(k) && !reachable.has(k);
+
+      const COL_TRAP_FILL   = new Color(255, 60, 60, 110);
+      const COL_TRAP_STROKE = new Color(255, 60, 60, 255);
+      const trapHr = cell * 0.38;
+      const drawTrappedShapeCell = (wr: number, wc: number) => {
+        const x = edgeX(wc), y = edgeY(wr) - cell;
+        g.fillColor = COL_TRAP_FILL;
+        g.strokeColor = COL_TRAP_STROKE;
+        g.lineWidth = 2;
+        g.rect(x, y, cell, cell); g.fill();
+        g.rect(x, y, cell, cell); g.stroke();
+      };
+      const drawTrappedOpenCell = (wr: number, wc: number) => {
+        const cx = edgeX(wc) + cell / 2;
+        const cy = edgeY(wr) - cell / 2;
+        g.fillColor = COL_TRAP_FILL;
+        g.strokeColor = COL_TRAP_STROKE;
+        g.lineWidth = 2;
+        g.rect(edgeX(wc) + 2, edgeY(wr) - cell + 2, cell - 4, cell - 4); g.fill();
+        g.circle(cx, cy, trapHr); g.stroke();
+      };
+      const markPieceIfTrapped = (
+        shapeCells: Array<[number, number]>, openCells: Array<[number, number]>,
+      ) => {
+        const trappedOpens = openCells.filter(([r, c]) => isTrappedCell(`${r},${c}`));
+        if (trappedOpens.length === 0) return;
+        for (const [r, c] of shapeCells) drawTrappedShapeCell(r, c);
+        for (const [r, c] of trappedOpens) drawTrappedOpenCell(r, c);
+      };
+
+      // Already-placed pieces.
+      for (const p of s.placedPieces) {
+        const pCard = cardByNumberVariant(p.number, p.variant);
+        const pOpt  = pCard?.options.find(o => o.option_index === p.optionIndex);
+        if (!pOpt) continue;
+        const pt = transformOption(pOpt, p.rotation, p.mirrored);
+        const shapeWorld = pt.shape.map(([r, c]) => [p.origin[0] + r, p.origin[1] + c] as [number, number]);
+        const openWorld  = pt.open_spaces.map(([r, c]) => [p.origin[0] + r, p.origin[1] + c] as [number, number]);
+        markPieceIfTrapped(shapeWorld, openWorld);
+      }
+
+      // The ghost piece itself.
+      const ghostShapeWorld = t.shape.map(([r, c]) => [or + r, oc + c] as [number, number]);
+      const ghostOpenWorld  = t.open_spaces.map(([r, c]) => [or + r, oc + c] as [number, number]);
+      markPieceIfTrapped(ghostShapeWorld, ghostOpenWorld);
     }
   }
 }

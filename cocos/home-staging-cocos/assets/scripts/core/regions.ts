@@ -23,6 +23,7 @@ import type { PlacedPiece } from '../state/gameStore';
 import {
   CARPET_NUMBER, pieceShapeCells, pieceOpenSpaceCells, resolveOption,
 } from './pieces';
+import { doorEdgeKey } from './walls';
 
 export type CellKey = string;        // "r,c"
 export type RegionId = number;
@@ -105,6 +106,98 @@ export function computeRegions(
     cellsByRegion.set(id, bag);
   }
   return { cellToRegion, regions: new Set(cellsByRegion.keys()), cellsByRegion };
+}
+
+/**
+ * Walkable-floor reachability after a hypothetical layout. Mirrors the BFS
+ * used by FloorPlan's inaccessible-open overlay so the ghost preview and the
+ * post-placement overlay agree.
+ *
+ *   walkable  = indoor cells minus non-carpet furniture shapes (and the
+ *               optional `extraBlockedShape`, e.g. a hovering ghost piece).
+ *   reachable = walkable cells reachable, respecting wall edges, from a door
+ *               (player / front / pre-drawn). With no door, BFS seeds from one
+ *               bare-floor cell so a single open room still resolves.
+ *
+ * Carpet (#33) shape is walkable, so it never blocks. Doors are openings (no
+ * wall entry on their edge) and are traversed naturally.
+ */
+export function computeFloorReachability(
+  scenario: Scenario,
+  placedPieces: PlacedPiece[],
+  walls: Record<string, true>,
+  doors: Record<string, RoomSlot>,
+  frontDoorEdge: string | null,
+  extraBlockedShape: Set<string> = new Set(),
+): { walkable: Set<CellKey>; reachable: Set<CellKey> } {
+  const allBlocked = new Set<CellKey>(extraBlockedShape);
+  const allOpenSpaces = new Set<CellKey>();
+  for (const p of placedPieces) {
+    if (p.number !== CARPET_NUMBER) {
+      for (const [r, c] of pieceShapeCells(p)) allBlocked.add(`${r},${c}`);
+    }
+    for (const [r, c] of pieceOpenSpaceCells(p)) allOpenSpaces.add(`${r},${c}`);
+  }
+
+  const walkable = new Set<CellKey>();
+  const ascii = scenario.grid.ascii.replace(/\n+$/, '').split('\n');
+  const legend = scenario.grid.legend;
+  for (let r = 0; r < ascii.length; r++) {
+    for (let c = 0; c < (ascii[r]?.length ?? 0); c++) {
+      const ch = ascii[r][c];
+      if (ch && legend[ch]?.terrain === 'indoor') {
+        const k = `${r},${c}`;
+        if (!allBlocked.has(k)) walkable.add(k);
+      }
+    }
+  }
+
+  const seeds = new Set<CellKey>();
+  const adjFromEdge = (ek: string) => {
+    const [type, rs, cs] = ek.split(':');
+    const r = parseInt(rs, 10), c = parseInt(cs, 10);
+    const pairs: [number, number][] = type === 'h' ? [[r - 1, c], [r, c]] : [[r, c - 1], [r, c]];
+    for (const [pr, pc] of pairs) {
+      const k = `${pr},${pc}`;
+      if (walkable.has(k)) seeds.add(k);
+    }
+  };
+  for (const ek of Object.keys(doors)) adjFromEdge(ek);
+  if (frontDoorEdge) adjFromEdge(frontDoorEdge);
+  for (const d of (scenario.pre_drawn?.doors ?? [])) {
+    if (d.edge) adjFromEdge(doorEdgeKey(d.cell, d.edge));
+  }
+  // Fallback: no door yet → anchor on one bare-floor cell (not an open-space,
+  // which could be an enclosed pocket) so a single open room still resolves.
+  if (seeds.size === 0) {
+    for (const k of walkable) {
+      if (!allOpenSpaces.has(k)) { seeds.add(k); break; }
+    }
+  }
+
+  const isWalled = (r: number, c: number, nr: number, nc: number): boolean => {
+    let edgeKey: string;
+    if      (nr === r - 1) edgeKey = `h:${r}:${c}`;
+    else if (nr === r + 1) edgeKey = `h:${r + 1}:${c}`;
+    else if (nc === c - 1) edgeKey = `v:${r}:${c}`;
+    else                   edgeKey = `v:${r}:${c + 1}`;
+    return !!walls[edgeKey];
+  };
+
+  const reachable = new Set<CellKey>(seeds);
+  const queue = [...seeds];
+  while (queue.length) {
+    const curr = queue.shift()!;
+    const [r, c] = curr.split(',').map(Number);
+    for (const [nr, nc] of [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]]) {
+      const nk = `${nr},${nc}`;
+      if (walkable.has(nk) && !reachable.has(nk) && !isWalled(r, c, nr, nc)) {
+        reachable.add(nk);
+        queue.push(nk);
+      }
+    }
+  }
+  return { walkable, reachable };
 }
 
 /** Cells on either side of a wall edge. Both may be out of bounds → null entries. */
