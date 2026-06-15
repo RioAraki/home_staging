@@ -1,6 +1,6 @@
 import { _decorator, Component, Graphics, Color } from 'cc';
 import { gameStore, shouldSuppressOpenCellCheck } from '../state/gameStore';
-import { cardByNumberVariant } from '../core/dataLoader';
+import { resolveOption } from '../core/pieces';
 import { transformOption } from '../core/geometry';
 import { validatePlacement } from '../core/validation';
 import { computeFloorReachability } from '../core/regions';
@@ -75,8 +75,7 @@ export class GhostPiece extends Component {
     g.clear();
     if (!sel) return;
 
-    const card = cardByNumberVariant(sel.number, sel.variant);
-    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    const opt = resolveOption(sel);
     if (!opt) return;
 
     const t = transformOption(opt, sel.rotation, sel.mirrored);
@@ -121,8 +120,7 @@ export class GhostPiece extends Component {
     const COL_BLOCKED_OPEN_FILL   = new Color(255, 60, 60, 160);
     const COL_BLOCKED_OPEN_STROKE = new Color(255, 60, 60, 255);
     for (const p of s.placedPieces) {
-      const pCard = cardByNumberVariant(p.number, p.variant);
-      const pOpt  = pCard?.options.find(o => o.option_index === p.optionIndex);
+      const pOpt = resolveOption(p);
       if (!pOpt) continue;
       const pt = transformOption(pOpt, p.rotation, p.mirrored);
       for (const [pr, pc] of pt.open_spaces) {
@@ -190,8 +188,7 @@ export class GhostPiece extends Component {
 
       // Already-placed pieces.
       for (const p of s.placedPieces) {
-        const pCard = cardByNumberVariant(p.number, p.variant);
-        const pOpt  = pCard?.options.find(o => o.option_index === p.optionIndex);
+        const pOpt = resolveOption(p);
         if (!pOpt) continue;
         const pt = transformOption(pOpt, p.rotation, p.mirrored);
         const shapeWorld = pt.shape.map(([r, c]) => [p.origin[0] + r, p.origin[1] + c] as [number, number]);

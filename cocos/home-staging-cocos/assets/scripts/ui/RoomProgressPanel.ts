@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, UITransform, Graphics, Label, Color, Widget } from 'cc';
 import { gameStore } from '../state/gameStore';
+import { roomItemCount } from '../core/roomItems';
 const { ccclass } = _decorator;
 
 const PANEL_W  = 190;
@@ -96,7 +97,7 @@ export class RoomProgressPanel extends Component {
 
     // One row per room
     rooms.forEach((room, idx) => {
-      const placed = room.furniture_numbers.filter((_, i) =>
+      const placed = Array.from({ length: roomItemCount(room) }, (_, i) => i).filter((i) =>
         s.placedCardKeys.has(`${room.slot}:${i}`),
       ).length;
       const done     = s.completedRoomSlots.has(room.slot);

@@ -6,7 +6,8 @@ import {
   gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed,
   allRoomsSealed, frontDoorFixed, type GameState,
 } from '../state/gameStore';
-import { cardByNumberVariant } from '../core/dataLoader';
+import { cardByNumberVariant, furnitureByName, type FurnitureLibraryEntry } from '../core/dataLoader';
+import { roomItemCount } from '../core/roomItems';
 import { InputHandler } from './InputHandler';
 const { ccclass, property } = _decorator;
 
@@ -142,8 +143,8 @@ export class RoomPanel extends Component {
     if (s.scenario && s.activeRoomSlot) {
       const room = s.scenario.rooms.find(r => r.slot === s.activeRoomSlot);
       if (room) {
-        const total = room.furniture_numbers.length;
-        const resolved = room.furniture_numbers.filter((_, i) =>
+        const total = roomItemCount(room);
+        const resolved = Array.from({ length: total }, (_, i) => i).filter((i) =>
           s.placedCardKeys.has(`${s.activeRoomSlot}:${i}`) ||
           s.skippedCardKeys.has(`${s.activeRoomSlot}:${i}`),
         ).length;
@@ -178,20 +179,34 @@ export class RoomPanel extends Component {
       }
     }
 
-    const variant = s.chosenVariants[card.number] ?? 'A';
-    const data = cardByNumberVariant(card.number, variant);
-    if (!data) return;
-
     const sel = s.selectedOption;
-    for (const opt of data.options) {
-      const isSel = !!sel && sel.slot === card.slot && sel.slotIdx === card.slotIdx &&
-                    sel.optionIndex === opt.option_index;
-      const x = opt.option_index === 1 ? OPT1_X : OPT2_X;
-      this.makeOption(
-        card.slot, card.slotIdx, card.number, variant, opt.option_index,
-        opt.bbox, opt.name_zh, x, isSel,
-        isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
-      );
+    if (card.name) {
+      // Named furniture: the name pins one specific piece (no A/B, no 2 options).
+      const e = furnitureByName(card.name);
+      if (e) {
+        const isSel = !!sel && sel.slot === card.slot && sel.slotIdx === card.slotIdx;
+        this.makeOption(
+          card.slot, card.slotIdx, e.number ?? 0, e.variant ?? 'A', e.option_index ?? 1,
+          e.bbox, card.name, OPT1_X, isSel,
+          isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
+          e.source === 'custom' ? e : null,
+        );
+      }
+    } else {
+      const variant = s.chosenVariants[card.number] ?? 'A';
+      const data = cardByNumberVariant(card.number, variant);
+      if (!data) return;
+      for (const opt of data.options) {
+        const isSel = !!sel && sel.slot === card.slot && sel.slotIdx === card.slotIdx &&
+                      sel.optionIndex === opt.option_index;
+        const x = opt.option_index === 1 ? OPT1_X : OPT2_X;
+        this.makeOption(
+          card.slot, card.slotIdx, card.number, variant, opt.option_index,
+          opt.bbox, opt.name_zh, x, isSel,
+          isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
+          null,
+        );
+      }
     }
     // Single right-hand column, top→bottom: 跳过 / 放置 / 撤销.
     // Rotation is done by tapping the placed/ghost piece, so no 旋转 button.
@@ -214,6 +229,7 @@ export class RoomPanel extends Component {
     slot: any, slotIdx: number, number: number, variant: 'A' | 'B', optionIndex: number,
     bbox: [number, number], name: string, x: number, selected: boolean,
     rotation: number, mirrored: boolean,
+    customEntry: FurnitureLibraryEntry | null = null,
   ) {
     const node = new Node(`opt${optionIndex}`);
     this.listContent.addChild(node);
@@ -269,6 +285,26 @@ export class RoomPanel extends Component {
     nameLabel.outlineColor = new Color(0, 0, 0, 230);
     nameLabel.outlineWidth = 2;
 
+    if (customEntry) {
+      // Custom furniture has no sprite — draw a footprint thumbnail on the frame.
+      const boxW2 = bbox[1] * PX_PER_CELL, boxH2 = bbox[0] * PX_PER_CELL;
+      const fw = boxW2 + FRAME_PAD * 2, fh = boxH2 + FRAME_PAD * 2;
+      fg.clear();
+      fg.fillColor = new Color(16, 42, 71, 255);
+      fg.strokeColor = selected ? new Color(255, 225, 105, 255) : new Color(120, 150, 185, 255);
+      fg.lineWidth = selected ? 4 : 2;
+      fg.rect(-fw / 2, -fh / 2, fw, fh);
+      fg.fill();
+      fg.stroke();
+      // shape cells (white) within the footprint box, top-left origin
+      const ox = -boxW2 / 2, oy = boxH2 / 2;
+      fg.fillColor = new Color(255, 255, 255, 220);
+      for (const [r, c] of customEntry.shape) {
+        fg.rect(ox + c * PX_PER_CELL + 1, oy - (r + 1) * PX_PER_CELL + 1, PX_PER_CELL - 2, PX_PER_CELL - 2);
+        fg.fill();
+      }
+      return;
+    }
     const url = `cards/vector/${String(number).padStart(2, '0')}_${variant}_opt${optionIndex}/spriteFrame`;
     resources.load(url, SpriteFrame, (err, sf) => {
       // The option nodes are rebuilt on every store change — the load may

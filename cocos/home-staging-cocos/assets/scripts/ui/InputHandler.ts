@@ -1,6 +1,6 @@
 import { _decorator, Component, EventTouch, Node, Vec3, UITransform } from 'cc';
 import { gameStore, type SelectedOption } from '../state/gameStore';
-import { cardByNumberVariant } from '../core/dataLoader';
+import { resolveOption } from '../core/pieces';
 import { validatePlacement } from '../core/validation';
 import { transformOption } from '../core/geometry';
 import { hitTestLocal, cellAtLocal, type HitResult } from './viewport';
@@ -104,8 +104,7 @@ export class InputHandler extends Component {
 
   /** Is grid cell (row,col) one of the ghost's cells — occupied OR open-space? */
   private tapOnPiece(row: number, col: number, sel: SelectedOption): boolean {
-    const card = cardByNumberVariant(sel.number, sel.variant);
-    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    const opt = resolveOption(sel);
     if (!opt) return false;
     const t = transformOption(opt, sel.rotation, sel.mirrored);
     const [or, oc] = this.ghost.getOrigin();
@@ -121,8 +120,7 @@ export class InputHandler extends Component {
   private rotateOriginAround(
     sel: SelectedOption, origin: [number, number], tapRow: number, tapCol: number,
   ): [number, number] {
-    const card = cardByNumberVariant(sel.number, sel.variant);
-    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    const opt = resolveOption(sel);
     if (!opt) return origin;
     const [H, W] = opt.bbox;
     const cell = (r: number, c: number, rot: number): [number, number] => {
@@ -153,8 +151,7 @@ export class InputHandler extends Component {
     const s = gameStore.getState();
     const sel = s.selectedOption;
     if (!sel || !s.scenario) return;
-    const card = cardByNumberVariant(sel.number, sel.variant);
-    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    const opt = resolveOption(sel);
     if (!opt) return;
 
     if (!this.ghost.isPositioned()) {
@@ -198,8 +195,7 @@ export class InputHandler extends Component {
     const sel = gameStore.getState().selectedOption;
     if (!sel) return;
     // Centre the piece under the finger so it tracks the touch naturally.
-    const card = cardByNumberVariant(sel.number, sel.variant);
-    const opt = card?.options.find(o => o.option_index === sel.optionIndex);
+    const opt = resolveOption(sel);
     const t = opt ? transformOption(opt, sel.rotation, sel.mirrored) : null;
     const offR = t ? Math.floor(t.bbox[0] / 2) : 0;
     const offC = t ? Math.floor(t.bbox[1] / 2) : 0;

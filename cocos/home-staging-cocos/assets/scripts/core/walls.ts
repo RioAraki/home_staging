@@ -16,7 +16,7 @@
 import type { Scenario, RoomSlot, WallEdge, WallEdgeSpec } from './types';
 import type { PlacedPiece } from '../state/gameStore';
 import { transformOption } from './geometry';
-import { cardByNumberVariant } from './dataLoader';
+import { resolveOption } from './pieces';
 
 type Vertex = string;   // "r,c" — corner coordinate, 0 ≤ r,c ≤ 16
 type EdgeKey = string;  // "h:r:c" or "v:r:c"
@@ -211,8 +211,7 @@ export function checkWallEdgeCompliance(
 
   placedPieces.forEach((p, idx) => {
     if (filterRoomSlot && p.roomSlot !== filterRoomSlot) return;
-    const card = cardByNumberVariant(p.number, p.variant);
-    const opt = card?.options.find((o) => o.option_index === p.optionIndex);
+    const opt = resolveOption(p);
     if (!opt) return;
     if (!opt.wall_edges || opt.wall_edges.length === 0) return;
     const t = transformOption(opt, p.rotation, p.mirrored);
