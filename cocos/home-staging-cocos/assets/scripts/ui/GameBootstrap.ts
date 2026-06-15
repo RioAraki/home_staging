@@ -12,7 +12,7 @@ export class GameBootstrap extends Component {
   async start() {
     // A failed load would otherwise become an unhandled rejection and the
     // game would silently never initialise.
-    let maps: JsonAsset, furniture: JsonAsset;
+    let maps: JsonAsset, furniture: JsonAsset, library: JsonAsset | null = null;
     try {
       maps = await new Promise<JsonAsset>((res, rej) =>
         resources.load('data/maps_data', JsonAsset, (e, a) => e ? rej(e) : res(a))
@@ -24,8 +24,17 @@ export class GameBootstrap extends Component {
       console.error('[bootstrap] failed to load game data:', e);
       return;
     }
+    // Named-furniture library — optional; absence just means named levels can't
+    // resolve their pieces (numbered levels are unaffected).
+    try {
+      library = await new Promise<JsonAsset>((res, rej) =>
+        resources.load('data/furniture_library', JsonAsset, (e, a) => e ? rej(e) : res(a))
+      );
+    } catch (e) {
+      console.warn('[bootstrap] furniture_library not loaded (named furniture disabled):', e);
+    }
 
-    setLoadedData(maps.json as any, furniture.json as any);
+    setLoadedData(maps.json as any, furniture.json as any, (library?.json as any) ?? undefined);
     console.log('[bootstrap] data loaded, scenarios:', (maps.json as any).scenarios.length);
 
     audioManager.init();

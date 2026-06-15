@@ -3,6 +3,8 @@ import type { RoomSlot, Scenario } from '../core/types';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology, doorEdgeKey } from '../core/walls';
 import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
 import { resolveOption, pieceShapeCells, pieceFootprintCells } from '../core/pieces';
+import { roomItemCount, roomItemAt } from '../core/roomItems';
+import { furnitureByName } from '../core/dataLoader';
 import { audioManager } from '../platform/audio';
 import { loadAudioSettings, saveAudioSettings } from '../platform/audioSettings';
 import { currentCardIndex as firstUnresolved, roomPhase as phaseOf, suppressOpenCellCheck, type RoomPhase } from './roomFlow';
@@ -29,6 +31,8 @@ export interface SelectedOption {
   optionIndex: number;
   rotation: Rotation;
   mirrored: boolean;
+  name?: string;             // named furniture: unified-library key
+  source?: 'card' | 'custom';
 }
 
 export interface PlacedPiece extends SelectedOption {
@@ -209,7 +213,7 @@ export function currentCardIndexOf(s: GameState): number {
   const room = activeRoom(s);
   if (!room || !s.activeRoomSlot) return 0;
   const slot = s.activeRoomSlot;
-  return firstUnresolved(room.furniture_numbers.length, (i) => {
+  return firstUnresolved(roomItemCount(room), (i) => {
     const k = instanceKey(slot, i);
     return s.placedCardKeys.has(k) || s.skippedCardKeys.has(k);
   });
@@ -220,7 +224,7 @@ export function currentCardIndexOf(s: GameState): number {
 export function getRoomPhase(s: GameState): RoomPhase {
   const room = activeRoom(s);
   if (!room) return 'furniture';
-  return phaseOf(room.furniture_numbers.length, currentCardIndexOf(s));
+  return phaseOf(roomItemCount(room), currentCardIndexOf(s));
 }
 
 /** Whether the "inaccessible open cell" / "trapped furniture" overlay should be
@@ -276,12 +280,17 @@ export function isActiveRoomEnclosed(s: GameState): boolean {
 /** The card to present right now, or null in construction / no active room. */
 export function currentCard(
   s: GameState,
-): { slot: RoomSlot; slotIdx: number; number: number } | null {
+): { slot: RoomSlot; slotIdx: number; number: number; name?: string } | null {
   const room = activeRoom(s);
   if (!room || !s.activeRoomSlot) return null;
   const idx = currentCardIndexOf(s);
-  if (idx >= room.furniture_numbers.length) return null;
-  return { slot: s.activeRoomSlot, slotIdx: idx, number: room.furniture_numbers[idx] };
+  const item = roomItemAt(room, idx);
+  if (!item) return null;
+  if (item.kind === 'named') {
+    const e = furnitureByName(item.name);
+    return { slot: s.activeRoomSlot, slotIdx: idx, number: e?.number ?? 0, name: item.name };
+  }
+  return { slot: s.activeRoomSlot, slotIdx: idx, number: item.number };
 }
 
 /** Is grid cell (r,c) an indoor cell in this scenario? */
@@ -496,7 +505,7 @@ export const gameStore = createStore<GameState>((set, get) => {
       if (!room) return;
       const next = new Set(revealedCardKeys);
       let changed = false;
-      for (let i = 0; i < room.furniture_numbers.length; i++) {
+      for (let i = 0; i < roomItemCount(room); i++) {
         const k = instanceKey(slot, i);
         if (!next.has(k)) { next.add(k); changed = true; }
       }
@@ -517,8 +526,31 @@ export const gameStore = createStore<GameState>((set, get) => {
       // the canvas is in "click to delete" mode and a hovering ghost piece
       // would be confusing.
       if (demolishMode) return;
-      const number = lookupNumber(scenario, slot, slotIdx);
-      if (number === null) return;
+      const room = scenario?.rooms.find((r) => r.slot === slot) ?? null;
+      const item = room ? roomItemAt(room, slotIdx) : null;
+      if (!item) return;
+      if (item.kind === 'named') {
+        // The name pins the exact piece (variant + option). Card-derived entries
+        // keep number/variant/option_index so the numbered pipeline still applies;
+        // custom entries use number 0 (matches nothing) + source 'custom'.
+        const e = furnitureByName(item.name);
+        if (!e) return;
+        mutate(() => set({
+          selectedOption: {
+            slot, slotIdx,
+            name: e.name,
+            source: e.source,
+            number: e.number ?? 0,
+            variant: e.variant ?? 'A',
+            optionIndex: e.option_index ?? 1,
+            rotation: 0,
+            mirrored: false,
+          },
+          lastError: null,
+        }));
+        return;
+      }
+      const number = item.number;
       const variant = chosenVariants[number] ?? 'A';
       mutate(() => set({
         selectedOption: {
