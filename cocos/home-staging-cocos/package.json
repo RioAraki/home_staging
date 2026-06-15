@@ -10,6 +10,7 @@
     "scenarios:bundle": "node tools/scenarios-bundle.cjs",
     "scenarios:build": "node tools/scenarios-bundle.cjs && node tools/yaml2json.cjs",
     "furniture:cards": "node tools/cards-to-furniture.cjs",
+    "furniture:library": "node tools/cards-to-furniture.cjs && node tools/furniture-library.cjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

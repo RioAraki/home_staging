@@ -4,7 +4,7 @@
 // store had six hand-copied rotation loops) — keep the transform path
 // single-sourced here.
 
-import { cardByNumberVariant } from './dataLoader';
+import { cardByNumberVariant, furnitureOptionByName } from './dataLoader';
 import type { FurnitureOption } from './types';
 import {
   transformOption, absoluteCells,
@@ -16,19 +16,27 @@ import {
 export const CARPET_NUMBER = 33;
 
 /** The minimal fields needed to resolve a piece's transformed option.
- *  Both SelectedOption and PlacedPiece satisfy this. */
+ *  Both SelectedOption and PlacedPiece satisfy this.
+ *
+ *  Named furniture: when `name` is set, the option is resolved from the unified
+ *  library by name. Card-derived named furniture ALSO sets number/variant/
+ *  optionIndex (so carpet checks and number-based bonuses still apply);
+ *  custom furniture sets `source:'custom'` and a placeholder number (0). */
 export interface PieceRef {
   number: number;
   variant: 'A' | 'B';
   optionIndex: number;
   rotation: Rotation;
   mirrored: boolean;
+  name?: string;                  // unified-library key (named furniture)
+  source?: 'card' | 'custom';
 }
 
 export type PlacedRef = PieceRef & { origin: [number, number] };
 
 /** The card option this piece refers to, or null if the data is missing. */
 export function resolveOption(p: PieceRef): FurnitureOption | null {
+  if (p.name) return furnitureOptionByName(p.name);
   const card = cardByNumberVariant(p.number, p.variant);
   return card?.options.find((o) => o.option_index === p.optionIndex) ?? null;
 }
