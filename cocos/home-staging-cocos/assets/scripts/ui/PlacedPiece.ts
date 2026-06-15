@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, resources, UITransform, Graphics, Color } from 'cc';
 import type { PlacedPiece as PlacedPieceData } from '../state/gameStore';
 import { resolveOption } from '../core/pieces';
+import { furnitureByName } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
 import { layout, edgeX, edgeY } from './viewport';
 const { ccclass } = _decorator;
@@ -23,10 +24,39 @@ export class PlacedPiece extends Component {
     g.clear();
     const [or, oc] = p.origin;
 
-    if (p.source === 'custom') {
-      // Custom (assembler) furniture has no pre-rendered sprite — draw its
-      // footprint directly: white-stroked translucent shape cells. (Tile art
-      // isn't bundled into cocos resources; the footprint is enough to play.)
+    const entry = p.source === 'custom' && p.name ? furnitureByName(p.name) : undefined;
+    const tiles = entry?.tiles ?? [];
+    if (p.source === 'custom' && tiles.length) {
+      // Composite the assembler tile sprites (resources/tiles/<name>.png).
+      // A container sized to the UN-rotated bbox carries the piece's rotation/
+      // mirror (same approach as the vector sprite); each tile carries its own
+      // intrinsic rotation/mirror within its cell.
+      const cont = new Node('tiles');
+      this.node.addChild(cont);
+      cont.addComponent(UITransform).setContentSize(opt.bbox[1] * cell, opt.bbox[0] * cell);
+      cont.angle = -90 * p.rotation;
+      cont.setScale(p.mirrored ? -1 : 1, 1, 1);
+      cont.setPosition(
+        edgeX(p.origin[1]) + (t.bbox[1] * cell) / 2,
+        edgeY(p.origin[0]) - (t.bbox[0] * cell) / 2,
+        0,
+      );
+      const bw = opt.bbox[1] * cell, bh = opt.bbox[0] * cell;
+      for (const tile of tiles) {
+        const tn = new Node('t');
+        cont.addChild(tn);
+        tn.addComponent(UITransform).setContentSize(cell, cell);
+        tn.setPosition(tile.col * cell + cell / 2 - bw / 2, bh / 2 - (tile.row * cell + cell / 2), 0);
+        tn.angle = -(tile.rotation ?? 0);              // assembler stores degrees CW
+        tn.setScale(tile.mirror ? -1 : 1, 1, 1);
+        const sp = tn.addComponent(Sprite);
+        sp.sizeMode = Sprite.SizeMode.CUSTOM;
+        resources.load(`tiles/${tile.tile}/spriteFrame`, SpriteFrame, (err, sf) => {
+          if (!err && sf && tn.isValid) sp.spriteFrame = sf;
+        });
+      }
+    } else if (p.source === 'custom') {
+      // Fallback (no tile data): white-stroked footprint cells.
       g.lineWidth = 2;
       for (const [r, c] of t.shape) {
         const x = edgeX(oc + c), y = edgeY(or + r) - cell;

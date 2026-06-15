@@ -286,7 +286,7 @@ export class RoomPanel extends Component {
     nameLabel.outlineWidth = 2;
 
     if (customEntry) {
-      // Custom furniture has no sprite — draw a footprint thumbnail on the frame.
+      // Custom furniture: navy frame + composited tile sprites (resources/tiles).
       const boxW2 = bbox[1] * PX_PER_CELL, boxH2 = bbox[0] * PX_PER_CELL;
       const fw = boxW2 + FRAME_PAD * 2, fh = boxH2 + FRAME_PAD * 2;
       fg.clear();
@@ -296,12 +296,19 @@ export class RoomPanel extends Component {
       fg.rect(-fw / 2, -fh / 2, fw, fh);
       fg.fill();
       fg.stroke();
-      // shape cells (white) within the footprint box, top-left origin
-      const ox = -boxW2 / 2, oy = boxH2 / 2;
-      fg.fillColor = new Color(255, 255, 255, 220);
-      for (const [r, c] of customEntry.shape) {
-        fg.rect(ox + c * PX_PER_CELL + 1, oy - (r + 1) * PX_PER_CELL + 1, PX_PER_CELL - 2, PX_PER_CELL - 2);
-        fg.fill();
+      imgUi.setContentSize(boxW2, boxH2);  // imgNode already carries rotation/mirror
+      for (const tile of customEntry.tiles ?? []) {
+        const tn = new Node('t');
+        imgNode.addChild(tn);
+        tn.addComponent(UITransform).setContentSize(PX_PER_CELL, PX_PER_CELL);
+        tn.setPosition(tile.col * PX_PER_CELL + PX_PER_CELL / 2 - boxW2 / 2, boxH2 / 2 - (tile.row * PX_PER_CELL + PX_PER_CELL / 2), 0);
+        tn.angle = -(tile.rotation ?? 0);
+        tn.setScale(tile.mirror ? -1 : 1, 1, 1);
+        const ts = tn.addComponent(Sprite);
+        ts.sizeMode = Sprite.SizeMode.CUSTOM;
+        resources.load(`tiles/${tile.tile}/spriteFrame`, SpriteFrame, (e, sf) => {
+          if (!e && sf && tn.isValid) ts.spriteFrame = sf;
+        });
       }
       return;
     }
