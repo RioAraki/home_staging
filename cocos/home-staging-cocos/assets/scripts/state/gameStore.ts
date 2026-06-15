@@ -1220,7 +1220,8 @@ export function isRoomReadyToSeal(
 ): boolean {
   const room = scenario.rooms.find((r) => r.slot === slot);
   if (!room) return false;
-  return room.furniture_numbers.every((_, slotIdx) => {
+  const count = roomItemCount(room);
+  return Array.from({ length: count }, (_, i) => i).every((slotIdx) => {
     const key = instanceKey(slot, slotIdx);
     return state.placedCardKeys.has(key) || state.skippedCardKeys.has(key);
   });
