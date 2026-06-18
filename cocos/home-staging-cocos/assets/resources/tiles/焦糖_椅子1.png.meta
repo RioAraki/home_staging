@@ -1,0 +1,134 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "bda4affe-fcb6-4408-83d3-429c9d0ffc49",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "bda4affe-fcb6-4408-83d3-429c9d0ffc49@6c48a",
+      "displayName": "焦糖_椅子1",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "bda4affe-fcb6-4408-83d3-429c9d0ffc49",
+        "isUuid": true,
+        "visible": false,
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f9941": {
+      "importer": "sprite-frame",
+      "uuid": "bda4affe-fcb6-4408-83d3-429c9d0ffc49@f9941",
+      "displayName": "焦糖_椅子1",
+      "id": "f9941",
+      "name": "spriteFrame",
+      "userData": {
+        "trimThreshold": 1,
+        "rotated": false,
+        "offsetX": 0,
+        "offsetY": 0,
+        "trimX": 13,
+        "trimY": 9,
+        "width": 74,
+        "height": 82,
+        "rawWidth": 100,
+        "rawHeight": 100,
+        "borderTop": 0,
+        "borderBottom": 0,
+        "borderLeft": 0,
+        "borderRight": 0,
+        "packable": true,
+        "pixelsToUnit": 100,
+        "pivotX": 0.5,
+        "pivotY": 0.5,
+        "meshType": 0,
+        "vertices": {
+          "rawPosition": [
+            -37,
+            -41,
+            0,
+            37,
+            -41,
+            0,
+            -37,
+            41,
+            0,
+            37,
+            41,
+            0
+          ],
+          "indexes": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            3
+          ],
+          "uv": [
+            13,
+            91,
+            87,
+            91,
+            13,
+            9,
+            87,
+            9
+          ],
+          "nuv": [
+            0.13,
+            0.09,
+            0.87,
+            0.09,
+            0.13,
+            0.91,
+            0.87,
+            0.91
+          ],
+          "minPos": [
+            -37,
+            -41,
+            0
+          ],
+          "maxPos": [
+            37,
+            41,
+            0
+          ]
+        },
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "bda4affe-fcb6-4408-83d3-429c9d0ffc49@6c48a",
+        "atlasUuid": "",
+        "trimType": "auto"
+      },
+      "ver": "1.0.12",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "type": "sprite-frame",
+    "fixAlphaTransparencyArtifacts": false,
+    "hasAlpha": true,
+    "redirect": "bda4affe-fcb6-4408-83d3-429c9d0ffc49@6c48a"
+  }
+}
