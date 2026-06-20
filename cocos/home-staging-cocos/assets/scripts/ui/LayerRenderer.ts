@@ -64,6 +64,25 @@ export function wallColorFor(scenario: Scenario | null | undefined): Color {
   return themeColor(scenario?.theme?.wall, COL_WALL);
 }
 
+const luminance = (c: Color): number => (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) / 255;
+
+/** A color that contrasts with `bg`: its inverse hue, or pure black/white when the
+ *  inverse would sit too close in luminance (a mid-tone bg whose inverse is also mid-tone). */
+function contrastColor(bg: Color): Color {
+  const inv = new Color(255 - bg.r, 255 - bg.g, 255 - bg.b, 255);
+  if (Math.abs(luminance(bg) - luminance(inv)) < 0.25) {
+    return luminance(bg) > 0.5 ? new Color(0, 0, 0, 255) : new Color(255, 255, 255, 255);
+  }
+  return inv;
+}
+
+/** Open-cell dot color: auto-derived contrast of the (themed or default) background,
+ *  so the dots stay visible on any background. Keeps the dot's existing translucency. */
+export function openCellDotColor(scenario: Scenario | null | undefined): Color {
+  const c = contrastColor(themeColor(scenario?.theme?.bg, COL_BG));
+  return new Color(c.r, c.g, c.b, 120);
+}
+
 export function drawGridBg(
   g: Graphics, scenario: Scenario, frontDoorEdge: string | null = null,
 ) {

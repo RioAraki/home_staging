@@ -4,6 +4,8 @@ import { resolveOption } from '../core/pieces';
 import { furnitureByName } from '../core/dataLoader';
 import { transformOption } from '../core/geometry';
 import { layout, edgeX, edgeY } from './viewport';
+import { openCellDotColor } from './LayerRenderer';
+import { gameStore } from '../state/gameStore';
 const { ccclass } = _decorator;
 
 @ccclass('PlacedPiece')
@@ -91,8 +93,9 @@ export class PlacedPiece extends Component {
       });
     }
 
-    // Open-space dots (all pieces): a small white dot at each absolute open cell.
-    g.fillColor = new Color(255, 255, 255, 120);
+    // Open-space dots (all pieces): a small dot at each absolute open cell, in a
+    // contrast color auto-derived from the background so it stays visible on any theme.
+    g.fillColor = openCellDotColor(gameStore.getState().scenario);
     const radius = Math.max(2, cell * 0.08);
     for (const [r, c] of t.open_spaces) {
       const ox = edgeX(oc + c) + cell / 2;
