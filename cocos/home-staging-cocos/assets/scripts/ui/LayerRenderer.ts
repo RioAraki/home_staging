@@ -16,7 +16,7 @@ const COL_ROAD     = new Color(180, 180, 180, 255);
 const COL_OBSTACLE = new Color(100, 100, 100, 255);
 
 const COL_INDOOR_BORDER = new Color(255, 255, 255, 242);  // thick white outline
-const COL_GRIDLINE = new Color(255, 255, 255, 46);   // faint white pencil
+const COL_GRIDLINE = new Color(255, 255, 255, 100);  // white pencil, bolder for readability
 const COL_WALL     = new Color(255, 255, 255, 235);  // white architectural line
 const COL_DOOR     = new Color(255, 220,  90, 255);  // yellow room door
 const COL_FRONT_DOOR = new Color(255, 170,  60, 255);  // orange building front door (大门)
@@ -52,6 +52,13 @@ export function drawCellWash(
   if (any) g.fill();
 }
 
+/** Build a Color from a scenario theme RGB triple, or fall back to a default. */
+function themeColor(rgb: [number, number, number] | undefined, fallback: Color): Color {
+  return Array.isArray(rgb) && rgb.length === 3
+    ? new Color(rgb[0], rgb[1], rgb[2], fallback.a)
+    : fallback;
+}
+
 export function drawGridBg(
   g: Graphics, scenario: Scenario, frontDoorEdge: string | null = null,
 ) {
@@ -61,6 +68,10 @@ export function drawGridBg(
   const legend = scenario.grid.legend;
   const { cell, r0, c0, rows, cols, w, h } = layout();
 
+  const theme = scenario.theme;
+  const bgColor = themeColor(theme?.bg, COL_BG);
+  const gridColor = themeColor(theme?.gridline, COL_GRIDLINE);
+
   const isIndoor = (r: number, c: number): boolean => {
     if (r < r0 || c < c0 || r >= r0 + rows || c >= c0 + cols) return false;
     const ch = ascii[r]?.[c] ?? '.';
@@ -68,7 +79,7 @@ export function drawGridBg(
   };
 
   // 1) Fill the entire crop area with the navy blueprint canvas.
-  g.fillColor = COL_BG;
+  g.fillColor = bgColor;
   g.rect(edgeX(c0), edgeY(r0 + rows), w, h);
   g.fill();
 
@@ -90,8 +101,8 @@ export function drawGridBg(
   }
 
   // 3) Faint white grid lines.
-  g.strokeColor = COL_GRIDLINE;
-  g.lineWidth = 1;
+  g.strokeColor = gridColor;
+  g.lineWidth = 2;
   for (let c = c0; c <= c0 + cols; c++) {
     const x = edgeX(c);
     g.moveTo(x, -h / 2);

@@ -159,6 +159,11 @@ export interface ScenarioRules {
   scoring: unknown[];
 }
 
+export interface ScenarioTheme {
+  bg?: [number, number, number];
+  gridline?: [number, number, number];
+}
+
 export interface Scenario {
   id: string;
   title_zh: string;
@@ -173,6 +178,7 @@ export interface Scenario {
   pre_drawn: PreDrawn;
   rules: ScenarioRules;
   bonus_points: BonusPoint[];
+  theme?: ScenarioTheme;
   stats?: Record<string, unknown>;
 }
 
