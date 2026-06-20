@@ -10,6 +10,12 @@
 export const TERRAINS = ['indoor', 'outdoor', 'water', 'obstacle', 'road'];
 export const FEATURES = ['tree', 'column', 'low_ceiling', 'lake', 'wall_pillar', 'charred'];
 
+// An RGB triple is [r,g,b] of three finite numbers; anything else → null (use default theme).
+function rgbOrNull(v) {
+  return Array.isArray(v) && v.length === 3 && v.every((n) => Number.isFinite(n))
+    ? [v[0], v[1], v[2]] : null;
+}
+
 // Canonical single-char glyphs for plain (feature-less) terrain. Matches the
 // book scenarios' convention ('.'=outdoor, 'I'=indoor).
 const TERRAIN_GLYPH = { indoor: 'I', outdoor: '.', water: '~', obstacle: 'o', road: '=' };
@@ -100,6 +106,7 @@ export function emptyModel(rows = 16, cols = 16) {
     rooms: [],
     rules: { hallway_required: true, front_door: { mode: 'anywhere', forced_edges: [], forced_cells: [], width: 1 }, drawing: [] },
     bonus_points: [],
+    theme: { bg: null, gridline: null },
     _raw: {},
   };
 }
@@ -144,6 +151,7 @@ export function parseScenario(s) {
       text_zh: b.text_zh || '', text_en: b.text_en || '', points: b.points || 0,
       condition: b.condition,
     })),
+    theme: { bg: rgbOrNull(s.theme?.bg), gridline: rgbOrNull(s.theme?.gridline) },
     _raw: JSON.parse(JSON.stringify(s)),
   };
 }
@@ -177,7 +185,7 @@ export function buildScenario(m) {
     return o;
   });
   // start from _raw so unmanaged fields (zones, stats, …) survive
-  return {
+  const out = {
     ...m._raw,
     id: m.meta.id,
     title_zh: m.meta.title_zh,
@@ -198,6 +206,15 @@ export function buildScenario(m) {
     rules,
     bonus_points,
   };
+  const bg = rgbOrNull(m.theme?.bg), gl = rgbOrNull(m.theme?.gridline);
+  if (bg || gl) {
+    out.theme = {};
+    if (bg) out.theme.bg = bg;
+    if (gl) out.theme.gridline = gl;
+  } else {
+    delete out.theme;  // keep old scenarios clean; also overrides any stale _raw.theme
+  }
+  return out;
 }
 
 // ── validation ───────────────────────────────────────────────────────────

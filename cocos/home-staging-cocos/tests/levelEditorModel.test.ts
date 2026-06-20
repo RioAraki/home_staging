@@ -58,4 +58,32 @@ describe('level-editor model', () => {
     issues = validate(m, new Set(['长沙发 1A-1']));
     expect(issues.some((x: string) => x.includes('不存在的家具'))).toBe(true);
   });
+
+  it('theme round-trips build→parse→build', () => {
+    const m = emptyModel(4, 4);
+    m.theme = { bg: [10, 20, 30], gridline: [200, 210, 220] };
+    const b = buildScenario(m);
+    expect(b.theme).toEqual({ bg: [10, 20, 30], gridline: [200, 210, 220] });
+    expect(parseScenario(b).theme).toEqual({ bg: [10, 20, 30], gridline: [200, 210, 220] });
+  });
+
+  it('omits theme entirely when unset', () => {
+    const b = buildScenario(emptyModel(4, 4));
+    expect('theme' in b).toBe(false);
+  });
+
+  it('partial theme (only bg) keeps bg, omits gridline', () => {
+    const m = emptyModel(4, 4);
+    m.theme = { bg: [1, 2, 3], gridline: null };
+    const b = buildScenario(m);
+    expect(b.theme).toEqual({ bg: [1, 2, 3] });
+    expect(parseScenario(b).theme).toEqual({ bg: [1, 2, 3], gridline: null });
+  });
+
+  it('ignores malformed theme rgb (wrong length / non-number)', () => {
+    const m = emptyModel(4, 4);
+    m.theme = { bg: [1, 2], gridline: ['x', 0, 0] };
+    const b = buildScenario(m);
+    expect('theme' in b).toBe(false);
+  });
 });
