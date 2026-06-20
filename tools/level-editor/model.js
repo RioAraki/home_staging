@@ -17,6 +17,8 @@ function rgbOrNull(v) {
     ? [v[0], v[1], v[2]] : null;
 }
 
+const THEME_KEYS = ['bg', 'gridline', 'wall', 'door', 'front_door', 'window'];
+
 // Canonical single-char glyphs for plain (feature-less) terrain. Matches the
 // book scenarios' convention ('.'=outdoor, 'I'=indoor).
 const TERRAIN_GLYPH = { indoor: 'I', outdoor: '.', water: '~', obstacle: 'o', road: '=' };
@@ -107,7 +109,7 @@ export function emptyModel(rows = 16, cols = 16) {
     rooms: [],
     rules: { hallway_required: true, front_door: { mode: 'anywhere', forced_edges: [], forced_cells: [], width: 1 }, drawing: [] },
     bonus_points: [],
-    theme: { bg: null, gridline: null },
+    theme: Object.fromEntries(THEME_KEYS.map((k) => [k, null])),
     _raw: {},
   };
 }
@@ -152,7 +154,7 @@ export function parseScenario(s) {
       text_zh: b.text_zh || '', text_en: b.text_en || '', points: b.points || 0,
       condition: b.condition,
     })),
-    theme: { bg: rgbOrNull(s.theme?.bg), gridline: rgbOrNull(s.theme?.gridline) },
+    theme: Object.fromEntries(THEME_KEYS.map((k) => [k, rgbOrNull(s.theme?.[k])])),
     _raw: JSON.parse(JSON.stringify(s)),
   };
 }
@@ -207,14 +209,9 @@ export function buildScenario(m) {
     rules,
     bonus_points,
   };
-  const bg = rgbOrNull(m.theme?.bg), gridline = rgbOrNull(m.theme?.gridline);
-  if (bg || gridline) {
-    out.theme = {};
-    if (bg) out.theme.bg = bg;
-    if (gridline) out.theme.gridline = gridline;
-  } else {
-    delete out.theme;  // keep old scenarios clean; also overrides any stale _raw.theme
-  }
+  const theme = {};
+  for (const k of THEME_KEYS) { const v = rgbOrNull(m.theme?.[k]); if (v) theme[k] = v; }
+  if (Object.keys(theme).length) out.theme = theme; else delete out.theme;  // omit when empty; clears stale _raw.theme
   return out;
 }
 

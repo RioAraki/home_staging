@@ -59,12 +59,23 @@ describe('level-editor model', () => {
     expect(issues.some((x: string) => x.includes('不存在的家具'))).toBe(true);
   });
 
-  it('theme round-trips build→parse→build', () => {
+  it('all six theme keys round-trip build→parse→build', () => {
     const m = emptyModel(4, 4);
-    m.theme = { bg: [10, 20, 30], gridline: [200, 210, 220] };
+    m.theme = {
+      bg: [10, 20, 30], gridline: [40, 50, 60], wall: [70, 80, 90],
+      door: [100, 110, 120], front_door: [130, 140, 150], window: [160, 170, 180],
+    };
     const b = buildScenario(m);
-    expect(b.theme).toEqual({ bg: [10, 20, 30], gridline: [200, 210, 220] });
-    expect(parseScenario(b).theme).toEqual({ bg: [10, 20, 30], gridline: [200, 210, 220] });
+    expect(b.theme).toEqual(m.theme);
+    expect(parseScenario(b).theme).toEqual(m.theme);
+  });
+
+  it('partial theme (wall + door only) keeps those, omits the rest', () => {
+    const m = emptyModel(4, 4);
+    m.theme = { bg: null, gridline: null, wall: [1, 2, 3], door: [4, 5, 6], front_door: null, window: null };
+    const b = buildScenario(m);
+    expect(b.theme).toEqual({ wall: [1, 2, 3], door: [4, 5, 6] });
+    expect(parseScenario(b).theme).toEqual({ bg: null, gridline: null, wall: [1, 2, 3], door: [4, 5, 6], front_door: null, window: null });
   });
 
   it('omits theme entirely when unset', () => {
@@ -77,7 +88,7 @@ describe('level-editor model', () => {
     m.theme = { bg: [1, 2, 3], gridline: null };
     const b = buildScenario(m);
     expect(b.theme).toEqual({ bg: [1, 2, 3] });
-    expect(parseScenario(b).theme).toEqual({ bg: [1, 2, 3], gridline: null });
+    expect(parseScenario(b).theme).toEqual({ bg: [1, 2, 3], gridline: null, wall: null, door: null, front_door: null, window: null });
   });
 
   it('ignores malformed theme rgb (wrong length / non-number)', () => {
@@ -87,9 +98,9 @@ describe('level-editor model', () => {
     expect('theme' in b).toBe(false);
   });
 
-  it('parseScenario defaults theme to nulls when scenario has no theme', () => {
-    const b = buildScenario(emptyModel(4, 4));   // theme-less raw scenario
-    expect(parseScenario(b).theme).toEqual({ bg: null, gridline: null });
+  it('parseScenario defaults all six theme keys to null when scenario has no theme', () => {
+    const b = buildScenario(emptyModel(4, 4));
+    expect(parseScenario(b).theme).toEqual({ bg: null, gridline: null, wall: null, door: null, front_door: null, window: null });
   });
 
   it('ignores out-of-range theme rgb (channel > 255 or < 0)', () => {
