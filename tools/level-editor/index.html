@@ -166,12 +166,15 @@ async function boot() {
   wireTools(); wireMeta(); wireButtons();
   function bindColor(key, pickId, rgbId) {
     const pick = $(pickId), txt = $(rgbId);
+    const ensureTheme = () => { if (!model.theme) model.theme = { bg: null, gridline: null }; };
     pick.addEventListener('input', () => {
+      ensureTheme();
       const rgb = hexToRgb(pick.value);
       model.theme[key] = rgb; txt.value = rgb.join(','); txt.style.borderColor = '';
       persist(); render();
     });
     txt.addEventListener('input', () => {
+      ensureTheme();
       const t = txt.value.trim();
       if (!t) { model.theme[key] = null; txt.style.borderColor = ''; persist(); render(); return; }
       const rgb = parseRgbText(t);
