@@ -1,6 +1,6 @@
 import { _decorator, Component, Graphics, Node, UITransform, view, Label, Color } from 'cc';
 import { gameStore, getRoomPhase, isActiveRoomEnclosed, shouldSuppressOpenCellCheck } from '../state/gameStore';
-import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn, drawCellWash } from './LayerRenderer';
+import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn, drawCellWash, wallColorFor } from './LayerRenderer';
 import { analyseAccessibility, isRoomAccessible, computeFloorReachability } from '../core/regions';
 import type { RoomSlot } from '../core/types';
 import { computeLayout, setLayout, layout, edgeX, edgeY, LABEL_GAP } from './viewport';
@@ -150,10 +150,11 @@ export class FloorPlan extends Component {
     // Red while the active room is still being walled and isn't sealed yet;
     // white once it's enclosed (or in any other phase).
     const sealing = getRoomPhase(s) === 'construction' && s.wallPhase === 'walls';
+    const wallC = wallColorFor(s.scenario);
     const color = sealing && !isActiveRoomEnclosed(s)
       ? new Color(230, 80, 70, 235)
-      : new Color(255, 255, 255, 235);
-    drawWalls(g, s.walls, color, s.doors, s.lockedWalls);
+      : wallC;
+    drawWalls(g, s.walls, color, s.doors, s.lockedWalls, wallC);
   }
   private redrawDoors() {
     if (!this.doorsLayer) return;

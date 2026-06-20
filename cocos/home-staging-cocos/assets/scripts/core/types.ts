@@ -162,6 +162,10 @@ export interface ScenarioRules {
 export interface ScenarioTheme {
   bg?: [number, number, number];
   gridline?: [number, number, number];
+  wall?: [number, number, number];
+  door?: [number, number, number];
+  front_door?: [number, number, number];
+  window?: [number, number, number];
 }
 
 export interface Scenario {

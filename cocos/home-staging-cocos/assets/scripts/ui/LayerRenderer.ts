@@ -59,6 +59,11 @@ function themeColor(rgb: [number, number, number] | undefined, fallback: Color):
     : fallback;
 }
 
+/** Resolve a scenario's wall color (themed or default COL_WALL). Used by FloorPlan. */
+export function wallColorFor(scenario: Scenario | null | undefined): Color {
+  return themeColor(scenario?.theme?.wall, COL_WALL);
+}
+
 export function drawGridBg(
   g: Graphics, scenario: Scenario, frontDoorEdge: string | null = null,
 ) {
@@ -71,6 +76,7 @@ export function drawGridBg(
   const theme = scenario.theme;
   const bgColor = themeColor(theme?.bg, COL_BG);
   const gridColor = themeColor(theme?.gridline, COL_GRIDLINE);
+  const wallBorderColor = themeColor(theme?.wall, COL_INDOOR_BORDER);
 
   const isIndoor = (r: number, c: number): boolean => {
     if (r < r0 || c < c0 || r >= r0 + rows || c >= c0 + cols) return false;
@@ -120,7 +126,7 @@ export function drawGridBg(
   //    even for non-rectangular rooms. The front-door edge is skipped so the
   //    door symbol shows through a real gap in the exterior wall (the door
   //    "replaces" that wall segment).
-  g.strokeColor = COL_INDOOR_BORDER;
+  g.strokeColor = wallBorderColor;
   g.lineWidth = 5;
   for (let r = r0; r < r0 + rows; r++) {
     for (let c = c0; c < c0 + cols; c++) {
@@ -160,7 +166,7 @@ function fillColorFor(terrain?: string): Color {
 export function drawWalls(
   g: Graphics, walls: Record<string, true>,
   color: Color = COL_WALL, doors: Record<string, RoomSlot> = {},
-  lockedWalls: Set<string> = new Set(),
+  lockedWalls: Set<string> = new Set(), wallColor: Color = COL_WALL,
 ) {
   g.clear();
   const seg = (key: string) => {
@@ -177,7 +183,7 @@ export function drawWalls(
   // A door is an opening — the wall is gone there.
   const visible = Object.keys(walls).filter((k) => !doors[k]);
   // Locked walls (sealed rooms) are always white.
-  g.strokeColor = COL_WALL;
+  g.strokeColor = wallColor;
   g.lineWidth = WALL_WIDTH;
   for (const key of visible) if (lockedWalls.has(key)) seg(key);
   g.stroke();
@@ -300,19 +306,21 @@ export function drawDoors(
 ) {
   g.clear();
   const L = layout().cell;
+  const doorColor = themeColor(scenario.theme?.door, COL_DOOR);
+  const frontDoorColor = themeColor(scenario.theme?.front_door, COL_FRONT_DOOR);
   const regionMap = computeRegions(scenario, walls);
   const roomToRegion = assignRoomsToRegions(placedPieces, regionMap);
   for (const [key, owner] of Object.entries(doors)) {
     const [type, rs, cs] = key.split(':');
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
     const out = outwardByRegion(type, r, c, roomToRegion.get(owner), regionMap.cellToRegion);
-    drawDoorSymbol(g, type, r, c, L, COL_DOOR, out);
+    drawDoorSymbol(g, type, r, c, L, doorColor, out);
   }
   if (frontDoorEdge) {
     const isIndoor = makeIsIndoor(scenario);
     const [type, rs, cs] = frontDoorEdge.split(':');
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
-    drawDoorSymbol(g, type, r, c, L, COL_FRONT_DOOR, outwardByTerrain(type, r, c, isIndoor));
+    drawDoorSymbol(g, type, r, c, L, frontDoorColor, outwardByTerrain(type, r, c, isIndoor));
   }
 }
 
@@ -320,11 +328,12 @@ export function drawDoors(
 export function drawWindows(g: Graphics, windows: Record<string, true>, scenario: Scenario) {
   g.clear();
   const L = layout().cell;
+  const winColor = themeColor(scenario.theme?.window, COL_WINDOW);
   const isIndoor = makeIsIndoor(scenario);
   for (const key of Object.keys(windows)) {
     const [type, rs, cs] = key.split(':');
     const r = parseInt(rs, 10), c = parseInt(cs, 10);
-    drawWindowSymbol(g, type, r, c, L, COL_WINDOW, outwardByTerrain(type, r, c, isIndoor));
+    drawWindowSymbol(g, type, r, c, L, winColor, outwardByTerrain(type, r, c, isIndoor));
   }
 }
 
@@ -358,7 +367,7 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
 
   // Pre-drawn interior walls — same colour as player walls but thinner.
   if (pd.walls_interior?.length) {
-    g.strokeColor = COL_WALL;
+    g.strokeColor = themeColor(scenario.theme?.wall, COL_WALL);
     g.lineWidth = WALL_WIDTH - 1;
     for (const [r1, c1, r2, c2] of pd.walls_interior) {
       g.moveTo(edgeX(c1), edgeY(r1));
@@ -383,7 +392,7 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
       else if (edge === 'S') { type = 'h'; er = r + 1; ec = c; }
       else if (edge === 'W') { type = 'v'; er = r;     ec = c; }
       else                     { type = 'v'; er = r;     ec = c + 1; }
-      drawWindowSymbol(g, type, er, ec, L, COL_WINDOW, outwardByTerrain(type, er, ec, isIndoor));
+      drawWindowSymbol(g, type, er, ec, L, themeColor(scenario.theme?.window, COL_WINDOW), outwardByTerrain(type, er, ec, isIndoor));
     }
   }
 
