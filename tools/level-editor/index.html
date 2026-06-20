@@ -341,6 +341,7 @@ function toggle(arr, key) { const i = arr.indexOf(key); if (i>=0) arr.splice(i,1
 
 // ── refresh panels ──────────────────────────────────────
 function buildThemeUI() {
+  const ensureTheme = () => { if (!model.theme) model.theme = emptyTheme(); };
   const box = $('theme-rows'); box.innerHTML = '';
   for (const k of THEME_KEYS) {
     const def = THEME_DEFAULTS[k];
@@ -352,13 +353,13 @@ function buildThemeUI() {
     box.appendChild(row);
     const pick = row.querySelector(`#t-${k}-pick`), txt = row.querySelector(`#t-${k}-rgb`);
     pick.addEventListener('input', () => {
-      if (!model.theme) model.theme = emptyTheme();
+      ensureTheme();
       const rgb = hexToRgb(pick.value);
       model.theme[k] = rgb; txt.value = rgbToHex(rgb).slice(1); txt.style.borderColor = '';
       persist(); render();
     });
     txt.addEventListener('input', () => {
-      if (!model.theme) model.theme = emptyTheme();
+      ensureTheme();
       const t = txt.value.trim();
       if (!t) { model.theme[k] = null; txt.style.borderColor = ''; persist(); render(); return; }
       const rgb = parseHex(t);
@@ -459,7 +460,7 @@ function render() {
   ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height);
   const cell=BASECELL*scale;
   // terrain — mirror Cocos: bg base + translucent washes
-  const bg = model.theme?.bg ? `rgb(${model.theme.bg.join(',')})` : 'rgb(16,42,71)';
+  const bg = themeCss('bg');
   ctx.fillStyle = bg; ctx.fillRect(w2sX(0), w2sY(0), cell*model.cols, cell*model.rows);
   for (let r=0;r<model.rows;r++) for (let c=0;c<model.cols;c++) {
     ctx.fillStyle = TERRAIN_OVERLAY[model.terrain[r][c]] || TERRAIN_OVERLAY.outdoor;
@@ -468,7 +469,8 @@ function render() {
     if (f){ ctx.fillStyle='#ffd27f'; ctx.font=`${Math.max(8,cell*0.3)}px system-ui`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(f[0].toUpperCase(), w2sX(c)+cell/2, w2sY(r)+cell/2); }
   }
   // grid
-  ctx.strokeStyle = model.theme?.gridline ? `rgba(${model.theme.gridline.join(',')},0.4)` : 'rgba(255,255,255,0.4)'; ctx.lineWidth=2; ctx.beginPath();
+  const glRgb = model.theme?.gridline || hexToRgb(THEME_DEFAULTS.gridline);
+  ctx.strokeStyle = `rgba(${glRgb[0]},${glRgb[1]},${glRgb[2]},0.4)`; ctx.lineWidth=2; ctx.beginPath();
   for (let c=0;c<=model.cols;c++){const x=Math.round(w2sX(c))+.5;ctx.moveTo(x,w2sY(0));ctx.lineTo(x,w2sY(model.rows));}
   for (let r=0;r<=model.rows;r++){const y=Math.round(w2sY(r))+.5;ctx.moveTo(w2sX(0),y);ctx.lineTo(w2sX(model.cols),y);}
   ctx.stroke();
