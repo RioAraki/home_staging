@@ -76,7 +76,7 @@ export function drawGridBg(
   const theme = scenario.theme;
   const bgColor = themeColor(theme?.bg, COL_BG);
   const gridColor = themeColor(theme?.gridline, COL_GRIDLINE);
-  const wallBorderColor = themeColor(theme?.wall, COL_INDOOR_BORDER);
+  const wallBorderColor = themeColor(theme?.wall, COL_INDOOR_BORDER);  // exterior outline: COL_INDOOR_BORDER is slightly more opaque than COL_WALL
 
   const isIndoor = (r: number, c: number): boolean => {
     if (r < r0 || c < c0 || r >= r0 + rows || c >= c0 + cols) return false;
@@ -165,8 +165,8 @@ function fillColorFor(terrain?: string): Color {
 
 export function drawWalls(
   g: Graphics, walls: Record<string, true>,
-  color: Color = COL_WALL, doors: Record<string, RoomSlot> = {},
-  lockedWalls: Set<string> = new Set(), wallColor: Color = COL_WALL,
+  activeColor: Color = COL_WALL, doors: Record<string, RoomSlot> = {},
+  lockedWalls: Set<string> = new Set(), lockedColor: Color = COL_WALL,
 ) {
   g.clear();
   const seg = (key: string) => {
@@ -182,13 +182,13 @@ export function drawWalls(
   };
   // A door is an opening — the wall is gone there.
   const visible = Object.keys(walls).filter((k) => !doors[k]);
-  // Locked walls (sealed rooms) are always white.
-  g.strokeColor = wallColor;
+  // Locked walls (sealed rooms) take the (themed) wall base color.
+  g.strokeColor = lockedColor;
   g.lineWidth = WALL_WIDTH;
   for (const key of visible) if (lockedWalls.has(key)) seg(key);
   g.stroke();
   // Active walls take the phase/enclosure colour.
-  g.strokeColor = color;
+  g.strokeColor = activeColor;
   g.lineWidth = WALL_WIDTH;
   for (const key of visible) if (!lockedWalls.has(key)) seg(key);
   g.stroke();
@@ -383,6 +383,7 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
 
   // Pre-drawn windows — blue swing symbol, opening outward.
   if (pd.windows?.length) {
+    const winColor = themeColor(scenario.theme?.window, COL_WINDOW);
     for (const win of pd.windows) {
       const [r, c] = win.cell;
       const edge = win.edge;
@@ -392,7 +393,7 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
       else if (edge === 'S') { type = 'h'; er = r + 1; ec = c; }
       else if (edge === 'W') { type = 'v'; er = r;     ec = c; }
       else                     { type = 'v'; er = r;     ec = c + 1; }
-      drawWindowSymbol(g, type, er, ec, L, themeColor(scenario.theme?.window, COL_WINDOW), outwardByTerrain(type, er, ec, isIndoor));
+      drawWindowSymbol(g, type, er, ec, L, winColor, outwardByTerrain(type, er, ec, isIndoor));
     }
   }
 
