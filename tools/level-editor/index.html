@@ -114,8 +114,7 @@
       </div>
       <div class="sec">
         <h3>配色（留空＝默认主题）</h3>
-        <div class="row"><label class="k">背景</label><input type="color" id="t-bg-pick" /><input type="text" id="t-bg-rgb" placeholder="r,g,b" style="width:96px" /></div>
-        <div class="row"><label class="k">格子线</label><input type="color" id="t-gl-pick" /><input type="text" id="t-gl-rgb" placeholder="r,g,b" style="width:96px" /></div>
+        <div id="theme-rows"></div>
         <div class="row"><button id="t-reset">重置为默认</button></div>
       </div>
       <div class="sec">
@@ -140,7 +139,14 @@ const $ = (id) => document.getElementById(id);
 const LS_KEY = 'level-editor-v1';
 const rgbToHex = ([r, g, b]) => '#' + [r, g, b].map((n) => Math.max(0, Math.min(255, n | 0)).toString(16).padStart(2, '0')).join('');
 const hexToRgb = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
-const parseRgbText = (s) => { const p = s.split(',').map((x) => parseInt(x.trim(), 10)); return p.length === 3 && p.every((n) => Number.isFinite(n) && n >= 0 && n <= 255) ? p : null; };
+const parseHex = (s) => { const h = s.trim().replace(/^#/, ''); if (!/^[0-9a-fA-F]{6}$/.test(h)) return null; const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const rgbCss = (a) => `rgb(${a[0]},${a[1]},${a[2]})`;
+const THEME_KEYS = ['bg', 'gridline', 'wall', 'door', 'front_door', 'window'];
+const THEME_LABELS = { bg: '背景', gridline: '地缝', wall: '墙体', door: '门', front_door: '大门', window: '窗' };
+const THEME_DEFAULTS = { bg: '#102a47', gridline: '#ffffff', wall: '#ffffff', door: '#ffdc5a', front_door: '#ffaa3c', window: '#a8d8ee' };
+const emptyTheme = () => Object.fromEntries(THEME_KEYS.map((k) => [k, null]));
+// theme color → CSS (themed value or aligned-to-Cocos default). gridline handled separately (needs alpha).
+const themeCss = (k) => (model.theme && model.theme[k]) ? rgbCss(model.theme[k]) : THEME_DEFAULTS[k];
 // terrain overlays mirror Cocos fillColorFor(): indoor/outdoor are translucent washes over the bg.
 const TERRAIN_OVERLAY = { indoor: 'rgba(255,255,255,0.18)', outdoor: 'rgba(0,0,0,0.28)', water: 'rgb(150,180,220)', road: 'rgb(180,180,180)', obstacle: 'rgb(100,100,100)' };
 
@@ -164,27 +170,8 @@ async function boot() {
   buildTerrainTools();
   buildFeatureOptions();
   wireTools(); wireMeta(); wireButtons();
-  function bindColor(key, pickId, rgbId) {
-    const pick = $(pickId), txt = $(rgbId);
-    const ensureTheme = () => { if (!model.theme) model.theme = { bg: null, gridline: null }; };
-    pick.addEventListener('input', () => {
-      ensureTheme();
-      const rgb = hexToRgb(pick.value);
-      model.theme[key] = rgb; txt.value = rgb.join(','); txt.style.borderColor = '';
-      persist(); render();
-    });
-    txt.addEventListener('input', () => {
-      ensureTheme();
-      const t = txt.value.trim();
-      if (!t) { model.theme[key] = null; txt.style.borderColor = ''; persist(); render(); return; }
-      const rgb = parseRgbText(t);
-      if (rgb) { model.theme[key] = rgb; pick.value = rgbToHex(rgb); txt.style.borderColor = ''; persist(); render(); }
-      else { txt.style.borderColor = 'var(--bad)'; }   // invalid: show error, don't commit
-    });
-  }
-  bindColor('bg', 't-bg-pick', 't-bg-rgb');
-  bindColor('gridline', 't-gl-pick', 't-gl-rgb');
-  $('t-reset').onclick = () => { model.theme = { bg: null, gridline: null }; syncThemeInputs(); persist(); render(); };
+  buildThemeUI();
+  $('t-reset').onclick = () => { model.theme = emptyTheme(); syncThemeInputs(); persist(); render(); };
   await loadLibrary();
   await reloadScenarioList();
   const saved = localStorage.getItem(LS_KEY);
@@ -353,11 +340,40 @@ function resizeModel(rows, cols) {
 function toggle(arr, key) { const i = arr.indexOf(key); if (i>=0) arr.splice(i,1); else arr.push(key); }
 
 // ── refresh panels ──────────────────────────────────────
+function buildThemeUI() {
+  const box = $('theme-rows'); box.innerHTML = '';
+  for (const k of THEME_KEYS) {
+    const def = THEME_DEFAULTS[k];
+    const row = document.createElement('div'); row.className = 'row';
+    row.innerHTML = `<label class="k">${THEME_LABELS[k]}</label>`
+      + `<span title="默认 ${def}" style="display:inline-block;width:14px;height:14px;border:1px solid #555;background:${def};vertical-align:middle;margin-right:4px"></span>`
+      + `<input type="color" id="t-${k}-pick" />`
+      + `<input type="text" id="t-${k}-rgb" placeholder="默认 ${def}" style="width:96px" />`;
+    box.appendChild(row);
+    const pick = row.querySelector(`#t-${k}-pick`), txt = row.querySelector(`#t-${k}-rgb`);
+    pick.addEventListener('input', () => {
+      if (!model.theme) model.theme = emptyTheme();
+      const rgb = hexToRgb(pick.value);
+      model.theme[k] = rgb; txt.value = rgbToHex(rgb).slice(1); txt.style.borderColor = '';
+      persist(); render();
+    });
+    txt.addEventListener('input', () => {
+      if (!model.theme) model.theme = emptyTheme();
+      const t = txt.value.trim();
+      if (!t) { model.theme[k] = null; txt.style.borderColor = ''; persist(); render(); return; }
+      const rgb = parseHex(t);
+      if (rgb) { model.theme[k] = rgb; pick.value = rgbToHex(rgb); txt.style.borderColor = ''; persist(); render(); }
+      else { txt.style.borderColor = 'var(--bad)'; }   // invalid hex: red border, don't commit
+    });
+  }
+}
 function syncThemeInputs() {
-  if (!model.theme) model.theme = { bg: null, gridline: null };   // older saved models
-  const t = model.theme;
-  $('t-bg-rgb').value = t.bg ? t.bg.join(',') : ''; if (t.bg) $('t-bg-pick').value = rgbToHex(t.bg);
-  $('t-gl-rgb').value = t.gridline ? t.gridline.join(',') : ''; if (t.gridline) $('t-gl-pick').value = rgbToHex(t.gridline);
+  if (!model.theme) model.theme = emptyTheme();
+  for (const k of THEME_KEYS) {
+    const v = model.theme[k];
+    $(`t-${k}-rgb`).value = v ? rgbToHex(v).slice(1) : '';
+    $(`t-${k}-pick`).value = v ? rgbToHex(v) : THEME_DEFAULTS[k];   // picker shows the default color when unset
+  }
 }
 function refreshAll() {
   $('m-id').value=model.meta.id; $('m-tzh').value=model.meta.title_zh; $('m-ten').value=model.meta.title_en;
@@ -462,10 +478,10 @@ function render() {
     for (const [r,c] of model.rules.front_door.forced_cells) ctx.fillRect(w2sX(c),w2sY(r),cell,cell);
   }
   // edges
-  drawEdges(model.walls, '#e6e9ee', 4);
-  drawEdges(model.windows, '#7fd0ff', 3, true);
-  drawEdges(model.doors, '#57c98b', 5);
-  if (model.frontDoor) drawEdges([model.frontDoor], '#ffaa3c', 7);  // 大门 (orange, like game)
+  drawEdges(model.walls, themeCss('wall'), 4);
+  drawEdges(model.windows, themeCss('window'), 3, true);
+  drawEdges(model.doors, themeCss('door'), 5);
+  if (model.frontDoor) drawEdges([model.frontDoor], themeCss('front_door'), 7);  // 大门 (thicker than room doors)
   // markers
   for (const mk of model.markers) {
     const [r,c]=mk.cell; const x=w2sX(c)+cell/2, y=w2sY(r)+cell/2;
