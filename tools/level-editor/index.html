@@ -113,6 +113,12 @@
         <div class="mini" id="r-fd-info"></div>
       </div>
       <div class="sec">
+        <h3>配色（留空＝默认主题）</h3>
+        <div class="row"><label class="k">背景</label><input type="color" id="t-bg-pick" /><input type="text" id="t-bg-rgb" placeholder="r,g,b" style="width:96px" /></div>
+        <div class="row"><label class="k">格子线</label><input type="color" id="t-gl-pick" /><input type="text" id="t-gl-rgb" placeholder="r,g,b" style="width:96px" /></div>
+        <div class="row"><button id="t-reset">重置为默认</button></div>
+      </div>
+      <div class="sec">
         <div class="row" style="justify-content:space-between"><h3 style="margin:0">房间</h3><button id="btn-addroom">+ 房间</button></div>
         <div id="rooms"></div>
       </div>
@@ -132,7 +138,11 @@ import * as M from './model.js';
 
 const $ = (id) => document.getElementById(id);
 const LS_KEY = 'level-editor-v1';
-const TERRAIN_COLOR = { indoor:'#2d3a4a', outdoor:'#15181c', water:'#1f3a4d', obstacle:'#3a2222', road:'#333a33' };
+const rgbToHex = ([r, g, b]) => '#' + [r, g, b].map((n) => Math.max(0, Math.min(255, n | 0)).toString(16).padStart(2, '0')).join('');
+const hexToRgb = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const parseRgbText = (s) => { const p = s.split(',').map((x) => parseInt(x.trim(), 10)); return p.length === 3 && p.every((n) => Number.isFinite(n) && n >= 0 && n <= 255) ? p : null; };
+// terrain overlays mirror Cocos fillColorFor(): indoor/outdoor are translucent washes over the bg.
+const TERRAIN_OVERLAY = { indoor: 'rgba(255,255,255,0.18)', outdoor: 'rgba(0,0,0,0.28)', water: 'rgb(150,180,220)', road: 'rgb(180,180,180)', obstacle: 'rgb(100,100,100)' };
 
 let model = M.emptyModel(16, 16);
 let library = [];            // unified named furniture: full entries + {source}
@@ -154,6 +164,24 @@ async function boot() {
   buildTerrainTools();
   buildFeatureOptions();
   wireTools(); wireMeta(); wireButtons();
+  function bindColor(key, pickId, rgbId) {
+    const pick = $(pickId), txt = $(rgbId);
+    pick.addEventListener('input', () => {
+      const rgb = hexToRgb(pick.value);
+      model.theme[key] = rgb; txt.value = rgb.join(','); txt.style.borderColor = '';
+      persist(); render();
+    });
+    txt.addEventListener('input', () => {
+      const t = txt.value.trim();
+      if (!t) { model.theme[key] = null; txt.style.borderColor = ''; persist(); render(); return; }
+      const rgb = parseRgbText(t);
+      if (rgb) { model.theme[key] = rgb; pick.value = rgbToHex(rgb); txt.style.borderColor = ''; persist(); render(); }
+      else { txt.style.borderColor = 'var(--bad)'; }   // invalid: show error, don't commit
+    });
+  }
+  bindColor('bg', 't-bg-pick', 't-bg-rgb');
+  bindColor('gridline', 't-gl-pick', 't-gl-rgb');
+  $('t-reset').onclick = () => { model.theme = { bg: null, gridline: null }; syncThemeInputs(); persist(); render(); };
   await loadLibrary();
   await reloadScenarioList();
   const saved = localStorage.getItem(LS_KEY);
@@ -322,13 +350,19 @@ function resizeModel(rows, cols) {
 function toggle(arr, key) { const i = arr.indexOf(key); if (i>=0) arr.splice(i,1); else arr.push(key); }
 
 // ── refresh panels ──────────────────────────────────────
+function syncThemeInputs() {
+  if (!model.theme) model.theme = { bg: null, gridline: null };   // older saved models
+  const t = model.theme;
+  $('t-bg-rgb').value = t.bg ? t.bg.join(',') : ''; if (t.bg) $('t-bg-pick').value = rgbToHex(t.bg);
+  $('t-gl-rgb').value = t.gridline ? t.gridline.join(',') : ''; if (t.gridline) $('t-gl-pick').value = rgbToHex(t.gridline);
+}
 function refreshAll() {
   $('m-id').value=model.meta.id; $('m-tzh').value=model.meta.title_zh; $('m-ten').value=model.meta.title_en;
   $('m-ch').value=model.meta.chapter_zh; $('m-diff').value=model.meta.difficulty;
   $('m-pages').value=(model.meta.pages_in_book||[]).join(','); $('m-img').value=model.meta.page_image||'';
   $('grows').value=model.rows; $('gcols').value=model.cols;
   $('r-hall').checked=model.rules.hallway_required; $('r-fd').value=model.rules.front_door.mode; $('r-fdw').value=model.rules.front_door.width||1;
-  syncToolButtons(); renderRooms(); renderBonuses(); refreshFdInfo(); refreshValidation();
+  syncToolButtons(); renderRooms(); renderBonuses(); refreshFdInfo(); syncThemeInputs(); refreshValidation();
 }
 function renderRooms() {
   const box = $('rooms'); box.innerHTML='';
@@ -405,15 +439,17 @@ const s2wX=x=>(x-offX)/(BASECELL*scale), s2wY=y=>(y-offY)/(BASECELL*scale);
 function render() {
   ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height);
   const cell=BASECELL*scale;
-  // terrain
+  // terrain — mirror Cocos: bg base + translucent washes
+  const bg = model.theme?.bg ? `rgb(${model.theme.bg.join(',')})` : 'rgb(16,42,71)';
+  ctx.fillStyle = bg; ctx.fillRect(w2sX(0), w2sY(0), cell*model.cols, cell*model.rows);
   for (let r=0;r<model.rows;r++) for (let c=0;c<model.cols;c++) {
-    ctx.fillStyle=TERRAIN_COLOR[model.terrain[r][c]]||'#000';
+    ctx.fillStyle = TERRAIN_OVERLAY[model.terrain[r][c]] || TERRAIN_OVERLAY.outdoor;
     ctx.fillRect(w2sX(c),w2sY(r),cell,cell);
     const f=model.feature[r][c];
     if (f){ ctx.fillStyle='#ffd27f'; ctx.font=`${Math.max(8,cell*0.3)}px system-ui`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(f[0].toUpperCase(), w2sX(c)+cell/2, w2sY(r)+cell/2); }
   }
   // grid
-  ctx.strokeStyle='rgba(160,180,220,.25)'; ctx.lineWidth=1; ctx.beginPath();
+  ctx.strokeStyle = model.theme?.gridline ? `rgba(${model.theme.gridline.join(',')},0.4)` : 'rgba(255,255,255,0.4)'; ctx.lineWidth=2; ctx.beginPath();
   for (let c=0;c<=model.cols;c++){const x=Math.round(w2sX(c))+.5;ctx.moveTo(x,w2sY(0));ctx.lineTo(x,w2sY(model.rows));}
   for (let r=0;r<=model.rows;r++){const y=Math.round(w2sY(r))+.5;ctx.moveTo(w2sX(0),y);ctx.lineTo(w2sX(model.cols),y);}
   ctx.stroke();
