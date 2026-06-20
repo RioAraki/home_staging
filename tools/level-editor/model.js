@@ -12,7 +12,8 @@ export const FEATURES = ['tree', 'column', 'low_ceiling', 'lake', 'wall_pillar',
 
 // An RGB triple is [r,g,b] of three finite numbers; anything else → null (use default theme).
 function rgbOrNull(v) {
-  return Array.isArray(v) && v.length === 3 && v.every((n) => Number.isFinite(n))
+  return Array.isArray(v) && v.length === 3 &&
+    v.every((n) => Number.isFinite(n) && n >= 0 && n <= 255)
     ? [v[0], v[1], v[2]] : null;
 }
 
@@ -206,11 +207,11 @@ export function buildScenario(m) {
     rules,
     bonus_points,
   };
-  const bg = rgbOrNull(m.theme?.bg), gl = rgbOrNull(m.theme?.gridline);
-  if (bg || gl) {
+  const bg = rgbOrNull(m.theme?.bg), gridline = rgbOrNull(m.theme?.gridline);
+  if (bg || gridline) {
     out.theme = {};
     if (bg) out.theme.bg = bg;
-    if (gl) out.theme.gridline = gl;
+    if (gridline) out.theme.gridline = gridline;
   } else {
     delete out.theme;  // keep old scenarios clean; also overrides any stale _raw.theme
   }

@@ -86,4 +86,16 @@ describe('level-editor model', () => {
     const b = buildScenario(m);
     expect('theme' in b).toBe(false);
   });
+
+  it('parseScenario defaults theme to nulls when scenario has no theme', () => {
+    const b = buildScenario(emptyModel(4, 4));   // theme-less raw scenario
+    expect(parseScenario(b).theme).toEqual({ bg: null, gridline: null });
+  });
+
+  it('ignores out-of-range theme rgb (channel > 255 or < 0)', () => {
+    const m = emptyModel(4, 4);
+    m.theme = { bg: [0, 0, 256], gridline: [-1, 0, 0] };
+    const b = buildScenario(m);
+    expect('theme' in b).toBe(false);
+  });
 });
