@@ -39,14 +39,15 @@
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
+        "trimType": "none",
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -0.5,
+        "offsetX": 0,
         "offsetY": 0,
-        "trimX": 9,
-        "trimY": 10,
-        "width": 81,
-        "height": 80,
+        "trimX": 0,
+        "trimY": 0,
+        "width": 100,
+        "height": 100,
         "rawWidth": 100,
         "rawHeight": 100,
         "borderTop": 0,
@@ -60,17 +61,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -40.5,
-            -40,
+            -50,
+            -50,
             0,
-            40.5,
-            -40,
+            50,
+            -50,
             0,
-            -40.5,
-            40,
+            -50,
+            50,
             0,
-            40.5,
-            40,
+            50,
+            50,
             0
           ],
           "indexes": [
@@ -82,40 +83,39 @@
             3
           ],
           "uv": [
-            9,
-            90,
-            90,
-            90,
-            9,
-            10,
-            90,
-            10
+            0,
+            100,
+            100,
+            100,
+            0,
+            0,
+            100,
+            0
           ],
           "nuv": [
-            0.09,
-            0.1,
-            0.9,
-            0.1,
-            0.09,
-            0.9,
-            0.9,
-            0.9
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1
           ],
           "minPos": [
-            -40.5,
-            -40,
+            -50,
+            -50,
             0
           ],
           "maxPos": [
-            40.5,
-            40,
+            50,
+            50,
             0
           ]
         },
         "isUuid": true,
         "imageUuidOrDatabaseUri": "c8f7a746-deab-4744-ac96-8f3e8d00ca46@6c48a",
-        "atlasUuid": "",
-        "trimType": "auto"
+        "atlasUuid": ""
       },
       "ver": "1.0.12",
       "imported": true,

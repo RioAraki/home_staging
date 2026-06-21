@@ -39,14 +39,15 @@
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
+        "trimType": "none",
         "trimThreshold": 1,
         "rotated": false,
         "offsetX": 0,
         "offsetY": 0,
-        "trimX": 9,
-        "trimY": 9,
-        "width": 82,
-        "height": 82,
+        "trimX": 0,
+        "trimY": 0,
+        "width": 100,
+        "height": 100,
         "rawWidth": 100,
         "rawHeight": 100,
         "borderTop": 0,
@@ -60,17 +61,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -41,
-            -41,
+            -50,
+            -50,
             0,
-            41,
-            -41,
+            50,
+            -50,
             0,
-            -41,
-            41,
+            -50,
+            50,
             0,
-            41,
-            41,
+            50,
+            50,
             0
           ],
           "indexes": [
@@ -82,40 +83,39 @@
             3
           ],
           "uv": [
-            9,
-            91,
-            91,
-            91,
-            9,
-            9,
-            91,
-            9
+            0,
+            100,
+            100,
+            100,
+            0,
+            0,
+            100,
+            0
           ],
           "nuv": [
-            0.09,
-            0.09,
-            0.91,
-            0.09,
-            0.09,
-            0.91,
-            0.91,
-            0.91
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1
           ],
           "minPos": [
-            -41,
-            -41,
+            -50,
+            -50,
             0
           ],
           "maxPos": [
-            41,
-            41,
+            50,
+            50,
             0
           ]
         },
         "isUuid": true,
         "imageUuidOrDatabaseUri": "db121805-fb46-4ac1-98c9-b65aea1f5592@6c48a",
-        "atlasUuid": "",
-        "trimType": "auto"
+        "atlasUuid": ""
       },
       "ver": "1.0.12",
       "imported": true,

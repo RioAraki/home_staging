@@ -39,14 +39,15 @@
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
+        "trimType": "none",
         "trimThreshold": 1,
         "rotated": false,
         "offsetX": 0,
-        "offsetY": -3,
+        "offsetY": 0,
         "trimX": 0,
-        "trimY": 6,
+        "trimY": 0,
         "width": 100,
-        "height": 94,
+        "height": 100,
         "rawWidth": 100,
         "rawHeight": 100,
         "borderTop": 0,
@@ -61,16 +62,16 @@
         "vertices": {
           "rawPosition": [
             -50,
-            -47,
+            -50,
             0,
             50,
-            -47,
+            -50,
             0,
             -50,
-            47,
+            50,
             0,
             50,
-            47,
+            50,
             0
           ],
           "indexes": [
@@ -83,9 +84,9 @@
           ],
           "uv": [
             0,
-            94,
             100,
-            94,
+            100,
+            100,
             0,
             0,
             100,
@@ -97,25 +98,24 @@
             1,
             0,
             0,
-            0.94,
             1,
-            0.94
+            1,
+            1
           ],
           "minPos": [
             -50,
-            -47,
+            -50,
             0
           ],
           "maxPos": [
             50,
-            47,
+            50,
             0
           ]
         },
         "isUuid": true,
         "imageUuidOrDatabaseUri": "97389a09-720c-405b-88cd-e8d4a1454ac1@6c48a",
-        "atlasUuid": "",
-        "trimType": "auto"
+        "atlasUuid": ""
       },
       "ver": "1.0.12",
       "imported": true,

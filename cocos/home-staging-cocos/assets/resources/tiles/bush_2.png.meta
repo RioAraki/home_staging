@@ -39,14 +39,15 @@
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
+        "trimType": "none",
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -10.5,
-        "offsetY": 2.5,
+        "offsetX": 0,
+        "offsetY": 0,
         "trimX": 0,
-        "trimY": 3,
-        "width": 79,
-        "height": 89,
+        "trimY": 0,
+        "width": 100,
+        "height": 100,
         "rawWidth": 100,
         "rawHeight": 100,
         "borderTop": 0,
@@ -60,17 +61,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -39.5,
-            -44.5,
+            -50,
+            -50,
             0,
-            39.5,
-            -44.5,
+            50,
+            -50,
             0,
-            -39.5,
-            44.5,
+            -50,
+            50,
             0,
-            39.5,
-            44.5,
+            50,
+            50,
             0
           ],
           "indexes": [
@@ -83,39 +84,38 @@
           ],
           "uv": [
             0,
-            97,
-            79,
-            97,
+            100,
+            100,
+            100,
             0,
-            8,
-            79,
-            8
+            0,
+            100,
+            0
           ],
           "nuv": [
             0,
-            0.08,
-            0.79,
-            0.08,
             0,
-            0.97,
-            0.79,
-            0.97
+            1,
+            0,
+            0,
+            1,
+            1,
+            1
           ],
           "minPos": [
-            -39.5,
-            -44.5,
+            -50,
+            -50,
             0
           ],
           "maxPos": [
-            39.5,
-            44.5,
+            50,
+            50,
             0
           ]
         },
         "isUuid": true,
         "imageUuidOrDatabaseUri": "379b47e5-49a5-4b88-b237-b2b58fd3367b@6c48a",
-        "atlasUuid": "",
-        "trimType": "auto"
+        "atlasUuid": ""
       },
       "ver": "1.0.12",
       "imported": true,
