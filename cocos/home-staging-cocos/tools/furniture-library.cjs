@@ -36,6 +36,7 @@ for (const f of readArr(CUSTOM)) {
     wall_edges: f.wall_edges || [],
     name_zh: f.name,
     tiles: f.tiles || [],
+    tags: f.tags || [],
   });
 }
 for (const f of readArr(CARDS)) {

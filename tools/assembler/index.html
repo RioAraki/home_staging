@@ -75,6 +75,23 @@
   .fitem .fi-del:hover{opacity:1;color:var(--bad);}
   #flist-foot{padding:8px 10px;border-top:1px solid var(--line);display:flex;gap:6px;flex-shrink:0;}
   #flist-foot button{flex:1;font-size:12px;padding:6px 8px;}
+
+  /* tags */
+  #tagsec{padding:9px 12px;border-bottom:1px solid var(--line);}
+  #tagsec h3{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  #tag-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;}
+  .tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 6px 3px 9px;border-radius:11px;font-size:12px;
+    background:#2a2f37;border:1px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
+  .tag-chip:hover{background:#333a44;}
+  .tag-chip.on{background:#2c2718;border-color:var(--accent);color:var(--accent);font-weight:600;}
+  .tag-chip .tx{padding:0 1px;}
+  .tag-chip .tag-del{font-size:11px;opacity:.5;line-height:1;padding:0 1px;border-radius:8px;}
+  .tag-chip .tag-del:hover{opacity:1;color:var(--bad);background:rgba(255,93,93,.15);}
+  #tag-empty{font-size:11px;color:var(--muted);font-style:italic;margin-bottom:7px;}
+  #tag-add-row{display:flex;gap:5px;}
+  #tag-add-input{flex:1;background:#171a1f;border:1px solid var(--line);color:var(--txt);border-radius:5px;padding:4px 7px;font-size:12px;}
+  #tag-add-btn{font-size:12px;padding:4px 9px;flex-shrink:0;}
+  .fi-tags{font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -138,6 +155,16 @@
           <button id="ci-del" class="danger" style="flex:1 0 100%;font-size:12px;margin-top:3px">删除</button>
         </div>
       </div>
+      <!-- tags -->
+      <div id="tagsec">
+        <h3>标签 <span id="tag-ctx" style="text-transform:none;letter-spacing:0;color:var(--accent)"></span></h3>
+        <div id="tag-empty">点选标签给当前家具打标 · 双击改名 · ✕ 删除</div>
+        <div id="tag-chips"></div>
+        <div id="tag-add-row">
+          <input type="text" id="tag-add-input" placeholder="新标签名" />
+          <button id="tag-add-btn">+ 添加</button>
+        </div>
+      </div>
       <!-- furniture list -->
       <div id="flist-wrap">
         <div id="flist-head">
@@ -179,6 +206,10 @@ let mode = 'place';
 let collection = [];
 let editingIndex = -1;       // index in collection being edited (-1 = new)
 
+// tags: global vocabulary + the current (buffer) furniture's selected tags
+let tagVocab = [];           // ordered list of defined tag names
+let currentTags = new Set(); // tags on the furniture currently on the canvas
+
 let scale = 1, offX = 0, offY = 0;
 let panning = false, spaceDown = false, panStart = null;
 let hover = null;
@@ -196,6 +227,7 @@ async function init() {
   render();
   updateProps();
   renderFList();
+  renderTags();
 }
 
 async function reloadLib() {
@@ -294,9 +326,9 @@ document.getElementById('btn-new').onclick = () => {
   }
   gridW = w; gridH = h;
   cells.clear(); openCells.clear(); selectedCell = null;
-  editingIndex = -1;
+  editingIndex = -1; currentTags.clear();
   document.getElementById('fname').value = '';
-  fit(); updateProps(); updateCellInfo(null); render(); save();
+  fit(); updateProps(); updateCellInfo(null); render(); renderTags(); save();
 };
 
 // ── save to collection ────────────────────────────────
@@ -332,7 +364,9 @@ function buildFurnitureObj(name) {
   const openArr = [...openCells].map(k => {
     const [c, r] = k.split(',').map(Number); return [r, c]; // [row,col]
   }).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  return { name, bbox: [gridH, gridW], tiles: tilesArr, open_cells: openArr };
+  const obj = { name, bbox: [gridH, gridW], tiles: tilesArr, open_cells: openArr };
+  if (currentTags.size) obj.tags = [...currentTags];
+  return obj;
 }
 
 // ── furniture list ─────────────────────────────────────
@@ -343,9 +377,16 @@ function renderFList() {
   collection.forEach((f, i) => {
     const div = document.createElement('div');
     div.className = 'fitem' + (i === editingIndex ? ' active' : '');
+    const tagsLine = (f.tags && f.tags.length)
+      ? `<div class="fi-tags" title="${f.tags.join(' · ')}">🏷 ${f.tags.join(' · ')}</div>` : '';
     div.innerHTML = `
-      <span class="fi-name" title="${f.name}">${f.name}</span>
-      <span class="fi-bbox">${f.bbox[1]}×${f.bbox[0]}</span>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="fi-name" title="${f.name}">${f.name}</span>
+          <span class="fi-bbox">${f.bbox[1]}×${f.bbox[0]}</span>
+        </div>
+        ${tagsLine}
+      </div>
       <button class="fi-del" title="删除">✕</button>`;
     div.querySelector('.fi-del').onclick = e => {
       e.stopPropagation();
@@ -372,14 +413,79 @@ function loadFurniture(i) {
   (f.tiles || []).forEach(t => cells.set(t.col + ',' + t.row, { tile: t.tile, rotation: t.rotation || 0, mirror: !!t.mirror }));
   openCells.clear();
   (f.open_cells || []).forEach(([r, c]) => openCells.add(c + ',' + r));
+  currentTags = new Set(f.tags || []);
   selectedCell = null; editingIndex = i;
-  fit(); updateProps(); updateCellInfo(null); render(); renderFList();
+  fit(); updateProps(); updateCellInfo(null); render(); renderFList(); renderTags();
 }
+
+// ── tags ───────────────────────────────────────────────
+function renderTags() {
+  const ctx2 = document.getElementById('tag-ctx');
+  const nm = document.getElementById('fname').value.trim();
+  ctx2.textContent = nm ? `→ ${nm}` : '→ (未命名)';
+  document.getElementById('tag-empty').style.display = tagVocab.length ? 'none' : 'block';
+  const wrap = document.getElementById('tag-chips');
+  wrap.innerHTML = '';
+  tagVocab.forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip' + (currentTags.has(tag) ? ' on' : '');
+    chip.title = '单击打标/取消 · 双击改名';
+    const tx = document.createElement('span');
+    tx.className = 'tx'; tx.textContent = tag;
+    tx.onclick = () => toggleTag(tag);
+    tx.ondblclick = () => renameTag(tag);
+    const del = document.createElement('span');
+    del.className = 'tag-del'; del.textContent = '✕'; del.title = '从词表删除';
+    del.onclick = e => { e.stopPropagation(); deleteTag(tag); };
+    chip.appendChild(tx); chip.appendChild(del);
+    wrap.appendChild(chip);
+  });
+}
+function addTag(name) {
+  name = (name || '').trim();
+  if (!name) return;
+  if (tagVocab.includes(name)) { alert(`标签「${name}」已存在`); return; }
+  tagVocab.push(name);
+  renderTags(); save();
+}
+function toggleTag(tag) {
+  if (currentTags.has(tag)) currentTags.delete(tag); else currentTags.add(tag);
+  renderTags(); save();
+}
+function renameTag(oldName) {
+  const next = prompt(`重命名标签「${oldName}」为:`, oldName);
+  if (next == null) return;
+  const nm = next.trim();
+  if (!nm || nm === oldName) return;
+  if (tagVocab.includes(nm)) { alert(`标签「${nm}」已存在`); return; }
+  tagVocab = tagVocab.map(t => t === oldName ? nm : t);
+  collection.forEach(f => { if (f.tags) f.tags = f.tags.map(t => t === oldName ? nm : t); });
+  if (currentTags.delete(oldName)) currentTags.add(nm);
+  renderTags(); renderFList(); save();
+}
+function deleteTag(tag) {
+  if (!confirm(`从词表删除标签「${tag}」？所有家具上的该标签也会移除。`)) return;
+  tagVocab = tagVocab.filter(t => t !== tag);
+  collection.forEach(f => { if (f.tags) f.tags = f.tags.filter(t => t !== tag); });
+  currentTags.delete(tag);
+  renderTags(); renderFList(); save();
+}
+document.getElementById('tag-add-btn').onclick = () => {
+  const inp = document.getElementById('tag-add-input');
+  addTag(inp.value); inp.value = ''; inp.focus();
+};
+document.getElementById('tag-add-input').addEventListener('keydown', ev => {
+  if (ev.key === 'Enter') { addTag(ev.target.value); ev.target.value = ''; ev.preventDefault(); }
+});
+document.getElementById('fname').addEventListener('input', () => {
+  const nm = document.getElementById('fname').value.trim();
+  document.getElementById('tag-ctx').textContent = nm ? `→ ${nm}` : '→ (未命名)';
+});
 
 // ── export / import ────────────────────────────────────
 document.getElementById('btn-export').onclick = () => {
   if (collection.length === 0) { alert('列表为空，请先保存至少一件家具'); return; }
-  const data = { furniture: collection };
+  const data = { tag_vocabulary: tagVocab, furniture: collection };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -398,8 +504,9 @@ document.getElementById('importfile').onchange = e => {
       if (!list) { alert('格式不对，需要 { "furniture": [...] }'); return; }
       if (collection.length > 0 && !confirm(`载入会替换当前 ${collection.length} 件家具，继续？`)) return;
       collection = list;
-      editingIndex = -1; cells.clear(); openCells.clear(); selectedCell = null;
-      renderFList(); updateProps(); updateCellInfo(null); render(); save();
+      if (Array.isArray(d.tag_vocabulary)) tagVocab = d.tag_vocabulary.slice();
+      editingIndex = -1; cells.clear(); openCells.clear(); selectedCell = null; currentTags.clear();
+      renderFList(); updateProps(); updateCellInfo(null); render(); renderTags(); save();
     } catch (err) { alert('解析失败: ' + err); }
   };
   rd.readAsText(f);
@@ -595,7 +702,7 @@ function save() {
       gridW, gridH, editingIndex,
       fname: document.getElementById('fname').value,
       cells: [...cells], openCells: [...openCells],
-      collection,
+      collection, tagVocab, currentTags: [...currentTags],
     }));
   } catch(e) {}
 }
@@ -610,6 +717,8 @@ function loadLS() {
     openCells = new Set(d.openCells || []);
     collection = d.collection || [];
     editingIndex = d.editingIndex ?? -1;
+    tagVocab = d.tagVocab || [];
+    currentTags = new Set(d.currentTags || []);
   } catch(e) {}
 }
 
