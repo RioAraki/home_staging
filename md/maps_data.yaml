@@ -3584,23 +3584,28 @@ scenarios:
         name_zh: 独居室
         name_en: Studio
         furniture:
-          - 长沙发
+          - 兰花
           - 折叠沙发
           - 岛台1
-          - 浴缸
-          - 马桶 8A-1
-          - 单人床 13A-2
+          - 浴缸1
+          - 马桶
+          - 猫
+          - 猫爬架
+          - 猫砂
+          - 床头柜
+          - 单人床
+          - 办公桌
     grid:
       ascii: |-
         ................
         ................
         ................
-        ................
-        .....IIIII......
-        .....IIIII......
-        .....IIIII......
-        .....IIIII......
-        .....IIIII......
+        ....IIIIIII.....
+        ....IIIIIII.....
+        ....IIIIIII.....
+        ....IIIIIII.....
+        ....IIIIIII.....
+        ....IIIIIII.....
         ................
         ................
         ................
@@ -3620,6 +3625,10 @@ scenarios:
             - 9
             - 7
           edge: 'N'
+        - cell:
+            - 9
+            - 7
+          edge: 'N'
           target: front_door
       windows: []
       walls_interior: []
@@ -3635,3 +3644,16 @@ scenarios:
       - text_zh: 放入了5件家具
         text_en: ''
         points: 1
+    theme:
+      bg:
+        - 239
+        - 236
+        - 213
+      gridline:
+        - 127
+        - 195
+        - 234
+      wall:
+        - 84
+        - 106
+        - 198
