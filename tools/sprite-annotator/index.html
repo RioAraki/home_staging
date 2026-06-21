@@ -39,7 +39,7 @@
 <div id="app">
   <div id="stage">
     <canvas id="cv"></canvas>
-    <div id="hint">滚轮缩放 · 按住 <kbd>空格</kbd> 拖动平移 · 点击格子打标 · 方向键移动选择</div>
+    <div id="hint">滚轮缩放 · 按住 <kbd>空格</kbd> 拖动平移 · 点击格子打标 · <kbd>Shift</kbd>+拖拽批量框选</div>
     <div id="drop">
       <div>把 <b>asset.png</b> 拖进来，或点击选择</div>
       <input type="file" id="file" accept="image/*" />
@@ -63,6 +63,16 @@
         <button class="danger" id="clear">清除</button>
       </div>
       <div class="row bad" id="warn" style="display:none"></div>
+    </div>
+    <div class="sec" id="batchsec" style="display:none">
+      <div class="row"><label class="k">批量</label><span id="batchinfo" class="accent">已选 0 格</span></div>
+      <div class="row"><input type="text" id="batchlabel" list="baselabels" placeholder="基础名,如 床" autocomplete="off" /></div>
+      <datalist id="baselabels"></datalist>
+      <div class="row">
+        <button class="primary" id="batchassign">批量打标 (Enter)</button>
+        <button id="batchcancel">取消 (Esc)</button>
+      </div>
+      <div class="row muted">Shift+拖拽追加 · 单击切换某格</div>
     </div>
     <div class="sec row" style="justify-content:space-between">
       <span><b id="count">0</b> <span class="muted">已标</span> · <span class="muted">冲突 </span><b id="nconf" class="accent">0</b></span>
@@ -96,6 +106,9 @@
   let panning = false, spaceDown = false, panStart = null;
   // annotations keyed by "col,row" -> label
   let ann = new Map();
+  // batch mode: pending selection of cells awaiting a shared base name
+  let batchSel = new Set();                 // "col,row" keys
+  let boxDragging = false, boxStart = null, boxCur = null;  // {col,row} during Shift-drag
 
   // ---------- persistence (per sheet) ----------
   function save() {
@@ -210,6 +223,27 @@
       ctx.strokeRect(w2sX(c*cell)+1, w2sY(r*cell)+1, cell*scale-2, cell*scale-2);
     }
     ctx.restore();
+    // batch selection (cells awaiting a shared base name)
+    if (batchSel.size) {
+      ctx.save();
+      for (const k of batchSel) {
+        const [c,r] = k.split(',').map(Number);
+        ctx.fillStyle = 'rgba(120,200,255,.30)';
+        ctx.fillRect(w2sX(c*cell), w2sY(r*cell), cell*scale, cell*scale);
+        ctx.strokeStyle = '#7fd0ff'; ctx.lineWidth = 2;
+        ctx.strokeRect(w2sX(c*cell)+1, w2sY(r*cell)+1, cell*scale-2, cell*scale-2);
+      }
+      ctx.restore();
+    }
+    // Shift-drag preview rectangle
+    if (boxDragging && boxStart && boxCur) {
+      const c0=Math.min(boxStart.col,boxCur.col), c1=Math.max(boxStart.col,boxCur.col);
+      const r0=Math.min(boxStart.row,boxCur.row), r1=Math.max(boxStart.row,boxCur.row);
+      ctx.save();
+      ctx.strokeStyle='#7fd0ff'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+      ctx.strokeRect(w2sX(c0*cell), w2sY(r0*cell), (c1-c0+1)*cell*scale, (r1-r0+1)*cell*scale);
+      ctx.restore();
+    }
     // grid (only when zoomed enough to be useful)
     if (cell*scale > 6) {
       ctx.strokeStyle = 'rgba(120,170,255,.30)'; ctx.lineWidth = 1; ctx.beginPath();
@@ -276,6 +310,35 @@
     if (dup) warn.textContent = `⚠ 标签「${v}」已用于其它格子`;
   }
 
+  const HINT_DEFAULT = '滚轮缩放 · 按住 <kbd>空格</kbd> 拖动平移 · 点击格子打标 · <kbd>Shift</kbd>+拖拽批量框选';
+  const HINT_BATCH = '批量模式 · <kbd>Shift</kbd>+拖拽追加 · 单击格子增删 · 输基础名后 <kbd>Enter</kbd> 打标 · <kbd>Esc</kbd> 取消';
+  function updateBatch() {
+    const sec = els('batchsec');
+    if (!batchSel.size) { sec.style.display='none'; els('hint').innerHTML=HINT_DEFAULT; return; }
+    sec.style.display='block';
+    els('hint').innerHTML=HINT_BATCH;
+    els('batchinfo').textContent = `已选 ${batchSel.size} 格`;
+    // suggest existing base names (labels with trailing digits stripped)
+    const dl = els('baselabels'); dl.innerHTML='';
+    [...new Set([...ann.values()].map(l=>l.replace(/\d+$/,'')).filter(Boolean))]
+      .forEach(b=>{ const o=document.createElement('option'); o.value=b; dl.appendChild(o); });
+  }
+  function batchAssign() {
+    if (!batchSel.size) return;
+    const base = els('batchlabel').value.trim();
+    if (!base) { els('batchlabel').focus(); return; }
+    // bounding box, scan row-major (先横再纵), number only selected cells 1..N
+    const cellsArr = [...batchSel].map(k=>{ const [c,r]=k.split(',').map(Number); return {c,r,k}; });
+    const minR = Math.min(...cellsArr.map(x=>x.r)), maxR = Math.max(...cellsArr.map(x=>x.r));
+    const minC = Math.min(...cellsArr.map(x=>x.c)), maxC = Math.max(...cellsArr.map(x=>x.c));
+    let idx = 0;
+    for (let r=minR;r<=maxR;r++) for (let c=minC;c<=maxC;c++) {
+      const k=c+','+r; if (batchSel.has(k)) ann.set(k, `${base}${++idx}`);  // overwrite if present
+    }
+    batchSel.clear(); els('batchlabel').value=''; updateBatch(); refreshList(); render();
+  }
+  function batchCancel() { batchSel.clear(); boxDragging=false; boxStart=boxCur=null; updateBatch(); render(); }
+
   function centerOn(c,r) { // keep selected cell visible if off-screen
     const sx = w2sX((c+0.5)*cell), sy = w2sY((r+0.5)*cell);
     if (sx<0||sy<0||sx>cv.width||sy>cv.height) { offX += cv.width/2 - sx; offY += cv.height/2 - sy; }
@@ -292,15 +355,31 @@
   cv.addEventListener('mousemove', ev => {
     if (panning) { offX = panStart.ox + (ev.clientX-panStart.x); offY = panStart.oy + (ev.clientY-panStart.y); render(); return; }
     const h = cellAt(ev);
+    if (boxDragging) { if (h) boxCur = h; render(); return; }
     if ((h&&!hover) || (!h&&hover) || (h&&hover&&(h.col!==hover.col||h.row!==hover.row))) { hover=h; render(); }
   });
   cv.addEventListener('mouseleave', ()=>{ hover=null; render(); });
   cv.addEventListener('mousedown', ev => {
     if (ev.button===1 || ev.button===2 || spaceDown) { panning=true; panStart={x:ev.clientX,y:ev.clientY,ox:offX,oy:offY}; cv.style.cursor='grabbing'; ev.preventDefault(); return; }
+    // Shift+drag → box-select for batch mode
+    if (ev.shiftKey) {
+      const c = cellAt(ev); if (!c) return;
+      boxDragging = true; boxStart = c; boxCur = c; ev.preventDefault(); render(); return;
+    }
     const c = cellAt(ev); if (!c) return;
+    // batch mode (pending selection exists): plain click toggles a cell in/out
+    if (batchSel.size) { const k=c.col+','+c.row; batchSel.has(k)?batchSel.delete(k):batchSel.add(k); updateBatch(); render(); return; }
     sel = c; labelInput.value = ann.get(c.col+','+c.row) || ''; updateSel(); render(); labelInput.focus(); labelInput.select();
   });
-  window.addEventListener('mouseup', ()=>{ panning=false; cv.style.cursor = spaceDown?'grab':'crosshair'; });
+  window.addEventListener('mouseup', ()=>{
+    if (boxDragging) {
+      const c0=Math.min(boxStart.col,boxCur.col), c1=Math.max(boxStart.col,boxCur.col);
+      const r0=Math.min(boxStart.row,boxCur.row), r1=Math.max(boxStart.row,boxCur.row);
+      for (let r=r0;r<=r1;r++) for (let c=c0;c<=c1;c++) batchSel.add(c+','+r);
+      boxDragging=false; boxStart=boxCur=null; updateBatch(); render();
+    }
+    panning=false; cv.style.cursor = spaceDown?'grab':'crosshair';
+  });
   cv.addEventListener('contextmenu', e=>e.preventDefault());
   cv.addEventListener('wheel', ev => {
     ev.preventDefault();
@@ -314,11 +393,14 @@
 
   // ---------- keyboard ----------
   window.addEventListener('keydown', ev => {
-    if (ev.code==='Space' && document.activeElement!==labelInput) { spaceDown=true; cv.style.cursor='grab'; ev.preventDefault(); }
+    const inInput = ev.target.tagName==='INPUT';
+    if (ev.code==='Space' && !inInput) { spaceDown=true; cv.style.cursor='grab'; ev.preventDefault(); }
+    if (ev.key==='Escape' && batchSel.size) { batchCancel(); ev.preventDefault(); return; }
     if (document.activeElement===labelInput) {
       if (ev.key==='Enter') { assign(); ev.preventDefault(); }
       return;
     }
+    if (inInput) return;
     if (!sel) return;
     let {col,row}=sel, moved=false;
     if (ev.key==='ArrowRight'&&col<cols-1){col++;moved=true;}
@@ -342,6 +424,12 @@
   function clearSel() { if(!sel) return; ann.delete(sel.col+','+sel.row); labelInput.value=''; refreshList(); updateSel(); render(); }
   els('assign').onclick = assign;
   els('clear').onclick = clearSel;
+  els('batchassign').onclick = batchAssign;
+  els('batchcancel').onclick = batchCancel;
+  els('batchlabel').addEventListener('keydown', ev => {
+    if (ev.key==='Enter') { batchAssign(); ev.preventDefault(); }
+    else if (ev.key==='Escape') { batchCancel(); ev.preventDefault(); }
+  });
   els('cell').onchange = () => { recomputeGrid(); fit(); refreshList(); render(); };
 
   const cropChannel = new BroadcastChannel('tiles-updated');
