@@ -26,6 +26,7 @@ const TITLE_Y = (MAX_FOOTPRINT_CELLS * PX_PER_CELL) / 2 + 18;
 const OPT1_X    = -120;   // centre of first option slot
 const OPT2_X    =  120;   // centre of second option slot
 const BTN_W     =  110;   // action-button width
+const PALETTE_CARD = 160; // uniform palette card box (tapOnly) — B4 orderly row
 
 /** X of the right-hand action column, pinned to the VISIBLE right edge so it
  *  never clips on narrow / tall phones (where the design width exceeds the
@@ -234,7 +235,7 @@ export class RoomPanel extends Component {
       () => this.getInput()?.tryPlaceAtGhost(), 120, cardList);
     this.makeButton(rx,   0, '撤销', new Color(160, 70, 50, 255), s.past.length > 0,
       () => gameStore.getState().undo(), 120, cardList);
-    this.makeButton(rx, -80, '完成摆放', new Color(150, 140, 120, 255), true,
+    this.makeButton(rx, -80, '完成摆放', new Color(216, 170, 60, 255), true,
       () => gameStore.getState().finishPlacing(), 120, cardList);
   }
 
@@ -288,10 +289,11 @@ export class RoomPanel extends Component {
     frame.setScale(mirrored ? -1 : 1, 1, 1);
     const fg = frame.addComponent(Graphics);
 
-    // Footprint box from the bbox at the shared scale — this is what makes a
-    // 1x1 piece render 1/9 the area of a 3x3 piece.
-    const boxW = bbox[1] * PX_PER_CELL;
-    const boxH = bbox[0] * PX_PER_CELL;
+    // In the palette every card is a uniform square (B4) so the strip reads as
+    // an orderly row, with the art scaled to fit. Only the old 2-option chooser
+    // keeps footprint-proportional sizing (1x1 renders 1/9 the area of a 3x3).
+    const boxW = tapOnly ? PALETTE_CARD : bbox[1] * PX_PER_CELL;
+    const boxH = tapOnly ? PALETTE_CARD : bbox[0] * PX_PER_CELL;
 
     const imgNode = new Node('img');
     node.addChild(imgNode);
@@ -317,7 +319,8 @@ export class RoomPanel extends Component {
     if (customEntry) {
       // Custom furniture: navy frame + composited tile sprites (resources/tiles).
       const boxW2 = bbox[1] * PX_PER_CELL, boxH2 = bbox[0] * PX_PER_CELL;
-      const fw = boxW2 + FRAME_PAD * 2, fh = boxH2 + FRAME_PAD * 2;
+      const fw = tapOnly ? PALETTE_CARD : boxW2 + FRAME_PAD * 2;
+      const fh = tapOnly ? PALETTE_CARD : boxH2 + FRAME_PAD * 2;
       fg.clear();
       fg.fillColor = new Color(16, 42, 71, 255);
       fg.strokeColor = selected ? new Color(255, 225, 105, 255) : new Color(120, 150, 185, 255);
@@ -326,6 +329,11 @@ export class RoomPanel extends Component {
       fg.fill();
       fg.stroke();
       imgUi.setContentSize(boxW2, boxH2);  // imgNode already carries rotation/mirror
+      if (tapOnly) {
+        // Scale the footprint tile-composite to fit the uniform card box (B4).
+        const fit = (PALETTE_CARD - FRAME_PAD * 2) / Math.max(boxW2, boxH2, 1);
+        imgNode.setScale((mirrored ? -1 : 1) * fit, fit, 1);
+      }
       for (const tile of customEntry.tiles ?? []) {
         const tn = new Node('t');
         imgNode.addChild(tn);
@@ -356,7 +364,8 @@ export class RoomPanel extends Component {
       const w = Math.max(1, Math.round(nw * k));
       const h = Math.max(1, Math.round(nh * k));
       imgUi.setContentSize(w, h);
-      const fw = w + FRAME_PAD * 2, fh = h + FRAME_PAD * 2;
+      const fw = tapOnly ? PALETTE_CARD : w + FRAME_PAD * 2;
+      const fh = tapOnly ? PALETTE_CARD : h + FRAME_PAD * 2;
       fg.clear();
       // Dark navy fill so the white line-art reads; lighter stroke when selected.
       fg.fillColor = new Color(16, 42, 71, 255);
