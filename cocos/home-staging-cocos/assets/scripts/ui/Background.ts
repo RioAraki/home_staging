@@ -23,30 +23,37 @@ export class Background extends Component {
     const visH = view.getVisibleSize().height;
     const W = visW + 80, H = visH + 80;   // bleed past the edges
 
-    const bg = new Node('bg');
-    this.node.addChild(bg);
-    bg.addComponent(UITransform).setContentSize(W, H);
-    const g = bg.addComponent(Graphics);
+    // Each layer is its OWN Graphics node — a single Graphics doesn't reset its
+    // path between fill()/stroke(), which would mangle the grid.
+    const mk = (name: string): Graphics => {
+      const n = new Node(name);
+      this.node.addChild(n);
+      n.addComponent(UITransform).setContentSize(W, H);
+      return n.addComponent(Graphics);
+    };
 
     // Base dark-navy fill.
-    g.fillColor = new Color(11, 18, 31, 255);
-    g.rect(-W / 2, -H / 2, W, H);
-    g.fill();
+    const base = mk('base');
+    base.fillColor = new Color(11, 18, 31, 255);
+    base.rect(-W / 2, -H / 2, W, H);
+    base.fill();
 
     // Soft upper-centre glow (stacked translucent discs ≈ a faint radial light).
+    const glow = mk('glow');
     for (let i = 0; i < 4; i++) {
-      g.fillColor = new Color(34, 56, 96, 9);
-      g.circle(0, H * 0.16, W * (0.62 - i * 0.13));
-      g.fill();
+      glow.fillColor = new Color(34, 56, 96, 10);
+      glow.circle(0, H * 0.16, W * (0.62 - i * 0.13));
+      glow.fill();
     }
 
-    // Faint blueprint grid — larger pitch + very low alpha so it never clashes
-    // with the floor-plan's own grid.
-    g.strokeColor = new Color(95, 135, 205, 13);
-    g.lineWidth = 1;
-    const STEP = 88;
-    for (let x = -W / 2; x <= W / 2; x += STEP) { g.moveTo(x, -H / 2); g.lineTo(x, H / 2); }
-    for (let y = -H / 2; y <= H / 2; y += STEP) { g.moveTo(-W / 2, y); g.lineTo(W / 2, y); }
-    g.stroke();
+    // Blueprint grid — larger pitch than the floor-plan's so the two never read
+    // as the same grid. Visible enough to actually show the motif.
+    const grid = mk('grid');
+    grid.strokeColor = new Color(110, 152, 222, 50);
+    grid.lineWidth = 2.5;
+    const STEP = 92;
+    for (let x = -W / 2; x <= W / 2; x += STEP) { grid.moveTo(x, -H / 2); grid.lineTo(x, H / 2); }
+    for (let y = -H / 2; y <= H / 2; y += STEP) { grid.moveTo(-W / 2, y); grid.lineTo(W / 2, y); }
+    grid.stroke();
   }
 }
