@@ -28,6 +28,10 @@ const OPT2_X    =  120;   // centre of second option slot
 const BTN_W     =  110;   // action-button width
 const PALETTE_CARD = 160; // uniform palette card box (tapOnly) — B4 orderly row
 
+// ── Shared UI color tokens (C2) so blocks stay visually consistent. ──
+const PANEL_FILL = new Color(26, 30, 38, 240);   // dark block background
+const PANEL_LINE = new Color(58, 64, 73, 255);   // block border / divider
+
 /** X of the right-hand action column, pinned to the VISIBLE right edge so it
  *  never clips on narrow / tall phones (where the design width exceeds the
  *  visible width under a fit-height resolution policy). listContent is centred
@@ -182,6 +186,9 @@ export class RoomPanel extends Component {
     // zone so they never overlap the cards. (cardList's own ScrollView/Mask off.)
     const m0 = cardList.getComponent('cc.Mask' as any) as any; if (m0) m0.enabled = false;
     const sv0 = cardList.getComponent('cc.ScrollView' as any) as any; if (sv0) sv0.enabled = false;
+    // Buttons now live in listContent (cleared every rebuild); drop any stragglers
+    // a previous build may have left on cardList so they can't pile up.
+    for (const c of [...cardList.children]) if (c !== this.listContent) c.destroy();
 
     const visW = view.getVisibleSize().width;
     const BTN_ZONE = 180;                                   // right zone reserved for buttons
@@ -191,6 +198,21 @@ export class RoomPanel extends Component {
     // Taller than SLOT_H so the name label (sits above the image at ~+122) is
     // not clipped by the viewport Mask.
     const viewH = SLOT_H + 160;
+
+    // B3: a dark rounded "palette panel" behind the tray so it reads as one
+    // defined block (TOKENs: panel fill/line) instead of loose elements on black.
+    const panel = new Node('TrayPanel');
+    this.listContent.addChild(panel);
+    panel.setSiblingIndex(0);                               // behind badge / cards / buttons
+    const panelW = visW - 18, panelH = viewH + 60;
+    panel.setPosition(0, 0, 0);
+    panel.addComponent(UITransform).setContentSize(panelW, panelH);
+    const pg = panel.addComponent(Graphics);
+    pg.fillColor = PANEL_FILL;
+    pg.roundRect(-panelW / 2, -panelH / 2, panelW, panelH, 16); pg.fill();
+    pg.strokeColor = PANEL_LINE; pg.lineWidth = 1.5;
+    pg.roundRect(-panelW / 2, -panelH / 2, panelW, panelH, 16); pg.stroke();
+
     const viewport = new Node('PaletteView');
     this.listContent.addChild(viewport);
     viewport.setPosition(-visW / 2 + viewW / 2 + 8, 0, 0);
@@ -232,11 +254,11 @@ export class RoomPanel extends Component {
     // or scrolled). 放置 / 撤销 / 完成摆放 (跳过 removed).
     const rx = visW / 2 - BTN_ZONE / 2;
     this.makeButton(rx,  80, '放置', new Color(80, 160, 90, 255), !!sel,
-      () => this.getInput()?.tryPlaceAtGhost(), 120, cardList);
+      () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
     this.makeButton(rx,   0, '撤销', new Color(160, 70, 50, 255), s.past.length > 0,
-      () => gameStore.getState().undo(), 120, cardList);
+      () => gameStore.getState().undo(), 120, this.listContent);
     this.makeButton(rx, -80, '完成摆放', new Color(216, 170, 60, 255), true,
-      () => gameStore.getState().finishPlacing(), 120, cardList);
+      () => gameStore.getState().finishPlacing(), 120, this.listContent);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
