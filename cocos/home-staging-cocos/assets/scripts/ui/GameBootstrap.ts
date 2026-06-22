@@ -5,6 +5,7 @@ import { audioManager } from '../platform/audio';
 import { AudioControls } from './AudioControls';
 import { RoomProgressPanel } from './RoomProgressPanel';
 import { ScenarioSelectScreen } from './ScenarioSelectScreen';
+import { HeaderBar } from './HeaderBar';
 const { ccclass } = _decorator;
 
 @ccclass('GameBootstrap')
@@ -42,6 +43,15 @@ export class GameBootstrap extends Component {
     audioManager.setSfxMuted(gameStore.getState().sfxMuted);
 
     const canvas = director.getScene()?.getComponentInChildren(Canvas);
+
+    // Header band behind the top-bar content (room name / reward / gear) so the
+    // top reads as one defined block (UI-improvement B1).
+    if (canvas && !canvas.node.getChildByName('HeaderBar')) {
+      const n = new Node('HeaderBar');
+      canvas.node.addChild(n);
+      n.setSiblingIndex(0);   // behind all header content
+      n.addComponent(HeaderBar);
+    }
 
     // Settings gear (BGM/SFX toggles) — top-right corner.
     if (canvas && !canvas.node.getChildByName('AudioControls')) {
