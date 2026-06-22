@@ -58,8 +58,12 @@ export class FloorPlan extends Component {
       return { w: parentUi.contentSize.width, h: parentUi.contentSize.height };
     }
     const vis = view.getVisibleSize();
-    // Fallback: leave room for the top toolbar and bottom card tray.
-    return { w: vis.width, h: vis.height * 0.55 };
+    // Main-game zone = full width, height = screen minus a slim header band and
+    // the bottom furniture tray. Bigger than the old 0.55 so the floor plan is
+    // the visual main area (UI-improvement A1/A3). Tuned for portrait phones.
+    const HEADER_BAND = vis.height * 0.10;
+    const TRAY_BAND   = vis.height * 0.26;
+    return { w: vis.width, h: Math.max(vis.height * 0.5, vis.height - HEADER_BAND - TRAY_BAND) };
   }
 
   private applyLayout() {
@@ -70,6 +74,11 @@ export class FloorPlan extends Component {
     // Match the node's own hit/visual area to the cropped map (anchor 0.5).
     const ui = this.node.getComponent(UITransform) ?? this.node.addComponent(UITransform);
     ui.setContentSize(layout().w, layout().h);
+    // Lift the floor plan into the "main game" zone (below the slim header band,
+    // above the tray) instead of dead-centre on screen — kills the big empty gap
+    // above it and makes it read as the main area. PanZoomContainer is inert
+    // (no pan/zoom), so positioning the content here is safe.
+    this.node.setPosition(0, view.getVisibleSize().height * 0.08, 0);
   }
 
   private renderAll() {
