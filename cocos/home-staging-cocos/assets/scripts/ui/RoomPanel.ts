@@ -1,13 +1,13 @@
 import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
-  Graphics, Color, Label, EventTouch, director, input, Input, view,
+  Graphics, Color, Label, EventTouch, director, input, Input, view, UIOpacity, Mask, ScrollView,
 } from 'cc';
 import {
   gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed,
   allRoomsSealed, frontDoorFixed, type GameState,
 } from '../state/gameStore';
 import { cardByNumberVariant, furnitureByName, type FurnitureLibraryEntry } from '../core/dataLoader';
-import { roomItemCount } from '../core/roomItems';
+import { roomItemCount, roomItemAt } from '../core/roomItems';
 import { InputHandler } from './InputHandler';
 const { ccclass, property } = _decorator;
 
@@ -149,28 +149,12 @@ export class RoomPanel extends Component {
           s.skippedCardKeys.has(`${s.activeRoomSlot}:${i}`),
         ).length;
 
-        // Background frame spanning both option slots + padding.
-        const FRAME_EXTRA = 20;
-        const frameW = (OPT2_X + SLOT_W / 2) - (OPT1_X - SLOT_W / 2) + FRAME_EXTRA * 2;
-        const frameH = SLOT_H + TITLE_Y + 30 + FRAME_EXTRA;
-        const frameCx = (OPT1_X + OPT2_X) / 2;
-        const frameCy = -TITLE_Y / 2 + 10;
-        const frameNode = new Node('OptionsFrame');
-        this.listContent.addChild(frameNode);
-        frameNode.setPosition(frameCx, frameCy, 0);
-        frameNode.addComponent(UITransform).setContentSize(frameW, frameH);
-        const fg = frameNode.addComponent(Graphics);
-        fg.fillColor = new Color(255, 255, 255, 32);
-        fg.strokeColor = new Color(255, 255, 255, 90);
-        fg.lineWidth = 1.5;
-        fg.roundRect(-frameW / 2, -frameH / 2, frameW, frameH, 10);
-        fg.fill();
-        fg.stroke();
-
-        // Title label centred above the options.
+        // Room name + progress badge above the strip. No decorative frame —
+        // the old OptionsFrame was sized for the 2-option chooser and only
+        // covered the centre; the palette now spans the full tray width.
         const badgeNode = new Node('RoomBadge');
         this.listContent.addChild(badgeNode);
-        badgeNode.setPosition(frameCx, TITLE_Y + 30, 0);
+        badgeNode.setPosition(0, TITLE_Y + 30, 0);
         const lbl = badgeNode.addComponent(Label);
         lbl.string = `${room.name_zh}  ${resolved} / ${total}`;
         lbl.fontSize = 24;
@@ -179,44 +163,79 @@ export class RoomPanel extends Component {
       }
     }
 
+    // ── Free-selection palette: ALL of the room's furniture as a horizontally
+    // scrollable strip. Tap any unplaced card to select it (drag to the plan /
+    // press 放置 to commit); placed cards grey out with a ✓. 「完成摆放」 finishes
+    // the room (skips whatever is left → construction). 「跳过」 is gone — free
+    // order makes per-card skipping meaningless. Cards live in listContent (the
+    // ScrollView content); the action buttons live on its parent so they stay
+    // put while the strip scrolls.
     const sel = s.selectedOption;
-    if (card.name) {
-      // Named furniture: the name pins one specific piece (no A/B, no 2 options).
-      const e = furnitureByName(card.name);
-      if (e) {
-        const isSel = !!sel && sel.slot === card.slot && sel.slotIdx === card.slotIdx;
-        this.makeOption(
-          card.slot, card.slotIdx, e.number ?? 0, e.variant ?? 'A', e.option_index ?? 1,
-          e.bbox, card.name, OPT1_X, isSel,
-          isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
-          e.source === 'custom' ? e : null,
-        );
-      }
-    } else {
-      const variant = s.chosenVariants[card.number] ?? 'A';
-      const data = cardByNumberVariant(card.number, variant);
-      if (!data) return;
-      for (const opt of data.options) {
-        const isSel = !!sel && sel.slot === card.slot && sel.slotIdx === card.slotIdx &&
-                      sel.optionIndex === opt.option_index;
-        const x = opt.option_index === 1 ? OPT1_X : OPT2_X;
-        this.makeOption(
-          card.slot, card.slotIdx, card.number, variant, opt.option_index,
-          opt.bbox, opt.name_zh, x, isSel,
-          isSel && sel ? sel.rotation : 0, isSel && sel ? sel.mirrored : false,
-          null,
-        );
+    const slot = card.slot;
+    const room2 = s.scenario?.rooms.find(r => r.slot === slot);
+    const total2 = room2 ? roomItemCount(room2) : 0;
+
+    const cardList = this.listContent.parent!;
+    // Self-contained viewport pinned to the LEFT zone: the strip is clipped to
+    // ~3-4 cards and scrolls horizontally; the action buttons get a clear right
+    // zone so they never overlap the cards. (cardList's own ScrollView/Mask off.)
+    const m0 = cardList.getComponent('cc.Mask' as any) as any; if (m0) m0.enabled = false;
+    const sv0 = cardList.getComponent('cc.ScrollView' as any) as any; if (sv0) sv0.enabled = false;
+
+    const visW = view.getVisibleSize().width;
+    const BTN_ZONE = 180;                                   // right zone reserved for buttons
+    const viewW = Math.max(300, visW - BTN_ZONE - 16);      // strip viewport width (~3-4 cards)
+    const GAP = 210;                                        // x spacing between card slots
+
+    // Taller than SLOT_H so the name label (sits above the image at ~+122) is
+    // not clipped by the viewport Mask.
+    const viewH = SLOT_H + 160;
+    const viewport = new Node('PaletteView');
+    this.listContent.addChild(viewport);
+    viewport.setPosition(-visW / 2 + viewW / 2 + 8, 0, 0);
+    viewport.addComponent(UITransform).setContentSize(viewW, viewH);
+    viewport.addComponent(Mask);
+    const psv = viewport.addComponent(ScrollView);
+
+    const strip = new Node('strip');
+    viewport.addChild(strip);
+    const sui = strip.addComponent(UITransform);
+    sui.setAnchorPoint(0, 0.5);
+    sui.setContentSize(Math.max(viewW, total2 * GAP), viewH);
+    strip.setPosition(-viewW / 2, 0, 0);                    // content left edge at viewport left
+    psv.horizontal = true; psv.vertical = false; psv.content = strip;
+
+    for (let i = 0; i < total2 && room2; i++) {
+      const item = roomItemAt(room2, i);
+      if (!item) continue;
+      const x = i * GAP + GAP / 2;                          // from the strip's left-anchored origin
+      const resolved = s.placedCardKeys.has(`${slot}:${i}`) || s.skippedCardKeys.has(`${slot}:${i}`);
+      const isSel = !!sel && sel.slot === slot && sel.slotIdx === i;
+      const selRot = isSel && sel ? sel.rotation : 0;
+      const selMir = isSel && sel ? sel.mirrored : false;
+      if (item.kind === 'named') {
+        const e = furnitureByName(item.name);
+        if (e) this.makeOption(slot, i, e.number ?? 0, e.variant ?? 'A', e.option_index ?? 1,
+          e.bbox, item.name, x, isSel, selRot, selMir,
+          e.source === 'custom' ? e : null, strip, resolved, true);
+      } else {
+        const variant = s.chosenVariants[item.number] ?? 'A';
+        const data = cardByNumberVariant(item.number, variant);
+        const opt = data?.options?.[0];
+        if (opt) this.makeOption(slot, i, item.number, variant, opt.option_index,
+          opt.bbox, opt.name_zh, x, isSel, selRot, selMir, null, strip, resolved, true);
       }
     }
-    // Single right-hand column, top→bottom: 跳过 / 放置 / 撤销.
-    // Rotation is done by tapping the placed/ghost piece, so no 旋转 button.
-    // X pinned to the visible right edge so it never clips on narrow phones.
-    const rx = rightColumnX();
-    this.makeButton(rx,  80, '跳过', new Color(150, 140, 120, 255), true,
-      () => gameStore.getState().skipCard(card.slot, card.slotIdx));
-    this.makeButton(rx,   0, '放置', new Color(80, 160, 90, 255), !!sel,
-      () => this.getInput()?.tryPlaceAtGhost());
-    this.addUndoButton(s, rx, -80);
+
+    // Right-hand action column on cardList (outside the viewport — never clipped
+    // or scrolled). 放置 / 撤销 / 完成摆放 (跳过 removed).
+    const rx = visW / 2 - BTN_ZONE / 2;
+    this.makeButton(rx,  80, '放置', new Color(80, 160, 90, 255), !!sel,
+      () => this.getInput()?.tryPlaceAtGhost(), 120, cardList);
+    this.makeButton(rx,   0, '撤销', new Color(160, 70, 50, 255), s.past.length > 0,
+      () => gameStore.getState().undo(), 120, cardList);
+    this.makeButton(rx, -80, '完成摆放', new Color(150, 140, 120, 255), true,
+      () => gameStore.getState().finishPlacing(), 120, cardList);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
@@ -230,25 +249,35 @@ export class RoomPanel extends Component {
     bbox: [number, number], name: string, x: number, selected: boolean,
     rotation: number, mirrored: boolean,
     customEntry: FurnitureLibraryEntry | null = null,
+    parent: Node = this.listContent, dimmed = false, tapOnly = false,
   ) {
     const node = new Node(`opt${optionIndex}`);
-    this.listContent.addChild(node);
+    parent.addChild(node);
     node.setPosition(x, 0, 0);
     node.addComponent(UITransform).setContentSize(SLOT_W, SLOT_H);  // fixed hit area
 
-    // Touch-down picks this option up; drag it onto the floor plan (the ghost
-    // follows the finger). Rotation is via the 旋转 button. The ghost stays
-    // hidden until the finger reaches the plan, so a tap no longer auto-hovers.
-    // Touch-down picks the option up and begins a drag. Cocos does NOT deliver
-    // node move events once the finger leaves the small tray slot, so we listen
-    // on the GLOBAL input for the rest of the drag and forward it to the plan.
-    node.on(Node.EventType.TOUCH_START, () => {
-      gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
-      input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
-      input.on(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
-      input.once(Input.EventType.TOUCH_END, this.onGlobalEnd, this);
-      input.once(Input.EventType.TOUCH_CANCEL, this.onGlobalEnd, this);
-    });
+    if (dimmed) {
+      // Placed/resolved card: greyed and inert (a ✓ badge is drawn on top).
+      (node.addComponent(UIOpacity)).opacity = 110;
+    } else if (tapOnly) {
+      // Inside the scrollable palette: a TAP selects this furniture; a drag is
+      // left to the ScrollView so the strip scrolls instead of starting a
+      // plan-drag. Commit placement with the 放置 button.
+      let sx = 0, sy = 0, moved = false;
+      node.on(Node.EventType.TOUCH_START, (e: EventTouch) => { const p = e.getUILocation(); sx = p.x; sy = p.y; moved = false; });
+      node.on(Node.EventType.TOUCH_MOVE,  (e: EventTouch) => { const p = e.getUILocation(); if (Math.abs(p.x - sx) > 12 || Math.abs(p.y - sy) > 12) moved = true; });
+      node.on(Node.EventType.TOUCH_END,   () => { if (!moved) gameStore.getState().selectOption({ slot, slotIdx, optionIndex }); });
+    } else {
+      // Old 2-option chooser: touch-down picks the option up and drags it onto
+      // the floor plan (the ghost follows the finger via the GLOBAL input).
+      node.on(Node.EventType.TOUCH_START, () => {
+        gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
+        input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+        input.on(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+        input.once(Input.EventType.TOUCH_END, this.onGlobalEnd, this);
+        input.once(Input.EventType.TOUCH_CANCEL, this.onGlobalEnd, this);
+      });
+    }
 
     // Frame (drawn to the real footprint once we know the cell size). Rotated
     // and mirrored to match the image, so the border turns with the piece.
@@ -341,10 +370,10 @@ export class RoomPanel extends Component {
 
   private makeButton(
     x: number, y: number, label: string, fill: Color, enabled: boolean, onTap: () => void,
-    w = 110,
+    w = 110, parent: Node = this.listContent,
   ) {
     const node = new Node(label);
-    this.listContent.addChild(node);
+    parent.addChild(node);
     node.setPosition(x, y, 0);
     node.addComponent(UITransform).setContentSize(w, 64);
 

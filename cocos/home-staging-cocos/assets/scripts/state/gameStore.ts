@@ -124,6 +124,7 @@ export interface GameState extends Undoable {
   clearSelection: () => void;
   placeSelected: (origin: [number, number]) => boolean;
   skipSelected: () => void;
+  finishPlacing: () => void;
   skipCard: (slot: RoomSlot, slotIdx: number) => void;
   unskipCard: (slot: RoomSlot, slotIdx: number) => void;
   unplaceCard: (slot: RoomSlot, slotIdx: number) => void;
@@ -618,6 +619,33 @@ export const gameStore = createStore<GameState>((set, get) => {
         nextRevealed.add(key);
         const nextSkipped = new Set(get().skippedCardKeys);
         nextSkipped.add(key);
+        set({
+          revealedCardKeys: nextRevealed,
+          skippedCardKeys: nextSkipped,
+          selectedOption: null,
+          lastError: null,
+        });
+      });
+    },
+
+    // Free-selection palette: the player places the furniture they want in any
+    // order; 「完成摆放」 marks every still-unresolved card as skipped, which
+    // pushes currentCardIndexOf past the end → the room enters construction.
+    // One undo step restores the whole pre-finish state.
+    finishPlacing: () => {
+      const { scenario, activeRoomSlot } = get();
+      const room = scenario?.rooms.find((r) => r.slot === activeRoomSlot);
+      if (!room || !activeRoomSlot) return;
+      mutate(() => {
+        const nextRevealed = new Set(get().revealedCardKeys);
+        const nextSkipped = new Set(get().skippedCardKeys);
+        for (let i = 0; i < roomItemCount(room); i++) {
+          const k = instanceKey(activeRoomSlot, i);
+          if (!get().placedCardKeys.has(k) && !nextSkipped.has(k)) {
+            nextRevealed.add(k);
+            nextSkipped.add(k);
+          }
+        }
         set({
           revealedCardKeys: nextRevealed,
           skippedCardKeys: nextSkipped,
