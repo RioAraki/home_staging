@@ -6,6 +6,7 @@ import { AudioControls } from './AudioControls';
 import { RoomProgressPanel } from './RoomProgressPanel';
 import { ScenarioSelectScreen } from './ScenarioSelectScreen';
 import { HeaderBar } from './HeaderBar';
+import { Background } from './Background';
 const { ccclass } = _decorator;
 
 @ccclass('GameBootstrap')
@@ -51,6 +52,15 @@ export class GameBootstrap extends Component {
       canvas.node.addChild(n);
       n.setSiblingIndex(0);   // behind all header content
       n.addComponent(HeaderBar);
+    }
+
+    // Full-screen blueprint background (E1, direction B) — mounted last with
+    // sibling index 0 so it ends up the deepest layer, behind even HeaderBar.
+    if (canvas && !canvas.node.getChildByName('Background')) {
+      const n = new Node('Background');
+      canvas.node.addChild(n);
+      n.setSiblingIndex(0);
+      n.addComponent(Background);
     }
 
     // Settings gear (BGM/SFX toggles) — top-right corner.
