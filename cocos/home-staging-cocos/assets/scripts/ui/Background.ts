@@ -18,8 +18,8 @@ const { ccclass } = _decorator;
 export class Background extends Component {
   /** Horizontal spacing between diagonal lines (= the seamless drift period). */
   private static readonly PERIOD = 46;
-  /** Seconds to drift one full period — slow but clearly moving (~9 px/s). */
-  private static readonly LOOP_SECONDS = 5;
+  /** Seconds to drift one full period — gentle but clearly moving (~15 px/s). */
+  private static readonly LOOP_SECONDS = 3;
 
   private texNode?: Node;
 
