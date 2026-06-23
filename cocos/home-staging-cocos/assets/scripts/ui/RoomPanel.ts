@@ -150,10 +150,10 @@ export class RoomPanel extends Component {
 
   private onGlobalDrop(e: EventTouch) {
     this.offGlobalListeners();
-    const inp = this.getInput();
-    if (!inp) return;
-    inp.dragGhost(e);        // settle the ghost at the release point
-    inp.tryPlaceAtGhost();   // place if valid (invalid → stays selected + shows why)
+    // Settle the ghost at the release point but DO NOT place — placement happens
+    // ONLY via the 放置 button. After dropping, the player can tap the plan to
+    // rotate the piece, then press 放置 to commit.
+    this.getInput()?.dragGhost(e);
   }
 
   private rebuild() {
@@ -248,23 +248,15 @@ export class RoomPanel extends Component {
     for (const c of [...cardList.children]) if (c !== this.listContent) c.destroy();
 
     const visW = view.getVisibleSize().width;
-    const BTN_ZONE = 180;                                   // right zone reserved for buttons
-    const viewW = Math.max(300, visW - BTN_ZONE - 16);      // strip viewport width (~3-4 cards)
     const GAP = 210;                                        // x spacing between card slots
+    const viewH = SLOT_H + 160;                             // tall enough the name label isn't clipped
+    const STRIP_CY = -24;                                   // strip vertical centre (room title sits above)
 
-    // Taller than SLOT_H so the name label (sits above the image at ~+122) is
-    // not clipped by the viewport Mask.
-    const viewH = SLOT_H + 160;
-    // Card-strip vertical centre — shifted DOWN so the enlarged room title sits
-    // clearly in the tray's top zone, above the strip.
-    const STRIP_CY = -24;
-    const vx = -visW / 2 + viewW / 2 + 8;                   // left-zone centre x
-
-    // Outer tray panel — the whole bottom block (TOKENs: panel fill/line).
+    // Outer tray panel — the whole bottom block.
+    const panelW = visW - 18, panelH = viewH + 60;
     const panel = new Node('TrayPanel');
     this.listContent.addChild(panel);
     panel.setSiblingIndex(0);                               // behind everything
-    const panelW = visW - 18, panelH = viewH + 60;
     panel.setPosition(0, 0, 0);
     panel.addComponent(UITransform).setContentSize(panelW, panelH);
     const pg = panel.addComponent(Graphics);
@@ -273,24 +265,34 @@ export class RoomPanel extends Component {
     pg.strokeColor = PANEL_LINE; pg.lineWidth = 1.5;
     pg.roundRect(-panelW / 2, -panelH / 2, panelW, panelH, 16); pg.stroke();
 
-    // Card-strip background — a distinct inset panel over the LEFT zone so the
-    // scrollable furniture list reads as its own block, clearly separated from
-    // the action-button column on the right (item 1).
+    // Zones INSIDE the panel: a left card-strip block + a right button column,
+    // both inset with a margin so the strip background is fully WRAPPED by the
+    // outer panel (item 3) and clearly separated from the buttons (item 1).
+    const PAD = 16;                                         // inner margin within the panel
+    const innerL = -panelW / 2 + PAD, innerR = panelW / 2 - PAD;
+    const BTN_ZONE = 176, COL_GAP = 14;                    // button column width + gap to strip
+    const stripL = innerL, stripR = innerR - BTN_ZONE - COL_GAP;
+    const stripW = stripR - stripL;                        // strip background width
+    const stripCx = (stripL + stripR) / 2;                 // strip centre x
+    const viewW = stripW - 16;                              // viewport (mask) inset within the strip bg
+    const sbH = viewH - 60;                                 // strip background / viewport height
+    const rx = stripR + COL_GAP + BTN_ZONE / 2;            // button column centre x
+
+    // Card-strip background — a distinct inset block, fully inside the panel.
     const stripBg = new Node('StripBg');
     this.listContent.addChild(stripBg);
-    const sbW = viewW + 8, sbH = viewH - 60;
-    stripBg.setPosition(vx, STRIP_CY, 0);
-    stripBg.addComponent(UITransform).setContentSize(sbW, sbH);
+    stripBg.setPosition(stripCx, STRIP_CY, 0);
+    stripBg.addComponent(UITransform).setContentSize(stripW, sbH);
     const sbg = stripBg.addComponent(Graphics);
     sbg.fillColor = new Color(238, 227, 209, 255);          // warm inset, darker than the cream panel
-    sbg.roundRect(-sbW / 2, -sbH / 2, sbW, sbH, 12); sbg.fill();
+    sbg.roundRect(-stripW / 2, -sbH / 2, stripW, sbH, 12); sbg.fill();
     sbg.strokeColor = PANEL_LINE; sbg.lineWidth = 1.2;
-    sbg.roundRect(-sbW / 2, -sbH / 2, sbW, sbH, 12); sbg.stroke();
+    sbg.roundRect(-stripW / 2, -sbH / 2, stripW, sbH, 12); sbg.stroke();
 
     const viewport = new Node('PaletteView');
     this.listContent.addChild(viewport);
-    viewport.setPosition(vx, STRIP_CY, 0);
-    viewport.addComponent(UITransform).setContentSize(viewW, viewH);
+    viewport.setPosition(stripCx, STRIP_CY, 0);
+    viewport.addComponent(UITransform).setContentSize(viewW, sbH);
     viewport.addComponent(Mask);
     const psv = viewport.addComponent(ScrollView);
 
@@ -298,13 +300,20 @@ export class RoomPanel extends Component {
     viewport.addChild(strip);
     const sui = strip.addComponent(UITransform);
     sui.setAnchorPoint(0, 0.5);
-    sui.setContentSize(Math.max(viewW, pending.length * GAP), viewH);
-    strip.setPosition(-viewW / 2, 0, 0);                    // content left edge at viewport left
+    sui.setContentSize(Math.max(viewW, pending.length * GAP), sbH);
+    // Pre-position the content to the PRESERVED scroll offset BEFORE the
+    // ScrollView initialises, so selecting a card never jumps the strip back to
+    // the first card (item 4). content.x = -viewW/2 - offset. We do NOT track a
+    // live SCROLLING event (it can fire offset 0 during init and clobber the
+    // saved value); instead the next rebuild re-reads the real offset from the
+    // old ScrollView at its top (see `prevSv` capture).
+    const targetX = this.scrollX;
+    strip.setPosition(-viewW / 2 - targetX, 0, 0);
     psv.horizontal = true; psv.vertical = false; psv.content = strip;
-    // Track scrolling so the offset is current for the next rebuild, and restore
-    // the preserved offset now so this rebuild keeps the strip where it was.
-    psv.node.on(ScrollView.EventType.SCROLLING, () => { this.scrollX = psv.getScrollOffset().x; }, this);
-    if (this.scrollX) psv.scrollToOffset(new Vec2(this.scrollX, 0), 0);
+    // Re-assert next frame too, in case ScrollView's own init clamped it.
+    if (targetX) this.scheduleOnce(() => {
+      if (psv.isValid && psv.node?.isValid) psv.scrollToOffset(new Vec2(targetX, 0), 0);
+    }, 0);
 
     for (let vi = 0; vi < pending.length && room2; vi++) {
       const i = pending[vi];
@@ -329,8 +338,7 @@ export class RoomPanel extends Component {
     }
 
     // Right-hand action column — its own zone, vertically centred on the strip.
-    // 放置 / 撤销 / 完成摆放 (跳过 removed).
-    const rx = visW / 2 - BTN_ZONE / 2;
+    // 放置 / 撤销 / 完成摆放 (跳过 removed). rx/STRIP_CY come from the layout above.
     this.makeButton(rx,  STRIP_CY + 80, '放置', BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
     this.makeButton(rx,  STRIP_CY,      '撤销', BTN_RED, s.past.length > 0,
