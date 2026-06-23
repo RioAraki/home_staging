@@ -571,13 +571,16 @@ export class RoomPanel extends Component {
     for (let r = 0; r < H; r++) {
       for (let c = 0; c < W; c++) {
         const k = `${r},${c}`;
-        if (shapeSet.has(k)) {
-          g.fillColor = SHAPE;
-          g.rect(-bw / 2 + c * cellPx + gap, bh / 2 - (r + 1) * cellPx + gap, cellPx - gap * 2, cellPx - gap * 2);
-          g.fill();
-        } else if (openSet.has(k)) {
+        // OPEN takes precedence over SHAPE: a cell can be both (e.g. 浴缸's
+        // curtain cells, or a carpet) — it has art but is still a walkable open
+        // cell, so it must read as open (dot), not occupied (square).
+        if (openSet.has(k)) {
           g.fillColor = ACCENT;
           g.circle(-bw / 2 + (c + 0.5) * cellPx, bh / 2 - (r + 0.5) * cellPx, dotR);
+          g.fill();
+        } else if (shapeSet.has(k)) {
+          g.fillColor = SHAPE;
+          g.rect(-bw / 2 + c * cellPx + gap, bh / 2 - (r + 1) * cellPx + gap, cellPx - gap * 2, cellPx - gap * 2);
           g.fill();
         }
         // void → leave the light backing
