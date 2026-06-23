@@ -80,17 +80,13 @@ export function scenarioById(id: string): Scenario | undefined {
   return scenarios().find((s) => s.id === id);
 }
 
-/** Scenarios vetted for play, in display order (mirrors the web app's
- *  AVAILABLE_SCENARIO_IDS). Add an id here once a scenario has been
- *  smoke-tested in the Cocos build. */
+/** Scenarios SHOWN in the level-select, in display order. Only editor-authored
+ *  levels are surfaced now — the 桌游规则书 (board-game rulebook) scenarios are
+ *  intentionally HIDDEN (not deleted): their data stays in md/scenarios/* and
+ *  maps_data so their dimensions/elements remain available for reference, they
+ *  just don't appear in the picker. Add an id here to surface a level. */
 export const AVAILABLE_SCENARIO_IDS = [
-  'training',
-  'alpine_wellness_hut',
-  'mountain_surgery',
-  'castle_cafe',
-  'rehearsal_room_old_barn',
-  'game_store_old_town',
-  'test_0',   // editor-authored (named furniture; minimal-load — furniture not placeable yet)
+  'test_0',   // 小公寓 — editor-authored
 ];
 
 export function availableScenarios(): Scenario[] {
