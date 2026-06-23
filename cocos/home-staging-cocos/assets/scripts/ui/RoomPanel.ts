@@ -392,11 +392,13 @@ export class RoomPanel extends Component {
     frame.setScale(mirrored ? -1 : 1, 1, 1);
     const fg = frame.addComponent(Graphics);
 
-    // In the palette every card is a uniform square (B4) so the strip reads as
-    // an orderly row, with the art scaled to fit. Only the old 2-option chooser
-    // keeps footprint-proportional sizing (1x1 renders 1/9 the area of a 3x3).
-    const boxW = tapOnly ? PALETTE_CARD : bbox[1] * PX_PER_CELL;
-    const boxH = tapOnly ? PALETTE_CARD : bbox[0] * PX_PER_CELL;
+    // The palette card frame stays a uniform square (titles align), but the art
+    // is fit into a bbox-PROPORTIONED grid centred inside it, so the per-cell grid
+    // overlay (borders + open-cell dots) lines up with the illustration. tapCs is
+    // the cell size in px. (The old 2-option chooser keeps 52px-per-cell sizing.)
+    const tapCs = Math.min((PALETTE_CARD - 20) / bbox[1], (PALETTE_CARD - 20) / bbox[0]);
+    const boxW = tapOnly ? bbox[1] * tapCs : bbox[1] * PX_PER_CELL;
+    const boxH = tapOnly ? bbox[0] * tapCs : bbox[0] * PX_PER_CELL;
 
     const imgNode = new Node('img');
     node.addChild(imgNode);
@@ -421,10 +423,10 @@ export class RoomPanel extends Component {
     nameLabel.outlineColor = new Color(253, 246, 236, 235);
     nameLabel.outlineWidth = 2;
 
-    // 方案 B: a small footprint badge in the card's bottom-right corner showing
-    // the piece's bbox — shape cells, open cells, voids — so the player can read
-    // its size/shape at a glance without losing the recognizable illustration.
-    if (tapOnly) this.addFootprintBadge(node, number, variant, optionIndex, name);
+    // Draw a per-cell grid + open-cell dots directly over the illustration so the
+    // player can count cells (its size) and see which cells are open spaces. The
+    // frame stays a uniform square, so titles stay aligned across cards.
+    if (tapOnly) this.addCellGrid(node, number, variant, optionIndex, name, rotation, mirrored, tapCs);
 
     if (customEntry) {
       // Custom furniture: navy frame + composited tile sprites (resources/tiles).
@@ -440,8 +442,9 @@ export class RoomPanel extends Component {
       fg.stroke();
       imgUi.setContentSize(boxW2, boxH2);  // imgNode already carries rotation/mirror
       if (tapOnly) {
-        // Scale the footprint tile-composite to fit the uniform card box (B4).
-        const fit = (PALETTE_CARD - FRAME_PAD * 2) / Math.max(boxW2, boxH2, 1);
+        // Shrink the 52px-per-cell tile composite to tapCs per cell so it fills
+        // the same bbox-proportioned grid the overlay draws.
+        const fit = tapCs / PX_PER_CELL;
         imgNode.setScale((mirrored ? -1 : 1) * fit, fit, 1);
       }
       for (const tile of customEntry.tiles ?? []) {
@@ -488,11 +491,14 @@ export class RoomPanel extends Component {
     });
   }
 
-  /** 方案 B footprint badge: a tiny bbox grid (shape / open cell / void) drawn in
-   *  the card's bottom-right corner so the piece's size & shape read at a glance
-   *  without losing the recognizable illustration. */
-  private addFootprintBadge(
-    parent: Node, number: number, variant: 'A' | 'B', optionIndex: number, name?: string,
+  /** Per-cell grid + open-cell dots drawn directly over the card illustration:
+   *  every bbox cell gets a faint border (so the player can count cells = size),
+   *  and each open/clearance cell gets a terracotta dot (matching the floor-plan
+   *  open-cell dots). Rotated/mirrored with the piece so it lines up with the art.
+   *  `cs` is the cell size in px (the same the art was fit to). */
+  private addCellGrid(
+    parent: Node, number: number, variant: 'A' | 'B', optionIndex: number,
+    name: string | undefined, rotation: number, mirrored: boolean, cs: number,
   ) {
     const ref = { number, variant, optionIndex, rotation: 0 as const, mirrored: false };
     // Numbered & card-derived named pieces resolve by number/variant/option;
@@ -502,46 +508,27 @@ export class RoomPanel extends Component {
     const [H, W] = opt.bbox;
     if (!H || !W) return;
 
-    const shapeSet = new Set(opt.shape.map(([r, c]) => `${r},${c}`));
-    const openSet  = new Set(opt.open_spaces.map(([r, c]) => `${r},${c}`));
+    const gw = W * cs, gh = H * cs;
+    const node = new Node('footprint');
+    parent.addChild(node);
+    node.angle = -90 * rotation;
+    node.setScale(mirrored ? -1 : 1, 1, 1);
+    node.addComponent(UITransform).setContentSize(gw, gh);
+    const g = node.addComponent(Graphics);
 
-    const cellPx = Math.max(7, Math.min(11, Math.floor(54 / Math.max(H, W))));
-    const bw = W * cellPx, bh = H * cellPx, pad = 3;
+    // Faint border on every bbox cell so the cell count (size) reads over the art.
+    g.strokeColor = new Color(231, 217, 191, 130);
+    g.lineWidth = 1.2;
+    for (let c = 0; c <= W; c++) { const x = -gw / 2 + c * cs; g.moveTo(x, -gh / 2); g.lineTo(x, gh / 2); }
+    for (let r = 0; r <= H; r++) { const y = gh / 2 - r * cs; g.moveTo(-gw / 2, y); g.lineTo(gw / 2, y); }
+    g.stroke();
 
-    const badge = new Node('footprint');
-    parent.addChild(badge);
-    // Bottom-right corner of the uniform card (frame spans ±PALETTE_CARD/2).
-    const half = PALETTE_CARD / 2;
-    badge.setPosition(half - (bw / 2 + pad) - 6, -half + (bh / 2 + pad) + 6, 0);
-    badge.addComponent(UITransform).setContentSize(bw + pad * 2, bh + pad * 2);
-    const g = badge.addComponent(Graphics);
-
-    // Light translucent backing so the grid reads on the dark walnut card.
-    g.fillColor = new Color(231, 217, 191, 235);
-    g.roundRect(-(bw / 2 + pad), -(bh / 2 + pad), bw + pad * 2, bh + pad * 2, 4);
-    g.fill();
-
-    const SHAPE = new Color(138, 111, 82, 255);   // occupied cell
-    const gap = 0.6;
-    const dotR = Math.max(2, cellPx * 0.32);
-    for (let r = 0; r < H; r++) {
-      for (let c = 0; c < W; c++) {
-        const k = `${r},${c}`;
-        const isShape = shapeSet.has(k), isOpen = openSet.has(k);
-        if (isShape) {
-          // occupied cell → solid brown square
-          g.fillColor = SHAPE;
-          g.rect(-bw / 2 + c * cellPx + gap, bh / 2 - (r + 1) * cellPx + gap, cellPx - gap * 2, cellPx - gap * 2);
-          g.fill();
-        } else if (isOpen) {
-          // open / clearance cell → a terracotta dot (matches the floor-plan
-          // open-cell dots), so empty cells are marked rather than left blank.
-          g.fillColor = ACCENT;
-          g.circle(-bw / 2 + (c + 0.5) * cellPx, bh / 2 - (r + 0.5) * cellPx, dotR);
-          g.fill();
-        }
-        // void (neither shape nor open) → leave the light backing
-      }
+    // Terracotta dot on each open / clearance cell.
+    g.fillColor = ACCENT;
+    const dotR = Math.max(3, cs * 0.17);
+    for (const [r, c] of opt.open_spaces) {
+      g.circle(-gw / 2 + (c + 0.5) * cs, gh / 2 - (r + 0.5) * cs, dotR);
+      g.fill();
     }
   }
 
