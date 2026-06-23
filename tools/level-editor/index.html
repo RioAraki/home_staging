@@ -512,29 +512,37 @@ function edgeAt(ev){ // nearest grid edge
   const c=Math.floor(wx); if(row<0||row>model.rows||c<0||c>=model.cols)return null; return `h:${row}:${c}`;
 }
 let painting=false;
-function applyPaint(ev, erase){
+function applyPaint(ev, erase, fromClick){
   if (tool==='terrain'||tool==='feature'){
     const cl=cellAt(ev); if(!cl)return;
-    if (tool==='terrain') model.terrain[cl.r][cl.c]= erase?'outdoor':terrainValue;
-    else model.feature[cl.r][cl.c]= erase?null:($('feature-sel').value||null);
+    if (tool==='terrain'){
+      if (erase) model.terrain[cl.r][cl.c]='outdoor';
+      else if (fromClick && model.terrain[cl.r][cl.c]===terrainValue) model.terrain[cl.r][cl.c]='outdoor'; // 重复点同一地形 → 回退 outdoor(空)
+      else model.terrain[cl.r][cl.c]=terrainValue;
+    } else {
+      const fv=$('feature-sel').value||null;
+      if (erase) model.feature[cl.r][cl.c]=null;
+      else if (fromClick && fv && model.feature[cl.r][cl.c]===fv) model.feature[cl.r][cl.c]=null; // 重复点同一特征 → 清除
+      else model.feature[cl.r][cl.c]=fv;
+    }
     render(); return;
   }
   if (tool==='frontdoor'){
     const k=edgeAt(ev); if(!k)return;
     if(erase){ if(model.frontDoor===k) model.frontDoor=null; }
-    else { model.frontDoor = (model.frontDoor===k && !painting) ? null : k; } // single, replaces
+    else { model.frontDoor = (model.frontDoor===k && fromClick) ? null : k; } // 重复点同一边 → 取消;否则替换
     render(); return;
   }
   if (tool==='door'||tool==='window'||tool==='wall'){
     const k=edgeAt(ev); if(!k)return;
     const arr = tool==='door'?model.doors : tool==='window'?model.windows : model.walls;
-    const i=arr.indexOf(k); if(erase){ if(i>=0)arr.splice(i,1);} else if(i<0)arr.push(k); else if(!painting)arr.splice(i,1);
+    const i=arr.indexOf(k); if(erase){ if(i>=0)arr.splice(i,1);} else if(i<0)arr.push(k); else if(fromClick)arr.splice(i,1); // 重复点同一边 → 取消
     render(); return;
   }
   if (tool==='frontcell'){
     const cl=cellAt(ev); if(!cl)return; const fc=model.rules.front_door.forced_cells;
     const i=fc.findIndex(([r,c])=>r===cl.r&&c===cl.c);
-    if(erase){if(i>=0)fc.splice(i,1);} else if(i<0)fc.push([cl.r,cl.c]); else if(!painting)fc.splice(i,1);
+    if(erase){if(i>=0)fc.splice(i,1);} else if(i<0)fc.push([cl.r,cl.c]); else if(fromClick)fc.splice(i,1); // 重复点同一格 → 取消
     refreshFdInfo(); render(); return;
   }
   if (tool==='marker' && !erase){
@@ -546,12 +554,12 @@ function applyPaint(ev, erase){
 }
 cv.addEventListener('mousedown', ev=>{
   if (ev.button===1||spaceDown){ panning=true; panStart={x:ev.clientX,y:ev.clientY,ox:offX,oy:offY}; cv.style.cursor='grabbing'; ev.preventDefault(); return; }
-  if (ev.button===0){ painting=true; applyPaint(ev,false); persist(); refreshValidation(); }
+  if (ev.button===0){ painting=true; applyPaint(ev,false,true); persist(); refreshValidation(); }
 });
-cv.addEventListener('contextmenu', ev=>{ ev.preventDefault(); const cl=cellAt(ev); if(cl){ applyPaint(ev,true); persist(); refreshValidation(); } });
+cv.addEventListener('contextmenu', ev=>{ ev.preventDefault(); const cl=cellAt(ev); if(cl){ applyPaint(ev,true,false); persist(); refreshValidation(); } });
 cv.addEventListener('mousemove', ev=>{
   if (panning){ offX=panStart.ox+(ev.clientX-panStart.x); offY=panStart.oy+(ev.clientY-panStart.y); render(); return; }
-  if (painting && (tool==='terrain'||tool==='feature')) applyPaint(ev,false);
+  if (painting && (tool==='terrain'||tool==='feature')) applyPaint(ev,false,false);
 });
 window.addEventListener('mouseup', ()=>{ if(painting){persist();refreshValidation();} painting=false; panning=false; cv.style.cursor=spaceDown?'grab':'crosshair'; });
 cv.addEventListener('wheel', ev=>{ ev.preventDefault(); const rc=cv.getBoundingClientRect(),mx=ev.clientX-rc.left,my=ev.clientY-rc.top; const wx=s2wX(mx),wy=s2wY(my),f=ev.deltaY<0?1.15:1/1.15; scale=Math.max(0.1,Math.min(20,scale*f)); offX=mx-wx*BASECELL*scale; offY=my-wy*BASECELL*scale; render(); },{passive:false});
