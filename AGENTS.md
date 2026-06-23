@@ -63,6 +63,15 @@
 - cocos 与 app 仍读 `md/maps_data.yaml`(加载代码未变)。
 - 改了**自定义家具**(`asset/furniture_collection.json`)后,`scenarios:build` 不够——还要在 cocos 目录跑 `npm run furniture:library`(重建家具库)+ `npm run sync:tiles`(同步 tile 并写 `trimType:none` meta)。详见 `memory/project_furniture_build_pipeline.md`。
 
+## 多 worktree 并行开发与 Cocos 预览
+
+- Cocos 只从**主仓**(它打开的那个 checkout)读取;worktree(detached、按槽位命名)的改动它看不到。
+- 聚合生成物(`md/maps_data.yaml`、`asset/cards_furniture.json`、cocos `resources/data` 下的
+  `maps_data.json` / `furniture_library.json`)已**移出 git**,只提交源、预览前 build。
+- 预览某 worktree 的内容:worktree 里 `git push origin HEAD:feat/<名>` → 主仓
+  `.\tools\preview-ref.ps1 feat/<名>`(fetch + `checkout --detach` + 重建)→ Cocos Reimport。
+- 完整流程见 **[docs/worktree-preview.md](./docs/worktree-preview.md)**。
+
 ## Cocos 资产操作规范
 
 - **移动/重命名资产必须在 Cocos 编辑器内操作**,不能直接 mv 文件,否则 .meta/UUID 会断裂。
