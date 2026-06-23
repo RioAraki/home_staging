@@ -423,10 +423,13 @@ export class RoomPanel extends Component {
     nameLabel.outlineColor = new Color(253, 246, 236, 235);
     nameLabel.outlineWidth = 2;
 
-    // Draw a per-cell grid + open-cell dots directly over the illustration so the
-    // player can count cells (its size) and see which cells are open spaces. The
-    // frame stays a uniform square, so titles stay aligned across cards.
-    if (tapOnly) this.addCellGrid(node, number, variant, optionIndex, name, rotation, mirrored, tapCs);
+    // Footprint cues for the palette card:
+    //  • on the illustration: a per-cell grid + open-cell dots (count cells = size);
+    //  • bottom-right corner: a compact bbox mini-map (shape / open / void).
+    if (tapOnly) {
+      this.addCellGrid(node, number, variant, optionIndex, name, rotation, mirrored, tapCs);
+      this.addFootprintBadge(node, number, variant, optionIndex, name);
+    }
 
     if (customEntry) {
       // Custom furniture: navy frame + composited tile sprites (resources/tiles).
@@ -516,19 +519,69 @@ export class RoomPanel extends Component {
     node.addComponent(UITransform).setContentSize(gw, gh);
     const g = node.addComponent(Graphics);
 
-    // Faint border on every bbox cell so the cell count (size) reads over the art.
-    g.strokeColor = new Color(231, 217, 191, 130);
-    g.lineWidth = 1.2;
+    // Border on every bbox cell so the cell count (size) reads clearly over the art.
+    g.strokeColor = new Color(244, 233, 214, 220);
+    g.lineWidth = 1.8;
     for (let c = 0; c <= W; c++) { const x = -gw / 2 + c * cs; g.moveTo(x, -gh / 2); g.lineTo(x, gh / 2); }
     for (let r = 0; r <= H; r++) { const y = gh / 2 - r * cs; g.moveTo(-gw / 2, y); g.lineTo(gw / 2, y); }
     g.stroke();
 
-    // Terracotta dot on each open / clearance cell.
+    // Small terracotta dot on each open / clearance cell.
     g.fillColor = ACCENT;
-    const dotR = Math.max(3, cs * 0.17);
+    const dotR = Math.max(2.5, cs * 0.1);
     for (const [r, c] of opt.open_spaces) {
       g.circle(-gw / 2 + (c + 0.5) * cs, gh / 2 - (r + 0.5) * cs, dotR);
       g.fill();
+    }
+  }
+
+  /** Compact bbox mini-map in the card's bottom-right corner: a tiny grid where
+   *  shape cells are filled brown, open cells get a terracotta dot, and voids are
+   *  left blank — a clean size/shape summary that complements the on-art grid. */
+  private addFootprintBadge(
+    parent: Node, number: number, variant: 'A' | 'B', optionIndex: number, name?: string,
+  ) {
+    const ref = { number, variant, optionIndex, rotation: 0 as const, mirrored: false };
+    const opt = resolveOption(ref) ?? (name ? resolveOption({ ...ref, name }) : null);
+    if (!opt) return;
+    const [H, W] = opt.bbox;
+    if (!H || !W) return;
+
+    const shapeSet = new Set(opt.shape.map(([r, c]) => `${r},${c}`));
+    const openSet  = new Set(opt.open_spaces.map(([r, c]) => `${r},${c}`));
+
+    const cellPx = Math.max(7, Math.min(11, Math.floor(54 / Math.max(H, W))));
+    const bw = W * cellPx, bh = H * cellPx, pad = 3;
+
+    const badge = new Node('footprintBadge');
+    parent.addChild(badge);
+    const half = PALETTE_CARD / 2;   // frame spans ±PALETTE_CARD/2
+    badge.setPosition(half - (bw / 2 + pad) - 6, -half + (bh / 2 + pad) + 6, 0);
+    badge.addComponent(UITransform).setContentSize(bw + pad * 2, bh + pad * 2);
+    const g = badge.addComponent(Graphics);
+
+    // Light translucent backing so the mini-map reads on the dark walnut card.
+    g.fillColor = new Color(231, 217, 191, 235);
+    g.roundRect(-(bw / 2 + pad), -(bh / 2 + pad), bw + pad * 2, bh + pad * 2, 4);
+    g.fill();
+
+    const SHAPE = new Color(138, 111, 82, 255);
+    const gap = 0.6;
+    const dotR = Math.max(1.6, cellPx * 0.26);
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        const k = `${r},${c}`;
+        if (shapeSet.has(k)) {
+          g.fillColor = SHAPE;
+          g.rect(-bw / 2 + c * cellPx + gap, bh / 2 - (r + 1) * cellPx + gap, cellPx - gap * 2, cellPx - gap * 2);
+          g.fill();
+        } else if (openSet.has(k)) {
+          g.fillColor = ACCENT;
+          g.circle(-bw / 2 + (c + 0.5) * cellPx, bh / 2 - (r + 0.5) * cellPx, dotR);
+          g.fill();
+        }
+        // void → leave the light backing
+      }
     }
   }
 
