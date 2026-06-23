@@ -324,7 +324,12 @@ async function saveScenario() {
     const r = await fetch('/api/scenario', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(scenario) });
     const d = await r.json();
     if (!d.ok) throw new Error(d.error);
-    setStatus(`✓ 已保存 ${d.id}${d.new?'(新)':''} 并重建游戏数据`);
+    if (d.rebuilt === false) {
+      // 源文件已存盘,只是重建游戏数据失败(常见于新 worktree 缺 cocos/node_modules)
+      setStatus(`⚠ 已保存源文件 ${d.id}${d.new?'(新)':''},但重建失败：${d.warning||''} —— 在 cocos 目录跑 npm install 后重试，或手动 npm run scenarios:build`, true);
+    } else {
+      setStatus(`✓ 已保存 ${d.id}${d.new?'(新)':''} 并重建游戏数据`);
+    }
     reloadScenarioList();
   } catch(e) { setStatus('保存失败：' + e.message, true); }
 }

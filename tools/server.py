@@ -174,15 +174,25 @@ class Handler(SimpleHTTPRequestHandler):
                     json.dump(index, f, ensure_ascii=False, indent=2)
                     f.write('\n')
 
-            # rebundle md/maps_data.yaml then regenerate cocos JSON
+            # The source JSON is now safely on disk. The rebuild (maps_data.yaml +
+            # cocos JSON) is best-effort: if it fails — e.g. a fresh git worktree
+            # whose cocos/ has no node_modules, so `js-yaml` is missing — report a
+            # NON-fatal warning instead of a hard 500. The level itself is saved;
+            # only the derived game data is stale until the user fixes the build.
+            rebuild_warning = None
             for script in (BUNDLE_JS, YAML2JSON_JS):
                 r = subprocess.run(['node', script], capture_output=True, text=True)
                 print(r.stdout.strip())
                 if r.returncode != 0:
-                    raise RuntimeError(f'{os.path.basename(script)} failed: {r.stderr.strip()}')
+                    rebuild_warning = f'{os.path.basename(script)} failed: {r.stderr.strip()}'
+                    print(f'[scenario] rebuild FAILED: {rebuild_warning}')
+                    break
 
-            print(f'[scenario] saved {sid} ({"new" if is_new else "update"}) + rebuilt')
-            self._send_json(200, {'ok': True, 'id': sid, 'new': is_new})
+            rebuilt = rebuild_warning is None
+            print(f'[scenario] saved {sid} ({"new" if is_new else "update"})'
+                  + (' + rebuilt' if rebuilt else ' (rebuild failed)'))
+            self._send_json(200, {'ok': True, 'id': sid, 'new': is_new,
+                                  'rebuilt': rebuilt, 'warning': rebuild_warning})
         except Exception as e:
             self._send_json(500, {'ok': False, 'error': str(e)})
 
