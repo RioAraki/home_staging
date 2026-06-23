@@ -1,6 +1,6 @@
 import {
   _decorator, Component, Node, UITransform, Sprite, SpriteFrame, resources,
-  Graphics, Color, Label, EventTouch, director, input, Input, view, UIOpacity, Mask, ScrollView,
+  Graphics, Color, Label, EventTouch, director, input, Input, view, UIOpacity, Mask, ScrollView, Vec2,
 } from 'cc';
 import {
   gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed,
@@ -31,6 +31,7 @@ const OPT1_X    = -120;   // centre of first option slot
 const OPT2_X    =  120;   // centre of second option slot
 const BTN_W     =  110;   // action-button width
 const PALETTE_CARD = 160; // uniform palette card box (tapOnly) — B4 orderly row
+const DRAG_THRESHOLD = 12; // px before a tray touch counts as a drag (vs a tap)
 
 // ── Shared UI color tokens (C2) so blocks stay visually consistent. ──
 // Bright "暖沙" theme: the tray reads as a light cream block (see uiTheme).
@@ -59,6 +60,11 @@ export class RoomPanel extends Component {
 
   private unsub?: () => void;
   private input: InputHandler | null = null;
+  /** Preserved horizontal scroll offset of the palette strip, so a rebuild
+   *  (which happens on nearly every store change) doesn't jump it back to the
+   *  first card. Reset to 0 only when the active room changes. */
+  private scrollX = 0;
+  private scrollRoomSlot: any = null;
 
   /** Resolve the scene's InputHandler lazily (it may not exist at start()). */
   private getInput(): InputHandler | null {
@@ -124,19 +130,48 @@ export class RoomPanel extends Component {
     input.off(Input.EventType.TOUCH_MOVE,   this.onGlobalMove, this);
     input.off(Input.EventType.TOUCH_END,    this.onGlobalEnd,  this);
     input.off(Input.EventType.TOUCH_CANCEL, this.onGlobalEnd,  this);
+    input.off(Input.EventType.TOUCH_END,    this.onGlobalDrop, this);
+    input.off(Input.EventType.TOUCH_CANCEL, this.onGlobalDrop, this);
   }
 
   private onGlobalEnd() {
     this.offGlobalListeners();
   }
 
+  /** Begin a tray→plan drag: forward global touch-moves to the plan ghost, and
+   *  on release drop-to-place (so dragging a card onto a cell places it). */
+  private beginTrayDrag() {
+    input.off(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+    input.on(Input.EventType.TOUCH_MOVE, this.onGlobalMove, this);
+    input.once(Input.EventType.TOUCH_END,    this.onGlobalDrop, this);
+    input.once(Input.EventType.TOUCH_CANCEL, this.onGlobalDrop, this);
+  }
+
+  private onGlobalDrop(e: EventTouch) {
+    this.offGlobalListeners();
+    const inp = this.getInput();
+    if (!inp) return;
+    inp.dragGhost(e);        // settle the ghost at the release point
+    inp.tryPlaceAtGhost();   // place if valid (invalid → stays selected + shows why)
+  }
+
   private rebuild() {
     const c = this.listContent;
     if (!c) return;
+    // Preserve the palette strip's scroll position across this rebuild (which
+    // runs on nearly every store change) — capture it before the old strip is
+    // destroyed, so selecting a card further down doesn't jump back to the first.
+    const prevSv = c.getChildByName('PaletteView')?.getComponent(ScrollView);
+    if (prevSv) this.scrollX = prevSv.getScrollOffset().x;
     // destroy (not just detach) — rebuild() runs on nearly every store change.
     c.destroyAllChildren();
 
     const s = gameStore.getState();
+    // A different room starts its palette at the beginning.
+    if (s.activeRoomSlot !== this.scrollRoomSlot) {
+      this.scrollX = 0;
+      this.scrollRoomSlot = s.activeRoomSlot;
+    }
     const card = currentCard(s);
     if (!card) {
       if (allRoomsSealed(s) && !s.gameFinished) {
@@ -232,6 +267,10 @@ export class RoomPanel extends Component {
     sui.setContentSize(Math.max(viewW, total2 * GAP), viewH);
     strip.setPosition(-viewW / 2, 0, 0);                    // content left edge at viewport left
     psv.horizontal = true; psv.vertical = false; psv.content = strip;
+    // Track scrolling so the offset is current for the next rebuild, and restore
+    // the preserved offset now so this rebuild keeps the strip where it was.
+    psv.node.on(ScrollView.EventType.SCROLLING, () => { this.scrollX = psv.getScrollOffset().x; }, this);
+    if (this.scrollX) psv.scrollToOffset(new Vec2(this.scrollX, 0), 0);
 
     for (let i = 0; i < total2 && room2; i++) {
       const item = roomItemAt(room2, i);
@@ -284,17 +323,53 @@ export class RoomPanel extends Component {
     node.setPosition(x, 0, 0);
     node.addComponent(UITransform).setContentSize(SLOT_W, SLOT_H);  // fixed hit area
 
+    // Make the selected palette card unmistakable: lift it slightly and draw a
+    // terracotta glow ring behind it (the card border also thickens to ACCENT).
+    if (selected && tapOnly) {
+      node.setScale(1.06, 1.06, 1);
+      const glow = new Node('glow');
+      node.addChild(glow);
+      glow.setSiblingIndex(0);   // behind the card frame / art
+      const gg = glow.addComponent(Graphics);
+      const gs = PALETTE_CARD + 16;
+      gg.fillColor = new Color(ACCENT.r, ACCENT.g, ACCENT.b, 80);
+      gg.roundRect(-gs / 2, -gs / 2, gs, gs, 18);
+      gg.fill();
+    }
+
     if (dimmed) {
       // Placed/resolved card: greyed and inert (a ✓ badge is drawn on top).
       (node.addComponent(UIOpacity)).opacity = 110;
     } else if (tapOnly) {
-      // Inside the scrollable palette: a TAP selects this furniture; a drag is
-      // left to the ScrollView so the strip scrolls instead of starting a
-      // plan-drag. Commit placement with the 放置 button.
-      let sx = 0, sy = 0, moved = false;
-      node.on(Node.EventType.TOUCH_START, (e: EventTouch) => { const p = e.getUILocation(); sx = p.x; sy = p.y; moved = false; });
-      node.on(Node.EventType.TOUCH_MOVE,  (e: EventTouch) => { const p = e.getUILocation(); if (Math.abs(p.x - sx) > 12 || Math.abs(p.y - sy) > 12) moved = true; });
-      node.on(Node.EventType.TOUCH_END,   () => { if (!moved) gameStore.getState().selectOption({ slot, slotIdx, optionIndex }); });
+      // Inside the scrollable palette:
+      //  • TAP → select this furniture (then 放置, or drag it onto the plan);
+      //  • VERTICAL drag (up toward the plan) → pick it up and drag a ghost onto
+      //    the floor plan, dropping to place. The strip is horizontal-only, so a
+      //    vertical drag never fights the scroll;
+      //  • HORIZONTAL drag → left to the ScrollView so the strip scrolls.
+      let sx = 0, sy = 0, mode: 'none' | 'scroll' | 'drag' = 'none';
+      node.on(Node.EventType.TOUCH_START, (e: EventTouch) => {
+        const p = e.getUILocation(); sx = p.x; sy = p.y; mode = 'none';
+      });
+      node.on(Node.EventType.TOUCH_MOVE, (e: EventTouch) => {
+        const p = e.getUILocation();
+        const dx = p.x - sx, dy = p.y - sy;
+        if (mode === 'none') {
+          if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return;
+          if (Math.abs(dy) > Math.abs(dx)) {
+            mode = 'drag';
+            gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
+            this.beginTrayDrag();
+          } else {
+            mode = 'scroll';   // let the ScrollView scroll the strip
+            return;
+          }
+        }
+        if (mode === 'drag') { e.propagationStopped = true; this.getInput()?.dragGhost(e); }
+      });
+      node.on(Node.EventType.TOUCH_END, () => {
+        if (mode === 'none') gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
+      });
     } else {
       // Old 2-option chooser: touch-down picks the option up and drags it onto
       // the floor plan (the ghost follows the finger via the GLOBAL input).
