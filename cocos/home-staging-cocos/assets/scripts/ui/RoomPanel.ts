@@ -8,6 +8,7 @@ import {
 } from '../state/gameStore';
 import { cardByNumberVariant, furnitureByName, type FurnitureLibraryEntry } from '../core/dataLoader';
 import { roomItemCount, roomItemAt } from '../core/roomItems';
+import { resolveOption } from '../core/pieces';
 import { InputHandler } from './InputHandler';
 import {
   PANEL, PANEL_LINE as TOKEN_PANEL_LINE, ACCENT, ACCENT_DARK,
@@ -420,6 +421,11 @@ export class RoomPanel extends Component {
     nameLabel.outlineColor = new Color(253, 246, 236, 235);
     nameLabel.outlineWidth = 2;
 
+    // 方案 B: a small footprint badge in the card's bottom-right corner showing
+    // the piece's bbox — shape cells, open cells, voids — so the player can read
+    // its size/shape at a glance without losing the recognizable illustration.
+    if (tapOnly) this.addFootprintBadge(node, number, variant, optionIndex, name);
+
     if (customEntry) {
       // Custom furniture: navy frame + composited tile sprites (resources/tiles).
       const boxW2 = bbox[1] * PX_PER_CELL, boxH2 = bbox[0] * PX_PER_CELL;
@@ -480,6 +486,55 @@ export class RoomPanel extends Component {
       fg.fill();
       fg.stroke();
     });
+  }
+
+  /** 方案 B footprint badge: a tiny bbox grid (shape / open cell / void) drawn in
+   *  the card's bottom-right corner so the piece's size & shape read at a glance
+   *  without losing the recognizable illustration. */
+  private addFootprintBadge(
+    parent: Node, number: number, variant: 'A' | 'B', optionIndex: number, name?: string,
+  ) {
+    const ref = { number, variant, optionIndex, rotation: 0 as const, mirrored: false };
+    // Numbered & card-derived named pieces resolve by number/variant/option;
+    // custom pieces (number 0) only resolve by their library name.
+    const opt = resolveOption(ref) ?? (name ? resolveOption({ ...ref, name }) : null);
+    if (!opt) return;
+    const [H, W] = opt.bbox;
+    if (!H || !W) return;
+
+    const shapeSet = new Set(opt.shape.map(([r, c]) => `${r},${c}`));
+    const openSet  = new Set(opt.open_spaces.map(([r, c]) => `${r},${c}`));
+
+    const cellPx = Math.max(5, Math.min(9, Math.floor(44 / Math.max(H, W))));
+    const bw = W * cellPx, bh = H * cellPx, pad = 3;
+
+    const badge = new Node('footprint');
+    parent.addChild(badge);
+    // Bottom-right corner of the uniform card (frame spans ±PALETTE_CARD/2).
+    const half = PALETTE_CARD / 2;
+    badge.setPosition(half - (bw / 2 + pad) - 6, -half + (bh / 2 + pad) + 6, 0);
+    badge.addComponent(UITransform).setContentSize(bw + pad * 2, bh + pad * 2);
+    const g = badge.addComponent(Graphics);
+
+    // Light translucent backing so the grid reads on the dark walnut card.
+    g.fillColor = new Color(231, 217, 191, 235);
+    g.roundRect(-(bw / 2 + pad), -(bh / 2 + pad), bw + pad * 2, bh + pad * 2, 4);
+    g.fill();
+
+    const SHAPE = new Color(138, 111, 82, 255);   // occupied cell
+    const gap = 0.6;
+    for (let r = 0; r < H; r++) {
+      for (let c = 0; c < W; c++) {
+        const k = `${r},${c}`;
+        const isShape = shapeSet.has(k), isOpen = openSet.has(k);
+        if (!isShape && !isOpen) continue;          // void → leave the backing
+        g.fillColor = isShape ? SHAPE : ACCENT;     // terracotta = open cell
+        const x = -bw / 2 + c * cellPx + gap;
+        const y = bh / 2 - (r + 1) * cellPx + gap;  // row 0 at the top
+        g.rect(x, y, cellPx - gap * 2, cellPx - gap * 2);
+        g.fill();
+      }
+    }
   }
 
   private makeButton(
