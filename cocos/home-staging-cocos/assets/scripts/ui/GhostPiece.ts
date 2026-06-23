@@ -111,6 +111,12 @@ export class GhostPiece extends Component {
       g.fill();
     }
 
+    // The "does this ghost block / trap other furniture" checks below only matter
+    // when the ghost can actually be placed here. If the placement itself is
+    // invalid, the ghost is already red (above) — leave ONLY the ghost red and
+    // skip analysing / red-flagging other pieces.
+    if (!valid) return;
+
     // Highlight existing open-space cells that the ghost's shape would block.
     // Build the set of world cells the ghost shape occupies.
     const ghostShapeCells = new Set<string>();
