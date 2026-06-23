@@ -95,13 +95,6 @@ export function drawGridBg(
   const theme = scenario.theme;
   const bgColor = themeColor(theme?.bg, COL_BG);
   const gridColor = themeColor(theme?.gridline, COL_GRIDLINE);
-  const wallBorderColor = themeColor(theme?.wall, COL_INDOOR_BORDER);  // exterior outline: COL_INDOOR_BORDER is slightly more opaque than COL_WALL
-
-  const isIndoor = (r: number, c: number): boolean => {
-    if (r < r0 || c < c0 || r >= r0 + rows || c >= c0 + cols) return false;
-    const ch = ascii[r]?.[c] ?? '.';
-    return legend[ch]?.terrain === 'indoor';
-  };
 
   // 1) Fill the entire crop area with the navy blueprint canvas.
   g.fillColor = bgColor;
@@ -139,13 +132,32 @@ export function drawGridBg(
     g.lineTo(w / 2, y);
   }
   g.stroke();
+  // The thick exterior outline used to be drawn here too, but it must sit ABOVE
+  // the furniture (so furniture never bleeds over a wall). It now lives on its
+  // own layer — see drawIndoorBorder, called into FloorPlan's wallOutlineLayer.
+}
 
-  // 4) Thick white indoor border: for each indoor cell, stroke any side whose
-  //    neighbour is not indoor — this traces the floor-plan outline exactly,
-  //    even for non-rectangular rooms. The front-door edge is skipped so the
-  //    door symbol shows through a real gap in the exterior wall (the door
-  //    "replaces" that wall segment).
-  g.strokeColor = wallBorderColor;
+/**
+ * Thick exterior outline: for each indoor cell, stroke any side whose neighbour
+ * is not indoor — tracing the floor-plan outline exactly, even for non-rectangular
+ * rooms. The front-door edge is skipped so the door symbol shows through a real
+ * gap in the wall. Drawn on its OWN layer (above the furniture) so walls always
+ * read on top of furniture where their pixels overlap.
+ */
+export function drawIndoorBorder(
+  g: Graphics, scenario: Scenario, frontDoorEdge: string | null = null,
+) {
+  g.clear();
+  const ascii = scenario.grid.ascii.replace(/\n+$/, '').split('\n');
+  const legend = scenario.grid.legend;
+  const { r0, c0, rows, cols } = layout();
+  const isIndoor = (r: number, c: number): boolean => {
+    if (r < r0 || c < c0 || r >= r0 + rows || c >= c0 + cols) return false;
+    const ch = ascii[r]?.[c] ?? '.';
+    return legend[ch]?.terrain === 'indoor';
+  };
+
+  g.strokeColor = themeColor(scenario.theme?.wall, COL_INDOOR_BORDER);
   g.lineWidth = 5;
   for (let r = r0; r < r0 + rows; r++) {
     for (let c = c0; c < c0 + cols; c++) {

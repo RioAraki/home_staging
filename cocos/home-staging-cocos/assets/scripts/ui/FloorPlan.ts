@@ -1,6 +1,6 @@
 import { _decorator, Component, Graphics, Node, UITransform, view, Color } from 'cc';
 import { gameStore, getRoomPhase, isActiveRoomEnclosed, shouldSuppressOpenCellCheck } from '../state/gameStore';
-import { drawGridBg, drawWalls, drawDoors, drawWindows, drawPreDrawn, drawCellWash, wallColorFor } from './LayerRenderer';
+import { drawGridBg, drawIndoorBorder, drawWalls, drawDoors, drawWindows, drawPreDrawn, drawCellWash, wallColorFor } from './LayerRenderer';
 import { analyseAccessibility, isRoomAccessible, computeFloorReachability } from '../core/regions';
 import type { RoomSlot } from '../core/types';
 import { computeLayout, setLayout, layout } from './viewport';
@@ -20,6 +20,7 @@ export class FloorPlan extends Component {
   private unsub?: () => void;
   private blockedLayer?: Node;
   private inaccessibleLayer?: Node;
+  private wallOutlineLayer?: Node;
 
   start() {
     this.renderAll();
@@ -34,7 +35,7 @@ export class FloorPlan extends Component {
       // too: redrawBlocked flags sealed rooms unreachable from it, and
       // redrawInaccessibleOpen seeds its BFS from it.
       if (s.frontDoorEdge !== prev.frontDoorEdge) {
-        this.redrawGrid(); this.redrawDoors();
+        this.redrawGrid(); this.redrawWallOutline(); this.redrawDoors();
         this.redrawBlocked(); this.redrawInaccessibleOpen();
       }
       // Sealing/un-sealing a room can block a previously-built room.
@@ -48,6 +49,27 @@ export class FloorPlan extends Component {
   }
 
   onDestroy() { this.unsub?.(); }
+
+  /** Enforce the floor-plan layer z-order (bottom → top). Walls / doors / windows
+   *  sit ABOVE the furniture, so where their pixels overlap the structure draws
+   *  over the furniture (not the other way round). The red floor-wash stays below
+   *  the furniture; the trapped-cell dots stay on top of everything. Idempotent —
+   *  called whenever a layer is (re)created. */
+  private orderLayers() {
+    const order = [
+      this.gridBg,              // floor fill + grid — bottom
+      this.blockedLayer,        // red floor wash — below furniture
+      this.placedLayer,         // furniture
+      this.preDrawnLayer,       // pre-drawn structure (walls/doors/windows) — above furniture
+      this.wallOutlineLayer,    // exterior building outline — above furniture
+      this.wallsLayer,          // player walls / doors / windows — above furniture
+      this.doorsLayer,
+      this.windowsLayer,
+      this.inaccessibleLayer,   // trapped-cell dots — always on top
+    ];
+    let idx = 0;
+    for (const n of order) if (n && n.isValid) n.setSiblingIndex(idx++);
+  }
 
   /** Available area to fit the map into: the FloorPlan's parent container, or
    *  a fraction of the visible screen if the parent isn't sized. */
@@ -85,6 +107,7 @@ export class FloorPlan extends Component {
     if (!s.scenario) return;
     this.applyLayout();
     this.redrawGrid();
+    this.redrawWallOutline();
     const pg = this.preDrawnLayer?.getComponent(Graphics);
     if (pg) drawPreDrawn(pg, s.scenario);
     this.rebuildPlacedLayer();
@@ -93,12 +116,30 @@ export class FloorPlan extends Component {
     this.redrawWindows();
     this.redrawBlocked();
     this.redrawInaccessibleOpen();
+    this.orderLayers();   // walls/doors/windows above furniture
   }
 
   private redrawGrid() {
     const s = gameStore.getState();
     const g = this.gridBg?.getComponent(Graphics);
     if (g && s.scenario) drawGridBg(g, s.scenario, s.frontDoorEdge);
+  }
+
+  /** The thick exterior outline lives on its OWN layer (above the furniture) so
+   *  walls always read on top of furniture where their pixels overlap. */
+  private ensureWallOutlineLayer(): Graphics | null {
+    if (!this.wallOutlineLayer || !this.wallOutlineLayer.isValid) {
+      this.wallOutlineLayer = new Node('WallOutlineLayer');
+      this.node.addChild(this.wallOutlineLayer);
+      this.wallOutlineLayer.addComponent(Graphics);
+      this.orderLayers();
+    }
+    return this.wallOutlineLayer.getComponent(Graphics);
+  }
+  private redrawWallOutline() {
+    const g = this.ensureWallOutlineLayer();
+    const s = gameStore.getState();
+    if (g && s.scenario) drawIndoorBorder(g, s.scenario, s.frontDoorEdge);
   }
 
   private rebuildPlacedLayer() {
@@ -141,9 +182,7 @@ export class FloorPlan extends Component {
       this.blockedLayer = new Node('BlockedLayer');
       this.node.addChild(this.blockedLayer);
       this.blockedLayer.addComponent(Graphics);
-      if (this.placedLayer && this.placedLayer.isValid) {
-        this.blockedLayer.setSiblingIndex(this.placedLayer.getSiblingIndex());
-      }
+      this.orderLayers();
     }
     return this.blockedLayer.getComponent(Graphics);
   }
@@ -204,10 +243,7 @@ export class FloorPlan extends Component {
       this.inaccessibleLayer = new Node('InaccessibleOpenLayer');
       this.node.addChild(this.inaccessibleLayer);
       this.inaccessibleLayer.addComponent(Graphics);
-      // render above placed pieces so dots are always visible
-      if (this.placedLayer && this.placedLayer.isValid) {
-        this.inaccessibleLayer.setSiblingIndex(this.placedLayer.getSiblingIndex() + 1);
-      }
+      this.orderLayers();   // dots always on top
     }
     return this.inaccessibleLayer.getComponent(Graphics);
   }
