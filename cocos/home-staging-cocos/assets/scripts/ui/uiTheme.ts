@@ -19,8 +19,8 @@ import { Color } from 'cc';
 // ── Surfaces ──────────────────────────────────────────────────────────────
 /** Full-screen background base (the dominant "is it dark?" colour). */
 export const SAND_BG      = new Color(239, 230, 218, 255);   // #efe6da
-/** Drifting diagonal background texture lines — barely darker than the sand. */
-export const SAND_TEXTURE = new Color(216, 198, 170, 150);   // #d8c6aa @ ~59%
+/** Drifting diagonal background texture lines — visibly darker than the sand. */
+export const SAND_TEXTURE = new Color(196, 174, 142, 205);   // #c4ae8e @ ~80%
 /** Light panel fill for header band / tray / progress card. */
 export const PANEL        = new Color(253, 246, 236, 240);   // #fdf6ec
 /** Panel border / divider on the light surfaces. */
@@ -38,11 +38,14 @@ export const TEXT_DARK    = new Color(77, 64, 49, 255);      // #4d4031
 /** Muted dark text (untouched rows / hints). */
 export const TEXT_MUTED   = new Color(130, 116, 98, 255);    // #827462
 
-// ── Cards (stay dark so white line-art reads) ───────────────────────────────
-/** Warm espresso card tile fill — dark enough for the white art, warm in hue. */
-export const CARD_FILL    = new Color(46, 38, 30, 255);      // #2e261e
-/** Resting card border (muted tan). */
-export const CARD_LINE    = new Color(150, 124, 92, 255);    // #967c5c
+// ── Cards (stay dark so the white line-art reads, but warm not black) ────────
+// The vector card art is WHITE line-art on transparent, so it can only be read
+// on a dark backing. We use a warm WALNUT (not near-black) so the cards look
+// like wood/leather thumbnails that belong in the warm palette instead of jarring
+// black blocks. Rounded corners (drawn in RoomPanel) complete the thumbnail feel.
+export const CARD_FILL    = new Color(90, 70, 54, 255);      // #5a4636 walnut
+/** Resting card border (lighter tan, reads on the walnut fill). */
+export const CARD_LINE    = new Color(176, 150, 116, 255);   // #b09674
 /** Card name label on the cream tray. */
 export const CARD_NAME    = new Color(60, 50, 38, 255);      // #3c3226
 

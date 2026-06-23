@@ -354,7 +354,7 @@ export class RoomPanel extends Component {
       fg.fillColor = CARD_FILL;
       fg.strokeColor = selected ? ACCENT : CARD_LINE;
       fg.lineWidth = selected ? 4 : 2;
-      fg.rect(-fw / 2, -fh / 2, fw, fh);
+      fg.roundRect(-fw / 2, -fh / 2, fw, fh, 12);
       fg.fill();
       fg.stroke();
       imgUi.setContentSize(boxW2, boxH2);  // imgNode already carries rotation/mirror
@@ -401,7 +401,7 @@ export class RoomPanel extends Component {
       fg.fillColor = CARD_FILL;
       fg.strokeColor = selected ? ACCENT : CARD_LINE;
       fg.lineWidth = selected ? 4 : 2;
-      fg.rect(-fw / 2, -fh / 2, fw, fh);
+      fg.roundRect(-fw / 2, -fh / 2, fw, fh, 12);
       fg.fill();
       fg.stroke();
     });

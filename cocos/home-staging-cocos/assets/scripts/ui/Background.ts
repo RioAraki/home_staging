@@ -61,7 +61,7 @@ export class Background extends Component {
     const tex = mk('texture');
     this.texNode = tex.node;
     tex.strokeColor = SAND_TEXTURE;
-    tex.lineWidth = 1.5;
+    tex.lineWidth = 2.4;
     const P = Background.PERIOD;
     for (let c = -(HW + HH) - P; c <= (HW + HH) + P; c += P) {
       tex.moveTo(c - HH, -HH);
