@@ -4,7 +4,7 @@ import {
 } from 'cc';
 import {
   gameStore, currentCard, getRoomPhase, isActiveRoomEnclosed,
-  allRoomsSealed, frontDoorFixed, type GameState,
+  allRoomsSealed, frontDoorFixed, type GameState, type SelectedOption,
 } from '../state/gameStore';
 import { cardByNumberVariant, furnitureByName, type FurnitureLibraryEntry } from '../core/dataLoader';
 import { roomItemCount, roomItemAt } from '../core/roomItems';
@@ -33,6 +33,7 @@ const OPT2_X    =  120;   // centre of second option slot
 const BTN_W     =  110;   // action-button width
 const PALETTE_CARD = 160; // uniform palette card box (tapOnly) — B4 orderly row
 const DRAG_THRESHOLD = 12; // px before a tray touch counts as a drag (vs a tap)
+const PALETTE_GAP = 210;   // x spacing between palette card slots
 
 // ── Shared UI color tokens (C2) so blocks stay visually consistent. ──
 // Bright "暖沙" theme: the tray reads as a light cream block (see uiTheme).
@@ -66,6 +67,11 @@ export class RoomPanel extends Component {
    *  first card. Reset to 0 only when the active room changes. */
   private scrollX = 0;
   private scrollRoomSlot: any = null;
+  /** Live refs so a selection-only change can update just the affected cards in
+   *  place — WITHOUT rebuilding the strip/ScrollView (which would reset scroll). */
+  private stripNode: Node | null = null;
+  private trayRx = 0;
+  private trayCy = 0;
 
   /** Resolve the scene's InputHandler lazily (it may not exist at start()). */
   private getInput(): InputHandler | null {
@@ -96,20 +102,25 @@ export class RoomPanel extends Component {
     this.getInput();
     this.rebuild();
     this.unsub = gameStore.subscribe((s, prev) => {
-      if (s.scenario           !== prev.scenario           ||
+      // Anything OTHER than the current selection that affects the tray → full rebuild.
+      const otherChanged =
+          s.scenario           !== prev.scenario           ||
           s.activeRoomSlot     !== prev.activeRoomSlot     ||
           s.placedCardKeys     !== prev.placedCardKeys     ||
           s.skippedCardKeys    !== prev.skippedCardKeys    ||
-          s.selectedOption     !== prev.selectedOption     ||
           s.wallPhase          !== prev.wallPhase          ||
           s.windowMode         !== prev.windowMode         ||
           s.walls              !== prev.walls              ||
           s.completedRoomSlots !== prev.completedRoomSlots ||
           s.frontDoorEdge      !== prev.frontDoorEdge      ||
           s.frontDoorMode      !== prev.frontDoorMode      ||
-          s.gameFinished       !== prev.gameFinished ||
-          s.past.length        !== prev.past.length) {
-        this.rebuild();
+          s.gameFinished       !== prev.gameFinished       ||
+          s.past.length        !== prev.past.length;
+      if (otherChanged) { this.rebuild(); return; }
+      // ONLY the selection changed → update the affected cards in place so the
+      // strip's scroll position and visible cards never move.
+      if (s.selectedOption !== prev.selectedOption) {
+        this.updateSelectionHighlight(prev.selectedOption);
       }
     });
   }
@@ -248,7 +259,7 @@ export class RoomPanel extends Component {
     for (const c of [...cardList.children]) if (c !== this.listContent) c.destroy();
 
     const visW = view.getVisibleSize().width;
-    const GAP = 210;                                        // x spacing between card slots
+    const GAP = PALETTE_GAP;                                // x spacing between card slots
     const viewH = SLOT_H + 160;                             // tall enough the name label isn't clipped
     const STRIP_CY = -24;                                   // strip vertical centre (room title sits above)
 
@@ -315,26 +326,14 @@ export class RoomPanel extends Component {
       if (psv.isValid && psv.node?.isValid) psv.scrollToOffset(new Vec2(targetX, 0), 0);
     }, 0);
 
+    // Remember the live strip + button-column geometry so a selection-only change
+    // can patch just the affected cards (see updateSelectionHighlight).
+    this.stripNode = strip;
+    this.trayRx = rx;
+    this.trayCy = STRIP_CY;
+
     for (let vi = 0; vi < pending.length && room2; vi++) {
-      const i = pending[vi];
-      const item = roomItemAt(room2, i);
-      if (!item) continue;
-      const x = vi * GAP + GAP / 2;                          // packed left-to-right
-      const isSel = !!sel && sel.slot === slot && sel.slotIdx === i;
-      const selRot = isSel && sel ? sel.rotation : 0;
-      const selMir = isSel && sel ? sel.mirrored : false;
-      if (item.kind === 'named') {
-        const e = furnitureByName(item.name);
-        if (e) this.makeOption(slot, i, e.number ?? 0, e.variant ?? 'A', e.option_index ?? 1,
-          e.bbox, item.name, x, isSel, selRot, selMir,
-          e.source === 'custom' ? e : null, strip, false, true);
-      } else {
-        const variant = s.chosenVariants[item.number] ?? 'A';
-        const data = cardByNumberVariant(item.number, variant);
-        const opt = data?.options?.[0];
-        if (opt) this.makeOption(slot, i, item.number, variant, opt.option_index,
-          opt.bbox, opt.name_zh, x, isSel, selRot, selMir, null, strip, false, true);
-      }
+      this.buildCard(s, room2, slot, pending[vi], vi * GAP + GAP / 2, strip);
     }
 
     // Right-hand action column — its own zone, vertically centred on the strip.
@@ -345,6 +344,75 @@ export class RoomPanel extends Component {
       () => gameStore.getState().undo(), 120, this.listContent);
     this.makeButton(rx,  STRIP_CY - 80, '完成摆放', BTN_PRIMARY, true,
       () => gameStore.getState().finishPlacing(), 120, this.listContent);
+  }
+
+  /** Build one palette card (resolves named vs numbered, computes its selected
+   *  state from the store) into `parent` at x. Shared by the full rebuild and the
+   *  in-place selection update. The node is named `card_<slotIdx>` so it can be
+   *  found and patched later. */
+  private buildCard(s: GameState, room2: any, slot: any, i: number, x: number, parent: Node) {
+    const item = roomItemAt(room2, i);
+    if (!item) return;
+    const sel = s.selectedOption;
+    const isSel = !!sel && sel.slot === slot && sel.slotIdx === i;
+    const selRot = isSel && sel ? sel.rotation : 0;
+    const selMir = isSel && sel ? sel.mirrored : false;
+    if (item.kind === 'named') {
+      const e = furnitureByName(item.name);
+      if (e) this.makeOption(slot, i, e.number ?? 0, e.variant ?? 'A', e.option_index ?? 1,
+        e.bbox, item.name, x, isSel, selRot, selMir,
+        e.source === 'custom' ? e : null, parent, false, true);
+    } else {
+      const variant = s.chosenVariants[item.number] ?? 'A';
+      const data = cardByNumberVariant(item.number, variant);
+      const opt = data?.options?.[0];
+      if (opt) this.makeOption(slot, i, item.number, variant, opt.option_index,
+        opt.bbox, opt.name_zh, x, isSel, selRot, selMir, null, parent, false, true);
+    }
+  }
+
+  /** A selection-only change: re-build ONLY the previously- and newly-selected
+   *  cards in place. The strip/ScrollView are untouched, so the scroll position
+   *  and the set of visible cards never move. Falls back to a full rebuild if the
+   *  strip isn't available or the layout context changed. */
+  private updateSelectionHighlight(prevSel: SelectedOption | null) {
+    const strip = this.stripNode;
+    const s = gameStore.getState();
+    if (!strip || !strip.isValid || !s.scenario || !s.activeRoomSlot) { this.rebuild(); return; }
+    const slot = s.activeRoomSlot;
+    const room2 = s.scenario.rooms.find(r => r.slot === slot);
+    if (!room2 || currentCard(s) == null) { this.rebuild(); return; }
+
+    // pending is unchanged here (placed/skipped keys didn't change — otherwise the
+    // subscribe would have done a full rebuild), so card x-positions are stable.
+    const total2 = roomItemCount(room2);
+    const pending: number[] = [];
+    for (let i = 0; i < total2; i++) {
+      if (!(s.placedCardKeys.has(`${slot}:${i}`) || s.skippedCardKeys.has(`${slot}:${i}`))) pending.push(i);
+    }
+
+    const sel = s.selectedOption;
+    const patch = (slotIdx: number) => {
+      const vi = pending.indexOf(slotIdx);
+      if (vi < 0) return;
+      const old = strip.getChildByName(`card_${slotIdx}`);
+      if (old) { old.removeFromParent(); old.destroy(); }
+      this.buildCard(s, room2, slot, slotIdx, vi * PALETTE_GAP + PALETTE_GAP / 2, strip);
+    };
+    if (prevSel && prevSel.slot === slot) patch(prevSel.slotIdx);
+    if (sel && sel.slot === slot && (!prevSel || prevSel.slotIdx !== sel.slotIdx)) patch(sel.slotIdx);
+
+    // The 放置 button's enabled state depends on whether anything is selected.
+    this.refreshPlaceButton(!!sel);
+  }
+
+  /** Re-create the 放置 button (on listContent, not the strip) so its enabled
+   *  state tracks the selection without rebuilding the scrollable strip. */
+  private refreshPlaceButton(enabled: boolean) {
+    const old = this.listContent.getChildByName('放置');
+    if (old) { old.removeFromParent(); old.destroy(); }
+    this.makeButton(this.trayRx, this.trayCy + 80, '放置', BTN_GREEN, enabled,
+      () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
@@ -360,7 +428,7 @@ export class RoomPanel extends Component {
     customEntry: FurnitureLibraryEntry | null = null,
     parent: Node = this.listContent, dimmed = false, tapOnly = false,
   ) {
-    const node = new Node(`opt${optionIndex}`);
+    const node = new Node(`card_${slotIdx}`);
     parent.addChild(node);
     node.setPosition(x, 0, 0);
     node.addComponent(UITransform).setContentSize(SLOT_W, SLOT_H);  // fixed hit area
