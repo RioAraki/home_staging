@@ -1,48 +1,29 @@
 {
   "id": "training",
-  "title_zh": "训练任务：1 室 + 厨房 + 浴室",
-  "title_en": "Training Scenario: 1 Room, Kitchen, Bathroom",
-  "chapter_zh": "—",
-  "difficulty": "training",
-  "pages_in_book": [
-    4,
-    5
-  ],
-  "page_image": "images/scenarios/page_03.png",
+  "title_zh": "陋室",
+  "title_en": "",
+  "chapter_zh": "",
+  "difficulty": "medium",
+  "pages_in_book": [],
+  "page_image": "",
   "rooms": [
     {
       "slot": "I",
-      "name_zh": "起居室",
-      "name_en": "Living room",
-      "furniture_numbers": [
-        2,
-        15,
-        19,
-        19
-      ]
-    },
-    {
-      "slot": "II",
-      "name_zh": "厨房",
-      "name_en": "Kitchen",
-      "furniture_numbers": [
-        5,
-        7
-      ]
-    },
-    {
-      "slot": "III",
-      "name_zh": "浴室",
-      "name_en": "Bathroom",
-      "furniture_numbers": [
-        8,
-        9,
-        10
+      "name_zh": "独居室",
+      "name_en": "",
+      "furniture": [
+        "单人床",
+        "沙发",
+        "桌椅组合2",
+        "马桶",
+        "猫",
+        "粉植物",
+        "猫砂"
       ]
     }
   ],
   "grid": {
-    "ascii": "................\n................\n................\n................\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n................\n................\n................\n................\n................\n",
+    "ascii": "................\n................\n................\n................\n.....IIII.......\n.....IIII.......\n.....IIII.......\n.....IIII.......\n................\n................\n................\n................\n................\n................\n................\n................",
     "legend": {
       ".": {
         "terrain": "outdoor"
@@ -54,7 +35,23 @@
   },
   "zones": {},
   "pre_drawn": {
-    "doors": [],
+    "doors": [
+      {
+        "cell": [
+          6,
+          16
+        ],
+        "edge": "W"
+      },
+      {
+        "cell": [
+          7,
+          9
+        ],
+        "edge": "W",
+        "target": "front_door"
+      }
+    ],
     "windows": [],
     "walls_interior": []
   },
@@ -69,42 +66,5 @@
     "drawing": [],
     "scoring": []
   },
-  "bonus_points": [
-    {
-      "text_zh": "浴室完全装满（装齐 8、9、10）",
-      "text_en": "Bathroom fully furnished (8, 9, 10)",
-      "points": 3,
-      "condition": {
-        "all_installed_in_room": {
-          "room_slot": "III",
-          "furniture": [
-            8,
-            9,
-            10
-          ]
-        }
-      }
-    }
-  ],
-  "stats": {
-    "cells_total": 256,
-    "cells_by_terrain": {
-      "outdoor": 214,
-      "indoor": 42
-    },
-    "cells_by_zone": {},
-    "building_bbox": [
-      4,
-      5,
-      11,
-      11
-    ],
-    "pre_drawn_counts": {
-      "doors": 0,
-      "windows": 0,
-      "walls_interior": 0
-    },
-    "rooms": 3,
-    "bonus_points": 1
-  }
+  "bonus_points": []
 }
