@@ -182,6 +182,7 @@
         <div id="flist"></div>
         <div id="flist-foot">
           <button id="btn-export" class="primary">导出 JSON</button>
+          <button id="btn-export-png" title="把当前画布的家具碎片合成为透明 PNG(不含开放格覆盖/网格)">导出 PNG</button>
           <button id="btn-import">载入</button>
           <input type="file" id="importfile" accept="application/json" style="display:none" />
         </div>
@@ -515,6 +516,50 @@ document.getElementById('btn-export').onclick = () => {
   a.href = URL.createObjectURL(blob);
   a.download = 'furniture_collection.json';
   a.click();
+};
+
+// 导出当前画布的「纯家具」PNG:只合成放置的 tile(含旋转/镜像),按原生分辨率,
+// 透明背景;不画开放格绿色覆盖、不画网格/边框。tiles 与本页同源,canvas 不会被污染。
+document.getElementById('btn-export-png').onclick = async () => {
+  if (cells.size === 0) { alert('画布上没有家具碎片,先放置一些 tile'); return; }
+  // 预加载用到的 tile 图,确保合成时已就绪
+  const names = [...new Set([...cells.values()].map(v => v.tile))];
+  await Promise.all(names.map(n => new Promise(res => {
+    const cached = tileImages[n];
+    if (cached?.complete && cached.naturalWidth) return res();
+    const img = new Image();
+    img.onload = () => { tileImages[n] = img; res(); };
+    img.onerror = () => res();
+    img.src = `${TILES_BASE}${n}.png`;
+    tileImages[n] = img;
+  })));
+  // 每格像素 = 放置 tile 的最大原生边长(无放大),取不到则回退 CELL
+  let ecell = 0;
+  for (const n of names) { const im = tileImages[n]; if (im?.naturalWidth) ecell = Math.max(ecell, im.naturalWidth, im.naturalHeight); }
+  if (!ecell) ecell = CELL;
+  const out = document.createElement('canvas');
+  out.width = gridW * ecell; out.height = gridH * ecell;
+  const octx = out.getContext('2d');
+  for (const [key, { tile, rotation, mirror }] of cells) {
+    const im = tileImages[tile];
+    if (!im?.complete || !im.naturalWidth) continue;
+    const [c, r] = key.split(',').map(Number);
+    octx.save();
+    octx.translate(c * ecell + ecell / 2, r * ecell + ecell / 2);
+    octx.rotate((rotation || 0) * Math.PI / 180);
+    if (mirror) octx.scale(-1, 1);
+    octx.drawImage(im, -ecell / 2, -ecell / 2, ecell, ecell);
+    octx.restore();
+  }
+  const name = document.getElementById('fname').value.trim() || 'furniture';
+  out.toBlob(blob => {
+    if (!blob) { alert('PNG 生成失败'); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.png';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }, 'image/png');
 };
 
 document.getElementById('btn-import').onclick = () => document.getElementById('importfile').click();
