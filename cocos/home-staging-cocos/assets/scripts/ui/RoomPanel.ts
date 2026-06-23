@@ -11,7 +11,7 @@ import { roomItemCount, roomItemAt } from '../core/roomItems';
 import { resolveOption } from '../core/pieces';
 import { InputHandler } from './InputHandler';
 import {
-  PANEL, PANEL_LINE as TOKEN_PANEL_LINE, ACCENT, ACCENT_DARK,
+  PANEL, PANEL_LINE as TOKEN_PANEL_LINE, ACCENT, ACCENT_DARK, TEXT_MUTED,
   CARD_FILL, CARD_LINE, CARD_NAME, BTN_GREEN, BTN_RED, BTN_PRIMARY,
 } from './uiTheme';
 const { ccclass, property } = _decorator;
@@ -195,17 +195,25 @@ export class RoomPanel extends Component {
           s.skippedCardKeys.has(`${s.activeRoomSlot}:${i}`),
         ).length;
 
-        // Room name + progress badge above the strip. No decorative frame —
-        // the old OptionsFrame was sized for the 2-option chooser and only
-        // covered the centre; the palette now spans the full tray width.
-        const badgeNode = new Node('RoomBadge');
-        this.listContent.addChild(badgeNode);
-        badgeNode.setPosition(0, TITLE_Y + 30, 0);
-        const lbl = badgeNode.addComponent(Label);
-        lbl.string = `${room.name_zh}  ${resolved} / ${total}`;
-        lbl.fontSize = 24;
-        lbl.isBold = true;
-        lbl.color = ACCENT_DARK;
+        // Room title at the TOP of the tray: a big, bold room name with a smaller
+        // progress line beneath it, so the hierarchy (which room / how far) reads
+        // at a glance and is clearly distinct from the furniture cards below.
+        const nameNode = new Node('RoomName');
+        this.listContent.addChild(nameNode);
+        nameNode.setPosition(0, 204, 0);
+        const nlbl = nameNode.addComponent(Label);
+        nlbl.string = room.name_zh;
+        nlbl.fontSize = 32;
+        nlbl.isBold = true;
+        nlbl.color = ACCENT_DARK;
+
+        const progNode = new Node('RoomProgress');
+        this.listContent.addChild(progNode);
+        progNode.setPosition(0, 176, 0);
+        const plbl = progNode.addComponent(Label);
+        plbl.string = `已摆放 ${resolved} / ${total}`;
+        plbl.fontSize = 17;
+        plbl.color = TEXT_MUTED;
       }
     }
 
@@ -220,6 +228,14 @@ export class RoomPanel extends Component {
     const slot = card.slot;
     const room2 = s.scenario?.rooms.find(r => r.slot === slot);
     const total2 = room2 ? roomItemCount(room2) : 0;
+
+    // Only UNPLACED furniture appears in the palette — placed/skipped pieces leave
+    // the list entirely (no greyed placeholders hogging space). Survivors pack
+    // left-to-right.
+    const pending: number[] = [];
+    for (let i = 0; i < total2; i++) {
+      if (!(s.placedCardKeys.has(`${slot}:${i}`) || s.skippedCardKeys.has(`${slot}:${i}`))) pending.push(i);
+    }
 
     const cardList = this.listContent.parent!;
     // Self-contained viewport pinned to the LEFT zone: the strip is clipped to
@@ -239,12 +255,15 @@ export class RoomPanel extends Component {
     // Taller than SLOT_H so the name label (sits above the image at ~+122) is
     // not clipped by the viewport Mask.
     const viewH = SLOT_H + 160;
+    // Card-strip vertical centre — shifted DOWN so the enlarged room title sits
+    // clearly in the tray's top zone, above the strip.
+    const STRIP_CY = -24;
+    const vx = -visW / 2 + viewW / 2 + 8;                   // left-zone centre x
 
-    // B3: a dark rounded "palette panel" behind the tray so it reads as one
-    // defined block (TOKENs: panel fill/line) instead of loose elements on black.
+    // Outer tray panel — the whole bottom block (TOKENs: panel fill/line).
     const panel = new Node('TrayPanel');
     this.listContent.addChild(panel);
-    panel.setSiblingIndex(0);                               // behind badge / cards / buttons
+    panel.setSiblingIndex(0);                               // behind everything
     const panelW = visW - 18, panelH = viewH + 60;
     panel.setPosition(0, 0, 0);
     panel.addComponent(UITransform).setContentSize(panelW, panelH);
@@ -254,9 +273,23 @@ export class RoomPanel extends Component {
     pg.strokeColor = PANEL_LINE; pg.lineWidth = 1.5;
     pg.roundRect(-panelW / 2, -panelH / 2, panelW, panelH, 16); pg.stroke();
 
+    // Card-strip background — a distinct inset panel over the LEFT zone so the
+    // scrollable furniture list reads as its own block, clearly separated from
+    // the action-button column on the right (item 1).
+    const stripBg = new Node('StripBg');
+    this.listContent.addChild(stripBg);
+    const sbW = viewW + 8, sbH = viewH - 60;
+    stripBg.setPosition(vx, STRIP_CY, 0);
+    stripBg.addComponent(UITransform).setContentSize(sbW, sbH);
+    const sbg = stripBg.addComponent(Graphics);
+    sbg.fillColor = new Color(238, 227, 209, 255);          // warm inset, darker than the cream panel
+    sbg.roundRect(-sbW / 2, -sbH / 2, sbW, sbH, 12); sbg.fill();
+    sbg.strokeColor = PANEL_LINE; sbg.lineWidth = 1.2;
+    sbg.roundRect(-sbW / 2, -sbH / 2, sbW, sbH, 12); sbg.stroke();
+
     const viewport = new Node('PaletteView');
     this.listContent.addChild(viewport);
-    viewport.setPosition(-visW / 2 + viewW / 2 + 8, 0, 0);
+    viewport.setPosition(vx, STRIP_CY, 0);
     viewport.addComponent(UITransform).setContentSize(viewW, viewH);
     viewport.addComponent(Mask);
     const psv = viewport.addComponent(ScrollView);
@@ -265,7 +298,7 @@ export class RoomPanel extends Component {
     viewport.addChild(strip);
     const sui = strip.addComponent(UITransform);
     sui.setAnchorPoint(0, 0.5);
-    sui.setContentSize(Math.max(viewW, total2 * GAP), viewH);
+    sui.setContentSize(Math.max(viewW, pending.length * GAP), viewH);
     strip.setPosition(-viewW / 2, 0, 0);                    // content left edge at viewport left
     psv.horizontal = true; psv.vertical = false; psv.content = strip;
     // Track scrolling so the offset is current for the next rebuild, and restore
@@ -273,11 +306,11 @@ export class RoomPanel extends Component {
     psv.node.on(ScrollView.EventType.SCROLLING, () => { this.scrollX = psv.getScrollOffset().x; }, this);
     if (this.scrollX) psv.scrollToOffset(new Vec2(this.scrollX, 0), 0);
 
-    for (let i = 0; i < total2 && room2; i++) {
+    for (let vi = 0; vi < pending.length && room2; vi++) {
+      const i = pending[vi];
       const item = roomItemAt(room2, i);
       if (!item) continue;
-      const x = i * GAP + GAP / 2;                          // from the strip's left-anchored origin
-      const resolved = s.placedCardKeys.has(`${slot}:${i}`) || s.skippedCardKeys.has(`${slot}:${i}`);
+      const x = vi * GAP + GAP / 2;                          // packed left-to-right
       const isSel = !!sel && sel.slot === slot && sel.slotIdx === i;
       const selRot = isSel && sel ? sel.rotation : 0;
       const selMir = isSel && sel ? sel.mirrored : false;
@@ -285,24 +318,24 @@ export class RoomPanel extends Component {
         const e = furnitureByName(item.name);
         if (e) this.makeOption(slot, i, e.number ?? 0, e.variant ?? 'A', e.option_index ?? 1,
           e.bbox, item.name, x, isSel, selRot, selMir,
-          e.source === 'custom' ? e : null, strip, resolved, true);
+          e.source === 'custom' ? e : null, strip, false, true);
       } else {
         const variant = s.chosenVariants[item.number] ?? 'A';
         const data = cardByNumberVariant(item.number, variant);
         const opt = data?.options?.[0];
         if (opt) this.makeOption(slot, i, item.number, variant, opt.option_index,
-          opt.bbox, opt.name_zh, x, isSel, selRot, selMir, null, strip, resolved, true);
+          opt.bbox, opt.name_zh, x, isSel, selRot, selMir, null, strip, false, true);
       }
     }
 
-    // Right-hand action column on cardList (outside the viewport — never clipped
-    // or scrolled). 放置 / 撤销 / 完成摆放 (跳过 removed).
+    // Right-hand action column — its own zone, vertically centred on the strip.
+    // 放置 / 撤销 / 完成摆放 (跳过 removed).
     const rx = visW / 2 - BTN_ZONE / 2;
-    this.makeButton(rx,  80, '放置', BTN_GREEN, !!sel,
+    this.makeButton(rx,  STRIP_CY + 80, '放置', BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
-    this.makeButton(rx,   0, '撤销', BTN_RED, s.past.length > 0,
+    this.makeButton(rx,  STRIP_CY,      '撤销', BTN_RED, s.past.length > 0,
       () => gameStore.getState().undo(), 120, this.listContent);
-    this.makeButton(rx, -80, '完成摆放', BTN_PRIMARY, true,
+    this.makeButton(rx,  STRIP_CY - 80, '完成摆放', BTN_PRIMARY, true,
       () => gameStore.getState().finishPlacing(), 120, this.listContent);
   }
 
