@@ -27,11 +27,17 @@ const add = (e) => { if (e && e.name && !seen.has(e.name)) { seen.add(e.name); o
 
 // custom first (wins on name collision)
 for (const f of readArr(CUSTOM)) {
+  // `shape` (the SOLID/occupied cells) is derived from the tile cells, but an
+  // open cell can ALSO carry a tile (art that's still walkable — a 浴缸's shower
+  // curtain, a carpet, …). Those cells belong to open_spaces ONLY, so subtract
+  // open_cells from the tile-derived shape; otherwise a cell ends up in BOTH and
+  // the game (regions.ts: walkable = indoor − shape) wrongly treats it as blocked.
+  const openSet = new Set((f.open_cells || []).map(([r, c]) => `${r},${c}`));
   add({
     name: f.name,
     source: 'custom',
     bbox: f.bbox,
-    shape: (f.tiles || []).map((t) => [t.row, t.col]),
+    shape: (f.tiles || []).map((t) => [t.row, t.col]).filter(([r, c]) => !openSet.has(`${r},${c}`)),
     open_spaces: f.open_cells || [],
     wall_edges: f.wall_edges || [],
     name_zh: f.name,
