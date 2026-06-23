@@ -67,9 +67,12 @@ export class RoomPanel extends Component {
    *  first card. Reset to 0 only when the active room changes. */
   private scrollX = 0;
   private scrollRoomSlot: any = null;
-  /** Live refs so a selection-only change can update just the affected cards in
-   *  place — WITHOUT rebuilding the strip/ScrollView (which would reset scroll). */
+  /** Live refs so a selection / placement change can patch just the affected
+   *  cards in place — WITHOUT rebuilding the strip/ScrollView (which resets scroll). */
   private stripNode: Node | null = null;
+  private scrollView: ScrollView | null = null;
+  private paletteViewW = 0;
+  private shownPending: number[] = [];
   private trayRx = 0;
   private trayCy = 0;
 
@@ -102,12 +105,10 @@ export class RoomPanel extends Component {
     this.getInput();
     this.rebuild();
     this.unsub = gameStore.subscribe((s, prev) => {
-      // Anything OTHER than the current selection that affects the tray → full rebuild.
-      const otherChanged =
+      // STRUCTURAL changes (room/phase/walls/…) rebuild the whole tray.
+      const structuralChanged =
           s.scenario           !== prev.scenario           ||
           s.activeRoomSlot     !== prev.activeRoomSlot     ||
-          s.placedCardKeys     !== prev.placedCardKeys     ||
-          s.skippedCardKeys    !== prev.skippedCardKeys    ||
           s.wallPhase          !== prev.wallPhase          ||
           s.windowMode         !== prev.windowMode         ||
           s.walls              !== prev.walls              ||
@@ -115,14 +116,15 @@ export class RoomPanel extends Component {
           s.frontDoorEdge      !== prev.frontDoorEdge      ||
           s.frontDoorMode      !== prev.frontDoorMode      ||
           s.gameFinished       !== prev.gameFinished;
-      // NOTE: past.length is deliberately NOT here. selectOption() is wrapped in
-      // mutate(), which pushes an undo snapshot and bumps past.length — so
-      // including it would force a full rebuild (and scroll reset) on EVERY
-      // selection. Every other mutate action also changes a primary field above,
-      // so dropping past.length here doesn't miss any real rebuild.
-      if (otherChanged) { this.rebuild(); return; }
-      // ONLY the selection changed → update the affected cards in place so the
-      // strip's scroll position and visible cards never move.
+      if (structuralChanged) { this.rebuild(); return; }
+      // Which furniture is resolved changed (placed / skipped / un-done) → remove
+      // (or re-add) the affected card IN PLACE and re-pack, keeping the strip's
+      // scroll where it is. NOTE: past.length is intentionally not a trigger —
+      // selectOption()'s mutate() bumps it, which would force a full rebuild.
+      if (s.placedCardKeys !== prev.placedCardKeys || s.skippedCardKeys !== prev.skippedCardKeys) {
+        this.updatePending(prev.selectedOption); return;
+      }
+      // Only the selection changed → patch the affected cards in place.
       if (s.selectedOption !== prev.selectedOption) {
         this.updateSelectionHighlight(prev.selectedOption);
       }
@@ -330,9 +332,13 @@ export class RoomPanel extends Component {
       if (psv.isValid && psv.node?.isValid) psv.scrollToOffset(new Vec2(targetX, 0), 0);
     }, 0);
 
-    // Remember the live strip + button-column geometry so a selection-only change
-    // can patch just the affected cards (see updateSelectionHighlight).
+    // Remember the live strip + ScrollView + geometry so selection / placement
+    // changes can patch just the affected cards in place (see updateSelectionHighlight
+    // / updatePending) instead of rebuilding the strip.
     this.stripNode = strip;
+    this.scrollView = psv;
+    this.paletteViewW = viewW;
+    this.shownPending = pending;
     this.trayRx = rx;
     this.trayCy = STRIP_CY;
 
@@ -409,6 +415,76 @@ export class RoomPanel extends Component {
     // 放置 enabled tracks the selection; 撤销 tracks past.length (selecting pushes
     // an undo snapshot). Both live on listContent, so refreshing them never
     // touches the scrollable strip.
+    this.refreshButton('放置', this.trayCy + 80, BTN_GREEN, !!sel,
+      () => this.getInput()?.tryPlaceAtGhost());
+    this.refreshButton('撤销', this.trayCy, BTN_RED, s.past.length > 0,
+      () => gameStore.getState().undo());
+  }
+
+  /** A placed/skipped/un-done card change: remove (or re-add) the affected card
+   *  and re-pack the survivors IN PLACE. The strip/ScrollView stay, so scroll is
+   *  preserved (only clamped if the now-shorter list scrolled past its end — never
+   *  reset to the start). Falls back to a full rebuild when the palette should no
+   *  longer be shown (room emptied / phase change). */
+  private updatePending(prevSel: SelectedOption | null) {
+    const strip = this.stripNode;
+    const s = gameStore.getState();
+    if (!strip || !strip.isValid || !s.scenario || !s.activeRoomSlot || currentCard(s) == null) {
+      this.rebuild(); return;
+    }
+    const slot = s.activeRoomSlot;
+    const room2 = s.scenario.rooms.find(r => r.slot === slot);
+    if (!room2) { this.rebuild(); return; }
+
+    const total2 = roomItemCount(room2);
+    const pending: number[] = [];
+    for (let i = 0; i < total2; i++) {
+      if (!(s.placedCardKeys.has(`${slot}:${i}`) || s.skippedCardKeys.has(`${slot}:${i}`))) pending.push(i);
+    }
+    if (pending.length === 0) { this.rebuild(); return; }   // palette empty → switch to construction UI
+
+    const GAP = PALETTE_GAP;
+    const newSet = new Set(pending);
+    const shownSet = new Set(this.shownPending);
+    const sel = s.selectedOption;
+
+    // Remove cards that are no longer pending (just placed / skipped).
+    for (const idx of this.shownPending) {
+      if (!newSet.has(idx)) {
+        const n = strip.getChildByName(`card_${idx}`);
+        if (n) { n.removeFromParent(); n.destroy(); }
+      }
+    }
+    // Re-pack survivors to their new slots; add any newly-pending card (e.g. undo);
+    // rebuild a card whose selected-state changed.
+    for (let vi = 0; vi < pending.length; vi++) {
+      const idx = pending[vi];
+      const x = vi * GAP + GAP / 2;
+      const node = shownSet.has(idx) ? strip.getChildByName(`card_${idx}`) : null;
+      const wasSel = !!prevSel && prevSel.slot === slot && prevSel.slotIdx === idx;
+      const isSel  = !!sel && sel.slot === slot && sel.slotIdx === idx;
+      if (node && wasSel === isSel) {
+        const p = node.position;
+        node.setPosition(x, p.y, p.z);
+      } else {
+        if (node) { node.removeFromParent(); node.destroy(); }
+        this.buildCard(s, room2, slot, idx, x, strip);
+      }
+    }
+    this.shownPending = pending;
+
+    // Content width tracks the count; clamp scroll only if it now scrolls past the end.
+    const sui = strip.getComponent(UITransform);
+    if (sui) sui.setContentSize(Math.max(this.paletteViewW, pending.length * GAP), sui.contentSize.height);
+    const psv = this.scrollView;
+    if (psv && psv.isValid) {
+      const max = psv.getMaxScrollOffset(), cur = psv.getScrollOffset();
+      if (cur.x > max.x) psv.scrollToOffset(new Vec2(max.x, 0), 0);
+    }
+
+    // Progress label + action buttons.
+    const prog = this.listContent.getChildByName('RoomProgress')?.getComponent(Label);
+    if (prog) prog.string = `已摆放 ${total2 - pending.length} / ${total2}`;
     this.refreshButton('放置', this.trayCy + 80, BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
     this.refreshButton('撤销', this.trayCy, BTN_RED, s.past.length > 0,
