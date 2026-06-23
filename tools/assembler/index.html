@@ -25,6 +25,7 @@
   button:hover{background:#39414e;}
   button.primary{background:var(--accent);color:#1b1f24;border-color:var(--accent);font-weight:600;}
   button.green{background:var(--sel);color:#1b1f24;border-color:var(--sel);font-weight:600;}
+  #btn-save.dirty{box-shadow:0 0 0 2px var(--accent);}
   button.active{background:var(--sel);color:#1b1f24;border-color:var(--sel);font-weight:600;}
   button.danger{color:var(--bad);}
   button:disabled{opacity:.4;cursor:default;}
@@ -79,7 +80,10 @@
   /* tags */
   #tagsec{padding:9px 12px;border-bottom:1px solid var(--line);}
   #tagsec h3{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
-  #tag-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;}
+  .tag-chips{display:flex;flex-wrap:wrap;gap:5px;min-height:13px;}
+  .tag-zone-label{font-size:10px;color:var(--muted);margin:7px 0 4px;}
+  .tag-chip.add{border-style:dashed;}
+  #tag-applied:empty::after{content:"(无 · 点下方「可用标签」添加)";font-size:11px;color:var(--muted);font-style:italic;}
   .tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 6px 3px 9px;border-radius:11px;font-size:12px;
     background:#2a2f37;border:1px solid var(--line);color:var(--muted);cursor:pointer;user-select:none;}
   .tag-chip:hover{background:#333a44;}
@@ -109,6 +113,7 @@
     <button id="btn-open">✅ 开放格</button>
     <div class="sep"></div>
     <button id="btn-save" class="green">保存到列表</button>
+    <span id="dirty-dot" title="有未保存改动,点「保存到列表」落盘" style="display:none;color:var(--accent);font-size:17px;line-height:1;margin-left:-2px">●</span>
   </div>
 
   <div id="main">
@@ -158,8 +163,11 @@
       <!-- tags -->
       <div id="tagsec">
         <h3>标签 <span id="tag-ctx" style="text-transform:none;letter-spacing:0;color:var(--accent)"></span></h3>
-        <div id="tag-empty">点选标签给当前家具打标 · 双击改名 · ✕ 删除</div>
-        <div id="tag-chips"></div>
+        <div id="tag-empty">下方输入框新建标签;点「可用标签」即可贴到当前家具</div>
+        <div class="tag-zone-label">本家具标签(✕ 从本家具移除)</div>
+        <div id="tag-applied" class="tag-chips"></div>
+        <div class="tag-zone-label">可用标签(点一下贴到当前家具 · 双击改名 · ✕ 从词表删除)</div>
+        <div id="tag-available" class="tag-chips"></div>
         <div id="tag-add-row">
           <input type="text" id="tag-add-input" placeholder="标签名(新建或套用到当前家具)" />
           <button id="tag-add-btn">+ 添加</button>
@@ -328,7 +336,7 @@ document.getElementById('btn-new').onclick = () => {
   cells.clear(); openCells.clear(); selectedCell = null;
   editingIndex = -1; currentTags.clear();
   document.getElementById('fname').value = '';
-  fit(); updateProps(); updateCellInfo(null); render(); renderTags(); save();
+  fit(); updateProps(); updateCellInfo(null); render(); renderTags(); markDirty();
 };
 
 // ── save to collection ────────────────────────────────
@@ -351,7 +359,7 @@ document.getElementById('btn-save').onclick = () => {
     }
   }
   renderFList();
-  save();
+  persist();   // 「保存到列表」= 落盘:写入 localStorage 并清除未保存标记
 };
 
 function buildFurnitureObj(name) {
@@ -396,7 +404,7 @@ function renderFList() {
         editingIndex = -1; updateProps(); updateCellInfo(null); render();
       } else if (editingIndex > i) editingIndex--;
       collection.splice(i, 1);
-      renderFList(); save();
+      renderFList(); markDirty();
     };
     div.onclick = () => loadFurniture(i);
     list.appendChild(div);
@@ -404,6 +412,7 @@ function renderFList() {
 }
 
 function loadFurniture(i) {
+  commitBuffer();   // 先把当前家具的未保存改动折回内存,切换不丢失
   const f = collection[i];
   document.getElementById('fname').value = f.name;
   document.getElementById('fw').value = f.bbox[1];
@@ -420,25 +429,37 @@ function loadFurniture(i) {
 
 // ── tags ───────────────────────────────────────────────
 function renderTags() {
-  const ctx2 = document.getElementById('tag-ctx');
   const nm = document.getElementById('fname').value.trim();
-  ctx2.textContent = nm ? `→ ${nm}` : '→ (未命名)';
+  document.getElementById('tag-ctx').textContent = nm ? `→ ${nm}` : '→ (未命名)';
   document.getElementById('tag-empty').style.display = tagVocab.length ? 'none' : 'block';
-  const wrap = document.getElementById('tag-chips');
-  wrap.innerHTML = '';
+  const applied = document.getElementById('tag-applied');
+  const avail = document.getElementById('tag-available');
+  applied.innerHTML = ''; avail.innerHTML = '';
+  // 上区 = 已贴到当前家具的标签(✕ 仅从本家具移除);
+  // 下区 = 词表里其余可用标签(点一下贴到本家具;✕ 从词表彻底删除)。
+  // 只有出现在上区(高亮)才代表当前家具拥有该标签。
   tagVocab.forEach(tag => {
+    const on = currentTags.has(tag);
     const chip = document.createElement('span');
-    chip.className = 'tag-chip' + (currentTags.has(tag) ? ' on' : '');
-    chip.title = '单击打标/取消 · 双击改名';
+    chip.className = 'tag-chip' + (on ? ' on' : ' add');
     const tx = document.createElement('span');
-    tx.className = 'tx'; tx.textContent = tag;
-    tx.onclick = () => toggleTag(tag);
+    tx.className = 'tx';
+    tx.textContent = on ? tag : ('＋ ' + tag);
     tx.ondblclick = () => renameTag(tag);
     const del = document.createElement('span');
-    del.className = 'tag-del'; del.textContent = '✕'; del.title = '从词表删除';
-    del.onclick = e => { e.stopPropagation(); deleteTag(tag); };
-    chip.appendChild(tx); chip.appendChild(del);
-    wrap.appendChild(chip);
+    del.className = 'tag-del'; del.textContent = '✕';
+    if (on) {
+      chip.title = '已贴到当前家具';
+      del.title = '从当前家具移除'; del.onclick = e => { e.stopPropagation(); toggleTag(tag); };
+      chip.appendChild(tx); chip.appendChild(del);
+      applied.appendChild(chip);
+    } else {
+      chip.title = '点一下贴到当前家具 · 双击改名';
+      tx.onclick = () => toggleTag(tag);
+      del.title = '从词表彻底删除'; del.onclick = e => { e.stopPropagation(); deleteTag(tag); };
+      chip.appendChild(tx); chip.appendChild(del);
+      avail.appendChild(chip);
+    }
   });
 }
 function addTag(name) {
@@ -448,11 +469,11 @@ function addTag(name) {
   // (之前对已存在标签直接报错,导致"不同家具不能共用同一标签"的错觉。)
   if (!tagVocab.includes(name)) tagVocab.push(name);
   currentTags.add(name);
-  renderTags(); save();
+  renderTags(); markDirty();
 }
 function toggleTag(tag) {
   if (currentTags.has(tag)) currentTags.delete(tag); else currentTags.add(tag);
-  renderTags(); save();
+  renderTags(); markDirty();
 }
 function renameTag(oldName) {
   const next = prompt(`重命名标签「${oldName}」为:`, oldName);
@@ -463,14 +484,14 @@ function renameTag(oldName) {
   tagVocab = tagVocab.map(t => t === oldName ? nm : t);
   collection.forEach(f => { if (f.tags) f.tags = f.tags.map(t => t === oldName ? nm : t); });
   if (currentTags.delete(oldName)) currentTags.add(nm);
-  renderTags(); renderFList(); save();
+  renderTags(); renderFList(); markDirty();
 }
 function deleteTag(tag) {
   if (!confirm(`从词表删除标签「${tag}」？所有家具上的该标签也会移除。`)) return;
   tagVocab = tagVocab.filter(t => t !== tag);
   collection.forEach(f => { if (f.tags) f.tags = f.tags.filter(t => t !== tag); });
   currentTags.delete(tag);
-  renderTags(); renderFList(); save();
+  renderTags(); renderFList(); markDirty();
 }
 document.getElementById('tag-add-btn').onclick = () => {
   const inp = document.getElementById('tag-add-input');
@@ -486,6 +507,7 @@ document.getElementById('fname').addEventListener('input', () => {
 
 // ── export / import ────────────────────────────────────
 document.getElementById('btn-export').onclick = () => {
+  commitBuffer();   // 把当前家具的未保存改动折回内存,确保导出包含最新编辑
   if (collection.length === 0) { alert('列表为空，请先保存至少一件家具'); return; }
   const data = { tag_vocabulary: tagVocab, furniture: collection };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -508,7 +530,7 @@ document.getElementById('importfile').onchange = e => {
       collection = list;
       if (Array.isArray(d.tag_vocabulary)) tagVocab = d.tag_vocabulary.slice();
       editingIndex = -1; cells.clear(); openCells.clear(); selectedCell = null; currentTags.clear();
-      renderFList(); updateProps(); updateCellInfo(null); render(); renderTags(); save();
+      renderFList(); updateProps(); updateCellInfo(null); render(); renderTags(); persist();
     } catch (err) { alert('解析失败: ' + err); }
   };
   rd.readAsText(f);
@@ -625,17 +647,17 @@ cv.addEventListener('mousedown', ev => {
   const key = cell.col + ',' + cell.row;
   if (mode === 'open') {
     if (openCells.has(key)) openCells.delete(key); else openCells.add(key);
-    updateProps(); render(); save(); return;
+    updateProps(); render(); markDirty(); return;
   }
   if (cells.has(key)) { selectedCell = key; updateCellInfo(key); }
-  else if (selectedTile) { cells.set(key, { tile: selectedTile, rotation: selectedRotation, mirror: selectedMirror }); selectedCell = key; updateCellInfo(key); updateProps(); save(); }
+  else if (selectedTile) { cells.set(key, { tile: selectedTile, rotation: selectedRotation, mirror: selectedMirror }); selectedCell = key; updateCellInfo(key); updateProps(); markDirty(); }
   render();
 });
 cv.addEventListener('contextmenu', ev => {
   ev.preventDefault(); if (panning) return;
   const cell = cellAt(ev); if (!cell) return;
   const key = cell.col + ',' + cell.row;
-  if (cells.has(key)) { cells.delete(key); if (selectedCell === key) { selectedCell = null; updateCellInfo(null); } updateProps(); save(); render(); }
+  if (cells.has(key)) { cells.delete(key); if (selectedCell === key) { selectedCell = null; updateCellInfo(null); } updateProps(); markDirty(); render(); }
 });
 window.addEventListener('mouseup', () => { panning = false; cv.style.cursor = spaceDown ? 'grab' : 'crosshair'; });
 cv.addEventListener('wheel', ev => {
@@ -660,17 +682,17 @@ window.addEventListener('keyup', ev => { if (ev.code === 'Space') { spaceDown = 
 function rotatePlaced() {
   if (!selectedCell || !cells.has(selectedCell)) return;
   cells.get(selectedCell).rotation = (cells.get(selectedCell).rotation + 90) % 360;
-  updateCellInfo(selectedCell); save(); render();
+  updateCellInfo(selectedCell); markDirty(); render();
 }
 function mirrorPlaced() {
   if (!selectedCell || !cells.has(selectedCell)) return;
   const c = cells.get(selectedCell);
   c.mirror = !c.mirror;
-  updateCellInfo(selectedCell); save(); render();
+  updateCellInfo(selectedCell); markDirty(); render();
 }
 function deletePlaced() {
   if (!selectedCell) return;
-  cells.delete(selectedCell); selectedCell = null; updateCellInfo(null); updateProps(); save(); render();
+  cells.delete(selectedCell); selectedCell = null; updateCellInfo(null); updateProps(); markDirty(); render();
 }
 
 document.getElementById('ci-rot-btn').onclick = rotatePlaced;
@@ -697,8 +719,18 @@ function updateProps() {
   document.getElementById('p-open').textContent = openCells.size;
 }
 
-// ── localStorage ───────────────────────────────────────
-function save() {
+// ── 持久化(以保存为准) ─────────────────────────────────
+// localStorage 只在「保存到列表」按钮 / 导入时写入(= 上次落盘的快照)。
+// 其余改动只标脏(markDirty),停留在内存;切换家具用 commitBuffer 折回内存
+// collection 不落盘 —— 于是:切换家具保留改动,刷新但没保存则丢弃未保存改动。
+let dirty = false;
+function markDirty() {
+  dirty = true;
+  document.getElementById('dirty-dot').style.display = '';
+}
+function persist() {
+  dirty = false;
+  document.getElementById('dirty-dot').style.display = 'none';
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       gridW, gridH, editingIndex,
@@ -707,6 +739,19 @@ function save() {
       collection, tagVocab, currentTags: [...currentTags],
     }));
   } catch(e) {}
+}
+// 把当前画布缓冲(含 tags)折回内存 collection,但不落盘 —— 切换家具前调用,
+// 保证未保存的改动不会因切换而丢失。
+function commitBuffer() {
+  if (cells.size === 0 && openCells.size === 0) return;
+  const name = document.getElementById('fname').value.trim();
+  if (editingIndex >= 0) {
+    collection[editingIndex] = buildFurnitureObj(name || collection[editingIndex].name);
+  } else if (name) {
+    const dup = collection.findIndex(f => f.name === name);
+    if (dup >= 0) collection[dup] = buildFurnitureObj(name);
+    else { collection.push(buildFurnitureObj(name)); editingIndex = collection.length - 1; }
+  }
 }
 function loadLS() {
   try {
