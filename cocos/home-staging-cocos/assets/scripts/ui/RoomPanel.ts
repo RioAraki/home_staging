@@ -114,8 +114,12 @@ export class RoomPanel extends Component {
           s.completedRoomSlots !== prev.completedRoomSlots ||
           s.frontDoorEdge      !== prev.frontDoorEdge      ||
           s.frontDoorMode      !== prev.frontDoorMode      ||
-          s.gameFinished       !== prev.gameFinished       ||
-          s.past.length        !== prev.past.length;
+          s.gameFinished       !== prev.gameFinished;
+      // NOTE: past.length is deliberately NOT here. selectOption() is wrapped in
+      // mutate(), which pushes an undo snapshot and bumps past.length — so
+      // including it would force a full rebuild (and scroll reset) on EVERY
+      // selection. Every other mutate action also changes a primary field above,
+      // so dropping past.length here doesn't miss any real rebuild.
       if (otherChanged) { this.rebuild(); return; }
       // ONLY the selection changed → update the affected cards in place so the
       // strip's scroll position and visible cards never move.
@@ -402,17 +406,21 @@ export class RoomPanel extends Component {
     if (prevSel && prevSel.slot === slot) patch(prevSel.slotIdx);
     if (sel && sel.slot === slot && (!prevSel || prevSel.slotIdx !== sel.slotIdx)) patch(sel.slotIdx);
 
-    // The 放置 button's enabled state depends on whether anything is selected.
-    this.refreshPlaceButton(!!sel);
+    // 放置 enabled tracks the selection; 撤销 tracks past.length (selecting pushes
+    // an undo snapshot). Both live on listContent, so refreshing them never
+    // touches the scrollable strip.
+    this.refreshButton('放置', this.trayCy + 80, BTN_GREEN, !!sel,
+      () => this.getInput()?.tryPlaceAtGhost());
+    this.refreshButton('撤销', this.trayCy, BTN_RED, s.past.length > 0,
+      () => gameStore.getState().undo());
   }
 
-  /** Re-create the 放置 button (on listContent, not the strip) so its enabled
-   *  state tracks the selection without rebuilding the scrollable strip. */
-  private refreshPlaceButton(enabled: boolean) {
-    const old = this.listContent.getChildByName('放置');
+  /** Re-create one action button (on listContent, not the strip) so its enabled
+   *  state can track selection/history without rebuilding the scrollable strip. */
+  private refreshButton(label: string, y: number, fill: Color, enabled: boolean, onTap: () => void) {
+    const old = this.listContent.getChildByName(label);
     if (old) { old.removeFromParent(); old.destroy(); }
-    this.makeButton(this.trayRx, this.trayCy + 80, '放置', BTN_GREEN, enabled,
-      () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
+    this.makeButton(this.trayRx, y, label, fill, enabled, onTap, 120, this.listContent);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
