@@ -505,7 +505,7 @@ export class RoomPanel extends Component {
     const shapeSet = new Set(opt.shape.map(([r, c]) => `${r},${c}`));
     const openSet  = new Set(opt.open_spaces.map(([r, c]) => `${r},${c}`));
 
-    const cellPx = Math.max(5, Math.min(9, Math.floor(44 / Math.max(H, W))));
+    const cellPx = Math.max(7, Math.min(11, Math.floor(54 / Math.max(H, W))));
     const bw = W * cellPx, bh = H * cellPx, pad = 3;
 
     const badge = new Node('footprint');
@@ -523,16 +523,24 @@ export class RoomPanel extends Component {
 
     const SHAPE = new Color(138, 111, 82, 255);   // occupied cell
     const gap = 0.6;
+    const dotR = Math.max(2, cellPx * 0.32);
     for (let r = 0; r < H; r++) {
       for (let c = 0; c < W; c++) {
         const k = `${r},${c}`;
         const isShape = shapeSet.has(k), isOpen = openSet.has(k);
-        if (!isShape && !isOpen) continue;          // void → leave the backing
-        g.fillColor = isShape ? SHAPE : ACCENT;     // terracotta = open cell
-        const x = -bw / 2 + c * cellPx + gap;
-        const y = bh / 2 - (r + 1) * cellPx + gap;  // row 0 at the top
-        g.rect(x, y, cellPx - gap * 2, cellPx - gap * 2);
-        g.fill();
+        if (isShape) {
+          // occupied cell → solid brown square
+          g.fillColor = SHAPE;
+          g.rect(-bw / 2 + c * cellPx + gap, bh / 2 - (r + 1) * cellPx + gap, cellPx - gap * 2, cellPx - gap * 2);
+          g.fill();
+        } else if (isOpen) {
+          // open / clearance cell → a terracotta dot (matches the floor-plan
+          // open-cell dots), so empty cells are marked rather than left blank.
+          g.fillColor = ACCENT;
+          g.circle(-bw / 2 + (c + 0.5) * cellPx, bh / 2 - (r + 0.5) * cellPx, dotR);
+          g.fill();
+        }
+        // void (neither shape nor open) → leave the light backing
       }
     }
   }
