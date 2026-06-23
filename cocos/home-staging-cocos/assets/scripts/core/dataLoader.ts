@@ -86,7 +86,8 @@ export function scenarioById(id: string): Scenario | undefined {
  *  maps_data so their dimensions/elements remain available for reference, they
  *  just don't appear in the picker. Add an id here to surface a level. */
 export const AVAILABLE_SCENARIO_IDS = [
-  'test_0',   // 小公寓 — editor-authored
+  'test_0',     // 小公寓 — editor-authored
+  'training',   // 陋室 — editor-authored
 ];
 
 export function availableScenarios(): Scenario[] {
