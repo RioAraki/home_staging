@@ -161,7 +161,7 @@
         <div id="tag-empty">点选标签给当前家具打标 · 双击改名 · ✕ 删除</div>
         <div id="tag-chips"></div>
         <div id="tag-add-row">
-          <input type="text" id="tag-add-input" placeholder="新标签名" />
+          <input type="text" id="tag-add-input" placeholder="标签名(新建或套用到当前家具)" />
           <button id="tag-add-btn">+ 添加</button>
         </div>
       </div>
@@ -444,8 +444,10 @@ function renderTags() {
 function addTag(name) {
   name = (name || '').trim();
   if (!name) return;
-  if (tagVocab.includes(name)) { alert(`标签「${name}」已存在`); return; }
-  tagVocab.push(name);
+  // 标签是用来把多件家具归到一组的:新标签加进词表,无论新旧都套用到当前家具。
+  // (之前对已存在标签直接报错,导致"不同家具不能共用同一标签"的错觉。)
+  if (!tagVocab.includes(name)) tagVocab.push(name);
+  currentTags.add(name);
   renderTags(); save();
 }
 function toggleTag(tag) {
