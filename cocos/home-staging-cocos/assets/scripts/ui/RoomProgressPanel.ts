@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, UITransform, Graphics, Label, Color, Widget } from 'cc';
 import { gameStore } from '../state/gameStore';
 import { roomItemCount } from '../core/roomItems';
+import { PANEL, PANEL_LINE, ACCENT, ACCENT_DARK, TEXT_MUTED } from './uiTheme';
 const { ccclass } = _decorator;
 
 const PANEL_W  = 190;
@@ -64,8 +65,8 @@ export class RoomProgressPanel extends Component {
     bgNode.setPosition(PANEL_W / 2, -panelH / 2, 0);
     bgNode.addComponent(UITransform).setContentSize(PANEL_W, panelH);
     const bg = bgNode.addComponent(Graphics);
-    bg.fillColor   = new Color(10, 20, 40, 160);
-    bg.strokeColor = new Color(255, 255, 255, 35);
+    bg.fillColor   = PANEL;
+    bg.strokeColor = PANEL_LINE;
     bg.lineWidth   = 1.2;
     bg.roundRect(-PANEL_W / 2, -panelH / 2, PANEL_W, panelH, 8);
     bg.fill();
@@ -81,7 +82,7 @@ export class RoomProgressPanel extends Component {
     titleLbl.string   = '房间进度';
     titleLbl.fontSize = 18;
     titleLbl.isBold   = true;
-    titleLbl.color    = new Color(255, 225, 105, 255);
+    titleLbl.color    = ACCENT_DARK;
     titleLbl.horizontalAlign = (Label as any).HorizontalAlign?.LEFT ?? 0;
 
     // Divider line
@@ -89,7 +90,7 @@ export class RoomProgressPanel extends Component {
     this.node.addChild(divNode);
     divNode.setPosition(PANEL_W / 2, -(PAD + TITLE_H), 0);
     const divG = divNode.addComponent(Graphics);
-    divG.strokeColor = new Color(255, 255, 255, 30);
+    divG.strokeColor = PANEL_LINE;
     divG.lineWidth   = 1;
     divG.moveTo(-PANEL_W / 2 + 8, 0);
     divG.lineTo( PANEL_W / 2 - 8, 0);
@@ -112,8 +113,8 @@ export class RoomProgressPanel extends Component {
         hlNode.setPosition(PANEL_W / 2, rowY, 0);
         hlNode.addComponent(UITransform).setContentSize(PANEL_W - 4, ROW_H - 4);
         const hlG = hlNode.addComponent(Graphics);
-        hlG.fillColor = new Color(255, 225, 105, 20);
-        hlG.strokeColor = new Color(255, 225, 105, 60);
+        hlG.fillColor = new Color(ACCENT.r, ACCENT.g, ACCENT.b, 34);
+        hlG.strokeColor = new Color(ACCENT.r, ACCENT.g, ACCENT.b, 110);
         hlG.lineWidth = 1;
         hlG.roundRect(-(PANEL_W - 4) / 2, -(ROW_H - 4) / 2, PANEL_W - 4, ROW_H - 4, 4);
         hlG.fill();
@@ -133,12 +134,12 @@ export class RoomProgressPanel extends Component {
       lbl.horizontalAlign = (Label as any).HorizontalAlign?.LEFT ?? 0;
       lbl.fontSize  = 17;
       lbl.color     = done
-        ? new Color(100, 220, 130, 255)   // green — complete
+        ? new Color(56, 142, 76, 255)     // green — complete (deepened for cream)
         : isActive
-          ? new Color(255, 225, 105, 255) // yellow — active
+          ? ACCENT_DARK                    // terracotta — active
           : placed > 0
-            ? new Color(200, 200, 160, 255) // dim yellow — in progress
-            : new Color(160, 160, 175, 255); // grey — untouched
+            ? new Color(150, 110, 70, 255) // warm brown — in progress
+            : TEXT_MUTED;                  // muted — untouched
     });
   }
 }

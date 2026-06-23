@@ -9,6 +9,10 @@ import {
 import { cardByNumberVariant, furnitureByName, type FurnitureLibraryEntry } from '../core/dataLoader';
 import { roomItemCount, roomItemAt } from '../core/roomItems';
 import { InputHandler } from './InputHandler';
+import {
+  PANEL, PANEL_LINE as TOKEN_PANEL_LINE, ACCENT, ACCENT_DARK,
+  CARD_FILL, CARD_LINE, CARD_NAME, BTN_GREEN, BTN_RED, BTN_PRIMARY,
+} from './uiTheme';
 const { ccclass, property } = _decorator;
 
 const PX_PER_CELL = 52;       // shared cells→px scale so footprints are comparable
@@ -29,8 +33,9 @@ const BTN_W     =  110;   // action-button width
 const PALETTE_CARD = 160; // uniform palette card box (tapOnly) — B4 orderly row
 
 // ── Shared UI color tokens (C2) so blocks stay visually consistent. ──
-const PANEL_FILL = new Color(26, 30, 38, 240);   // dark block background
-const PANEL_LINE = new Color(58, 64, 73, 255);   // block border / divider
+// Bright "暖沙" theme: the tray reads as a light cream block (see uiTheme).
+const PANEL_FILL = PANEL;             // light cream block background
+const PANEL_LINE = TOKEN_PANEL_LINE;  // block border / divider
 
 /** X of the right-hand action column, pinned to the VISIBLE right edge so it
  *  never clips on narrow / tall phones (where the design width exceeds the
@@ -164,7 +169,7 @@ export class RoomPanel extends Component {
         lbl.string = `${room.name_zh}  ${resolved} / ${total}`;
         lbl.fontSize = 24;
         lbl.isBold = true;
-        lbl.color = new Color(255, 225, 105, 255);
+        lbl.color = ACCENT_DARK;
       }
     }
 
@@ -253,17 +258,17 @@ export class RoomPanel extends Component {
     // Right-hand action column on cardList (outside the viewport — never clipped
     // or scrolled). 放置 / 撤销 / 完成摆放 (跳过 removed).
     const rx = visW / 2 - BTN_ZONE / 2;
-    this.makeButton(rx,  80, '放置', new Color(80, 160, 90, 255), !!sel,
+    this.makeButton(rx,  80, '放置', BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
-    this.makeButton(rx,   0, '撤销', new Color(160, 70, 50, 255), s.past.length > 0,
+    this.makeButton(rx,   0, '撤销', BTN_RED, s.past.length > 0,
       () => gameStore.getState().undo(), 120, this.listContent);
-    this.makeButton(rx, -80, '完成摆放', new Color(216, 170, 60, 255), true,
+    this.makeButton(rx, -80, '完成摆放', BTN_PRIMARY, true,
       () => gameStore.getState().finishPlacing(), 120, this.listContent);
   }
 
   private addUndoButton(s: GameState, x = 0, y = -80) {
     const canUndo = s.past.length > 0;
-    this.makeButton(x, y, '撤销', new Color(160, 70, 50, 255), canUndo,
+    this.makeButton(x, y, '撤销', BTN_RED, canUndo,
       () => gameStore.getState().undo());   // same default width=110
   }
 
@@ -333,9 +338,11 @@ export class RoomPanel extends Component {
     const nameLabel = nameNode.addComponent(Label);
     nameLabel.string = name;
     nameLabel.fontSize = 22;
-    nameLabel.color = selected ? new Color(255, 240, 200, 255) : new Color(255, 255, 255, 255);
+    // Dark text on the cream tray; selected pops to terracotta. Light outline so
+    // it stays legible where the name overlaps the dark card thumbnail.
+    nameLabel.color = selected ? ACCENT_DARK : CARD_NAME;
     nameLabel.enableOutline = true;
-    nameLabel.outlineColor = new Color(0, 0, 0, 230);
+    nameLabel.outlineColor = new Color(253, 246, 236, 235);
     nameLabel.outlineWidth = 2;
 
     if (customEntry) {
@@ -344,8 +351,8 @@ export class RoomPanel extends Component {
       const fw = tapOnly ? PALETTE_CARD : boxW2 + FRAME_PAD * 2;
       const fh = tapOnly ? PALETTE_CARD : boxH2 + FRAME_PAD * 2;
       fg.clear();
-      fg.fillColor = new Color(16, 42, 71, 255);
-      fg.strokeColor = selected ? new Color(255, 225, 105, 255) : new Color(120, 150, 185, 255);
+      fg.fillColor = CARD_FILL;
+      fg.strokeColor = selected ? ACCENT : CARD_LINE;
       fg.lineWidth = selected ? 4 : 2;
       fg.rect(-fw / 2, -fh / 2, fw, fh);
       fg.fill();
@@ -389,9 +396,10 @@ export class RoomPanel extends Component {
       const fw = tapOnly ? PALETTE_CARD : w + FRAME_PAD * 2;
       const fh = tapOnly ? PALETTE_CARD : h + FRAME_PAD * 2;
       fg.clear();
-      // Dark navy fill so the white line-art reads; lighter stroke when selected.
-      fg.fillColor = new Color(16, 42, 71, 255);
-      fg.strokeColor = selected ? new Color(255, 225, 105, 255) : new Color(120, 150, 185, 255);
+      // Dark espresso fill so the white line-art reads on the bright tray;
+      // terracotta stroke when selected.
+      fg.fillColor = CARD_FILL;
+      fg.strokeColor = selected ? ACCENT : CARD_LINE;
       fg.lineWidth = selected ? 4 : 2;
       fg.rect(-fw / 2, -fh / 2, fw, fh);
       fg.fill();
@@ -427,7 +435,7 @@ export class RoomPanel extends Component {
    *  Step 1 (walls): draw walls on the plan, then 结束砌墙. Step 2 (door/window):
    *  pick 门/窗 to choose what an edge-tap places, then 完成房间. */
   private buildConstructionControls(s: GameState) {
-    const GREEN = new Color(80, 160, 90, 255);
+    const GREEN = BTN_GREEN;
     if (s.wallPhase === 'walls') {
       // Only allow finishing walls once the room is actually sealed.
       const enclosed = isActiveRoomEnclosed(s);
@@ -454,7 +462,7 @@ export class RoomPanel extends Component {
   /** Final stage, shown once every room is sealed: place the building's
    *  front door (大门), then settle. Scoring runs ONLY when 结算 is pressed. */
   private buildFinishControls(s: GameState) {
-    const GREEN = new Color(80, 160, 90, 255);
+    const GREEN = BTN_GREEN;
     const BLUE = new Color(70, 120, 200, 255);
     if (!s.frontDoorEdge) {
       // Front door not placed yet — toggle front-door mode and let the player

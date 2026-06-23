@@ -1,4 +1,5 @@
-import { _decorator, Component, Node, UITransform, Graphics, Color, view } from 'cc';
+import { _decorator, Component, Node, UITransform, Graphics, view } from 'cc';
+import { PANEL, ACCENT } from './uiTheme';
 const { ccclass } = _decorator;
 
 /**
@@ -28,11 +29,11 @@ export class HeaderBar extends Component {
     band.addComponent(UITransform).setContentSize(W, bandH);
 
     const g = band.addComponent(Graphics);
-    g.fillColor = new Color(20, 24, 31, 232);
+    g.fillColor = PANEL;
     g.rect(-W / 2, -bandH / 2, W, bandH);
     g.fill();
-    // Gold bottom divider so the header reads as its own block.
-    g.strokeColor = new Color(255, 225, 105, 70);
+    // Terracotta bottom divider so the header reads as its own block.
+    g.strokeColor = ACCENT;
     g.lineWidth = 2;
     g.moveTo(-W / 2, -bandH / 2);
     g.lineTo(W / 2, -bandH / 2);

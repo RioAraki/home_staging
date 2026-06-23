@@ -1,20 +1,39 @@
-import { _decorator, Component, Node, UITransform, Graphics, Color, view } from 'cc';
+import { _decorator, Component, Node, UITransform, Graphics, view } from 'cc';
+import { SAND_BG, SAND_TEXTURE } from './uiTheme';
 const { ccclass } = _decorator;
 
 /**
- * Full-screen "blueprint" background (UI-improvement E1, direction B): a dark
- * navy base with a faint, large-pitch blue grid — an architect's drafting-paper
- * vibe that fits the home-design theme without stealing focus from the floor
- * plan. Pure Graphics (zero asset weight). Mounted on the Canvas by
- * GameBootstrap at sibling index 0 so it sits behind everything.
+ * Full-screen warm-sand background (bright "暖沙米色" theme) with a faint, slowly
+ * drifting diagonal hairline texture — a subtle "woven paper / fabric" motif that
+ * gives the bright surface some life without stealing focus from the floor plan.
+ * Pure Graphics (zero asset weight). Mounted on the Canvas by GameBootstrap at
+ * sibling index 0 so it sits behind everything.
  *
- * Kept deliberately faint and at a LARGER pitch than the floor-plan grid so the
- * two never read as the same grid.
+ * The drift is done by translating a single pre-drawn texture layer and wrapping
+ * it by exactly one line-spacing — for 45° lines (x − y = c) a horizontal shift
+ * of one spacing maps every line onto its neighbour, so the loop is seamless and
+ * costs nothing per frame beyond a position set (no per-frame redraw).
  */
 @ccclass('Background')
 export class Background extends Component {
+  /** Horizontal spacing between diagonal lines (= the seamless drift period). */
+  private static readonly PERIOD = 46;
+  /** Seconds for the texture to drift one full period (slow). */
+  private static readonly LOOP_SECONDS = 14;
+
+  private texNode?: Node;
+  private offset = 0;
+
   start() {
     this.draw();
+  }
+
+  update(dt: number) {
+    if (!this.texNode || !this.texNode.isValid) return;
+    this.offset += (Background.PERIOD / Background.LOOP_SECONDS) * dt;
+    if (this.offset >= Background.PERIOD) this.offset -= Background.PERIOD;
+    const p = this.texNode.position;
+    this.texNode.setPosition(this.offset, p.y, p.z);
   }
 
   private draw() {
@@ -22,9 +41,8 @@ export class Background extends Component {
     const visW = view.getVisibleSize().width;
     const visH = view.getVisibleSize().height;
     const W = visW + 80, H = visH + 80;   // bleed past the edges
+    const HW = W / 2, HH = H / 2;
 
-    // Each layer is its OWN Graphics node — a single Graphics doesn't reset its
-    // path between fill()/stroke(), which would mangle the grid.
     const mk = (name: string): Graphics => {
       const n = new Node(name);
       this.node.addChild(n);
@@ -32,28 +50,23 @@ export class Background extends Component {
       return n.addComponent(Graphics);
     };
 
-    // Base dark-navy fill.
+    // Warm-sand base fill.
     const base = mk('base');
-    base.fillColor = new Color(11, 18, 31, 255);
-    base.rect(-W / 2, -H / 2, W, H);
+    base.fillColor = SAND_BG;
+    base.rect(-HW, -HH, W, H);
     base.fill();
 
-    // Soft upper-centre glow (stacked translucent discs ≈ a faint radial light).
-    const glow = mk('glow');
-    for (let i = 0; i < 4; i++) {
-      glow.fillColor = new Color(34, 56, 96, 10);
-      glow.circle(0, H * 0.16, W * (0.62 - i * 0.13));
-      glow.fill();
+    // Diagonal hairline texture (45°, x − y = c). Drawn once over a region a bit
+    // wider than the screen on both sides so the drift never exposes an edge.
+    const tex = mk('texture');
+    this.texNode = tex.node;
+    tex.strokeColor = SAND_TEXTURE;
+    tex.lineWidth = 1.5;
+    const P = Background.PERIOD;
+    for (let c = -(HW + HH) - P; c <= (HW + HH) + P; c += P) {
+      tex.moveTo(c - HH, -HH);
+      tex.lineTo(c + HH, HH);
     }
-
-    // Blueprint grid — larger pitch than the floor-plan's so the two never read
-    // as the same grid. Visible enough to actually show the motif.
-    const grid = mk('grid');
-    grid.strokeColor = new Color(110, 152, 222, 50);
-    grid.lineWidth = 2.5;
-    const STEP = 92;
-    for (let x = -W / 2; x <= W / 2; x += STEP) { grid.moveTo(x, -H / 2); grid.lineTo(x, H / 2); }
-    for (let y = -H / 2; y <= H / 2; y += STEP) { grid.moveTo(-W / 2, y); grid.lineTo(W / 2, y); }
-    grid.stroke();
+    tex.stroke();
   }
 }
