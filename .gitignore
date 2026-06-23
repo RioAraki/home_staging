@@ -37,3 +37,13 @@ md/images/scenarios/_training_grid_zoom.png
 # Pdftotext intermediate dumps (regenerate any time with pdftotext)
 md/manual_raw.txt
 md/spiralbuch_raw.txt
+
+# ─── 生成物(聚合产物,勿提交)──────────────────────────────────
+# 由 per-level / per-furniture 源重建:cocos 目录 `npm run scenarios:build`
+# 与 `npm run furniture:library`。跟踪它们只会在多 worktree 间制造合并冲突;
+# 改用「预览前重建」(tools/preview-ref.ps1)。注:resources/data 下这些 json
+# 的 .meta 本就未跟踪、由 Cocos 本地生成,故忽略 json 是安全的。
+/md/maps_data.yaml
+/asset/cards_furniture.json
+/cocos/home-staging-cocos/assets/resources/data/maps_data.json
+/cocos/home-staging-cocos/assets/resources/data/furniture_library.json
