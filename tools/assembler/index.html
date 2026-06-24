@@ -182,7 +182,13 @@
         <div id="flist"></div>
         <div id="flist-foot">
           <button id="btn-export" class="primary">导出 JSON</button>
-          <button id="btn-export-png" title="把当前画布的家具碎片合成为透明 PNG(不含开放格覆盖/网格)">导出 PNG</button>
+          <select id="png-scale" title="导出 PNG 的等比放大倍数" style="background:#171a1f;border:1px solid var(--line);color:var(--txt);border-radius:5px;padding:5px 4px;font-size:12px;">
+            <option value="1">×1</option>
+            <option value="1.5">×1.5</option>
+            <option value="2">×2</option>
+            <option value="4">×4</option>
+          </select>
+          <button id="btn-export-png" title="把当前画布的家具碎片合成为透明 PNG(不含开放格覆盖/网格),按上方倍数等比放大">导出 PNG</button>
           <button id="btn-import">载入</button>
           <input type="file" id="importfile" accept="application/json" style="display:none" />
         </div>
@@ -533,13 +539,16 @@ document.getElementById('btn-export-png').onclick = async () => {
     img.src = `${TILES_BASE}${n}.png`;
     tileImages[n] = img;
   })));
-  // 每格像素 = 放置 tile 的最大原生边长(无放大),取不到则回退 CELL
+  // 每格像素 = 放置 tile 的最大原生边长,再乘以等比放大倍数;取不到则回退 CELL
   let ecell = 0;
   for (const n of names) { const im = tileImages[n]; if (im?.naturalWidth) ecell = Math.max(ecell, im.naturalWidth, im.naturalHeight); }
   if (!ecell) ecell = CELL;
+  const factor = parseFloat(document.getElementById('png-scale')?.value) || 1;
+  ecell = Math.max(1, Math.round(ecell * factor));   // 等比放大整张输出
   const out = document.createElement('canvas');
   out.width = gridW * ecell; out.height = gridH * ecell;
   const octx = out.getContext('2d');
+  octx.imageSmoothingEnabled = true; octx.imageSmoothingQuality = 'high';
   for (const [key, { tile, rotation, mirror }] of cells) {
     const im = tileImages[tile];
     if (!im?.complete || !im.naturalWidth) continue;
@@ -551,7 +560,8 @@ document.getElementById('btn-export-png').onclick = async () => {
     octx.drawImage(im, -ecell / 2, -ecell / 2, ecell, ecell);
     octx.restore();
   }
-  const name = document.getElementById('fname').value.trim() || 'furniture';
+  const base = document.getElementById('fname').value.trim() || 'furniture';
+  const name = base + (factor !== 1 ? `@${factor}x` : '');
   out.toBlob(blob => {
     if (!blob) { alert('PNG 生成失败'); return; }
     const a = document.createElement('a');
