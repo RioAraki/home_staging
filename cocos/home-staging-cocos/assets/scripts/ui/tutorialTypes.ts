@@ -36,6 +36,7 @@ export type AdvanceRule =
   | { on: 'placed'; sharesOpenCell?: boolean }
   | { on: 'rotatedAtLeast'; times: number }
   | { on: 'demolishModeOn' }                                // demolishMode 变 true
+  | { on: 'demolishModeOff' }                               // demolishMode 变 false(退出拆除模式)
   | { on: 'removed' };                                      // placedPieces 数量减少
 
 /** 运行时玩家动作——InputHandler / RoomPanel 调 gate() 时传入。 */

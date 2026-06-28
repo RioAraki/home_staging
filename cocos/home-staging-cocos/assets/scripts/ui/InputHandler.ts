@@ -88,7 +88,11 @@ export class InputHandler extends Component {
     const sel = s.selectedOption;
     if (!sel) return;
     e.propagationStopped = true;
-    if (this.movedDuringDrag) { this.movedDuringDrag = false; return; }  // was a drag
+    if (this.movedDuringDrag) {
+      this.movedDuringDrag = false;
+      TutorialController.instance?.notifyDragDropped();   // 拖拽松手 → 教程拖拽步可推进
+      return;
+    }
 
     // It was a TAP on the plan.
     const c = this.cellAt(e);

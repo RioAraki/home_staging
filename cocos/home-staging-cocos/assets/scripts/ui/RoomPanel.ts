@@ -177,6 +177,8 @@ export class RoomPanel extends Component {
     // ONLY via the 放置 button. After dropping, the player can tap the plan to
     // rotate the piece, then press 放置 to commit.
     this.getInput()?.dragGhost(e);
+    // Tell the tutorial the drag finished (it only advances a drag step on release).
+    TutorialController.instance?.notifyDragDropped();
   }
 
   private rebuild() {

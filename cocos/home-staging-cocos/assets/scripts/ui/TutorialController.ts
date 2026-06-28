@@ -2,6 +2,8 @@ import { _decorator, Component, Node, Vec3, UITransform, director } from 'cc';
 import { gameStore, pieceOpenCells, type GameState } from '../state/gameStore';
 import { resolveOption } from '../core/pieces';
 import { transformOption } from '../core/geometry';
+import { roomItemAt } from '../core/roomItems';
+import { furnitureByName, cardByNumberVariant } from '../core/dataLoader';
 import { edgeX, edgeY, layout } from './viewport';
 import { HandPointer } from './HandPointer';
 import { TutorialOverlay } from './TutorialOverlay';
@@ -9,6 +11,9 @@ import { GhostPiece } from './GhostPiece';
 import { InputHandler } from './InputHandler';
 import type { TutorialStep, GateAction } from './tutorialTypes';
 const { ccclass } = _decorator;
+
+/** 一个高亮洞:overlay 本地坐标的中心 {x,y} + 半尺寸 {hw,hh}。 */
+interface Hole { x: number; y: number; hw: number; hh: number }
 
 /**
  * 强引导教程状态机。
@@ -25,6 +30,7 @@ export class TutorialController extends Component {
   private startedIdx = -1;       // 已为哪一步启动过手势动画(避免每帧重启 tween)
   private rotateCount = 0;
   private prevPlaced = 0;
+  private dragged = false;       // 拖拽步:玩家是否已松手(只在松手后才进下一步)
 
   private hand!: HandPointer;
   private overlay!: TutorialOverlay;
@@ -103,23 +109,26 @@ export class TutorialController extends Component {
   /** InputHandler 旋转成功后调用,供「旋转 ≥N 次」计数。 */
   notifyRotated() { this.rotateCount++; }
 
+  /** RoomPanel/InputHandler 在一次拖拽松手(ghost 落定)后调用——拖拽步只在此后才推进。 */
+  notifyDragDropped() { this.dragged = true; }
+
   update() {
     if (!this.active()) { this.node.active = false; return; }
     const step = this.cur()!;
-    const geom = this.targetGeom(step);
-    if (geom) {
-      this.overlay.setHole(geom.center, geom.halfW, geom.halfH);
-      this.overlay.setBubble(step.text, geom.center);
+    const vis = this.stepVisual(step);
+    if (vis) {
+      this.overlay.setHoles(vis.holes);
+      this.overlay.setBubble(step.text, vis.bubbleAt);
 
       if (this.startedIdx !== this.idx) {
         this.startedIdx = this.idx;
-        if (step.hand === 'drag' && geom.fromLocal) {
-          this.hand.playDrag(geom.fromLocal, geom.center);
+        if (step.hand === 'drag' && vis.handFrom) {
+          this.hand.playDrag(vis.handFrom, vis.handTo);
         } else {
-          this.hand.playTap(geom.center);   // tap / rotate / drag-without-source
+          this.hand.playTap(vis.handTo);   // tap / rotate / drag-without-source
         }
       } else if (step.hand !== 'drag') {
-        this.hand.setPos(geom.center);       // 目标动了就同步位置(脉冲继续)
+        this.hand.setPos(vis.handTo);       // 目标动了就同步位置(脉冲继续)
       }
     }
 
@@ -127,6 +136,7 @@ export class TutorialController extends Component {
       this.idx++;
       this.startedIdx = -1;
       this.rotateCount = 0;
+      this.dragged = false;
       this.prevPlaced = gameStore.getState().placedPieces.length;
     }
   }
@@ -134,7 +144,8 @@ export class TutorialController extends Component {
   private advanceMet(step: TutorialStep): boolean {
     const s = gameStore.getState();
     switch (step.advanceOn.on) {
-      case 'ghostPositioned': return !!this.getGhost()?.isPositioned();
+      // 只有松手后(dragged)且 ghost 落定才算「拖拽完成」——拖到一半不推进。
+      case 'ghostPositioned': return this.dragged && !!this.getGhost()?.isPositioned();
       case 'placed': {
         if (s.placedPieces.length <= this.prevPlaced) return false;
         if (step.advanceOn.sharesOpenCell) return this.lastPlaceShares(s);
@@ -142,6 +153,7 @@ export class TutorialController extends Component {
       }
       case 'rotatedAtLeast': return this.rotateCount >= step.advanceOn.times;
       case 'demolishModeOn':  return s.demolishMode === true;
+      case 'demolishModeOff': return s.demolishMode === false;
       case 'removed':         return s.placedPieces.length < this.prevPlaced;
     }
     return false;
@@ -177,60 +189,94 @@ export class TutorialController extends Component {
     return false;
   }
 
-  // ── 坐标解析 ──
-  /** 当前步目标的【overlay 本地坐标】中心 + 半尺寸(用于挖洞),拖拽步还带起点。 */
-  private targetGeom(step: TutorialStep):
-    { center: Vec3; halfW: number; halfH: number; fromLocal?: Vec3 } | null {
+  // ── 视觉解析(全部 overlay 本地坐标)──
+  /** 当前步要挖的洞 + 气泡锚点 + 示意手起讫点。拖拽步挖两个洞:被拖的卡片 + 目标格。 */
+  private stepVisual(step: TutorialStep):
+    { holes: Hole[]; bubbleAt: Vec3; handTo: Vec3; handFrom?: Vec3 } | null {
     const pt = step.pointTo;
 
-    // 户型图格子:洞尺寸 = 真实格边长,与网格对齐。
-    if (pt.kind === 'cell' || pt.kind === 'dragPath') {
-      const cell = pt.kind === 'cell' ? pt.cell : pt.to;
-      const w = this.cellWorld(cell);
-      if (!w) return null;
-      const half = layout().cell / 2;
-      const out: { center: Vec3; halfW: number; halfH: number; fromLocal?: Vec3 } =
-        { center: this.toOverlay(w), halfW: half, halfH: half };
-      if (pt.kind === 'dragPath') {
-        const fw = this.nodeWorld(`card_${pt.fromCard}`);
-        if (fw) out.fromLocal = this.toOverlay(fw);
-      }
-      return out;
+    if (pt.kind === 'dragPath') {
+      // 目标格洞按被拖家具的真实尺寸(如单人床 2×2 → 4 格)。
+      const cellH = this.cellFootprintHole(pt.to, this.cardBBox(pt.fromCard));
+      if (!cellH) return null;
+      const cardH = this.nodeHole(`card_${pt.fromCard}`);   // 被拖的卡片也高亮
+      const holes = cardH ? [cellH, cardH] : [cellH];
+      const to = new Vec3(cellH.x, cellH.y, 0);
+      return { holes, bubbleAt: to, handTo: to, handFrom: cardH ? new Vec3(cardH.x, cardH.y, 0) : undefined };
     }
 
-    // 卡片 / 按钮:洞尺寸 = 该节点的包围盒。
+    if (pt.kind === 'cell') {
+      const h = this.cellFootprintHole(pt.cell, [1, 1]);
+      if (!h) return null;
+      const c = new Vec3(h.x, h.y, 0);
+      return { holes: [h], bubbleAt: c, handTo: c };
+    }
+
+    // 卡片 / 按钮:洞 = 节点包围盒。
     const name = pt.kind === 'card' ? `card_${pt.index}` : pt.name;
-    const node = this.findByName(director.getScene()!, name);
-    if (!node) return null;
-    const ui = node.getComponent(UITransform);
-    const world = ui ? ui.convertToWorldSpaceAR(new Vec3(0, 0, 0)) : node.worldPosition.clone();
-    const sx = Math.abs(node.worldScale.x), sy = Math.abs(node.worldScale.y);
-    const halfW = ui ? (ui.contentSize.width * sx) / 2 + 8 : 60;
-    const halfH = ui ? (ui.contentSize.height * sy) / 2 + 8 : 40;
-    return { center: this.toOverlay(world), halfW, halfH };
+    const h = this.nodeHole(name);
+    if (!h) return null;
+    const c = new Vec3(h.x, h.y, 0);
+    return { holes: [h], bubbleAt: c, handTo: c };
   }
 
   private toOverlay(world: Vec3): Vec3 {
     return this.overlay.node.getComponent(UITransform)!.convertToNodeSpaceAR(world);
   }
 
-  private cellWorld(cell: [number, number]): Vec3 | null {
+  /** 以 target 格为中心、bbox(行,列)大小的网格对齐洞。 */
+  private cellFootprintHole(target: [number, number], bbox: [number, number]): Hole | null {
     const fp = this.floorPlan;
     if (!fp || !fp.isValid) return null;
     const ui = fp.getComponent(UITransform);
     if (!ui) return null;
-    const cx = (edgeX(cell[1]) + edgeX(cell[1] + 1)) / 2;
-    const cy = (edgeY(cell[0]) + edgeY(cell[0] + 1)) / 2;
-    return ui.convertToWorldSpaceAR(new Vec3(cx, cy, 0));
+    const [rows, cols] = bbox;
+    // moveGhost 把家具中心放到手指格:origin = target - floor(bbox/2)。
+    const oR = target[0] - Math.floor(rows / 2), oC = target[1] - Math.floor(cols / 2);
+    const cx = (edgeX(oC) + edgeX(oC + cols)) / 2;
+    const cy = (edgeY(oR) + edgeY(oR + rows)) / 2;
+    const local = this.toOverlay(ui.convertToWorldSpaceAR(new Vec3(cx, cy, 0)));
+    const px = layout().cell;
+    return { x: local.x, y: local.y, hw: (cols * px) / 2, hh: (rows * px) / 2 };
   }
 
-  private nodeWorld(nodeName: string): Vec3 | null {
+  /** 节点(卡片/按钮)的包围盒洞。按钮进拆除模式后名字带 ✓,故名字找不到时再试 "<name> ✓"。 */
+  private nodeHole(name: string): Hole | null {
     const scene = director.getScene();
     if (!scene) return null;
-    const n = this.findByName(scene, nodeName);
+    const n = this.findByName(scene, name) ?? this.findByName(scene, `${name} ✓`);
     if (!n) return null;
     const ui = n.getComponent(UITransform);
-    return ui ? ui.convertToWorldSpaceAR(new Vec3(0, 0, 0)) : n.worldPosition.clone();
+    const world = ui ? ui.convertToWorldSpaceAR(new Vec3(0, 0, 0)) : n.worldPosition.clone();
+    const sx = Math.abs(n.worldScale.x), sy = Math.abs(n.worldScale.y);
+    const local = this.toOverlay(world);
+    const hw = ui ? (ui.contentSize.width * sx) / 2 + 8 : 60;
+    const hh = ui ? (ui.contentSize.height * sy) / 2 + 8 : 40;
+    return { x: local.x, y: local.y, hw, hh };
+  }
+
+  /** 房间第 cardIndex 件家具的未旋转 bbox(行,列);解析不到则 1×1。 */
+  private cardBBox(cardIndex: number): [number, number] {
+    const s = gameStore.getState();
+    const room = s.scenario?.rooms.find(r => r.slot === s.activeRoomSlot);
+    if (!room) return [1, 1];
+    const item = roomItemAt(room, cardIndex);
+    if (!item) return [1, 1];
+    let opt = null;
+    if (item.kind === 'named') {
+      const e = furnitureByName(item.name);
+      if (e) opt = resolveOption({
+        number: e.number ?? 0, variant: e.variant ?? 'A', optionIndex: e.option_index ?? 1,
+        rotation: 0, mirrored: false, name: item.name,
+      } as any);
+    } else {
+      const variant = s.chosenVariants[item.number] ?? 'A';
+      const o = cardByNumberVariant(item.number, variant)?.options?.[0];
+      if (o) opt = resolveOption({
+        number: item.number, variant, optionIndex: o.option_index, rotation: 0, mirrored: false,
+      } as any);
+    }
+    return opt ? (opt.bbox as [number, number]) : [1, 1];
   }
   private findByName(root: Node, name: string): Node | null {
     if (root.name === name && root.activeInHierarchy) return root;

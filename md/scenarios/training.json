@@ -134,6 +134,12 @@
         "pointTo": { "kind": "cell", "cell": [7, 5] },
         "gate": { "action": "demolishCell", "cell": [7, 5] },
         "advanceOn": { "on": "removed" }
+      },
+      {
+        "id": "demolish-off", "text": "再点一下「拆除」，退出拆除模式", "hand": "tap",
+        "pointTo": { "kind": "button", "name": "拆除" },
+        "gate": { "action": "demolishToggle" },
+        "advanceOn": { "on": "demolishModeOff" }
       }
     ]
   }

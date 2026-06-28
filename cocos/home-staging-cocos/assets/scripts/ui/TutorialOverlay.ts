@@ -34,18 +34,41 @@ export class TutorialOverlay extends Component {
     this.label.enableWrapText = true;
   }
 
-  /** 四矩形围出中间亮洞。center 用本节点本地坐标(中心原点),halfW/halfH 是洞半尺寸。 */
-  setHole(center: Vec3, halfW: number, halfH: number) {
+  /** 变暗整屏,并给【多个】目标挖亮洞 + 金色高亮边框。
+   *  洞坐标用本节点本地坐标(中心原点),{x,y} 中心、{hw,hh} 半尺寸。
+   *  用「水平分带 + 每带挖洞 x 区间」实现任意多洞(Graphics 不能布尔挖洞)。 */
+  setHoles(holes: { x: number; y: number; hw: number; hh: number }[]) {
     const vs = view.getVisibleSize();
     const W = vs.width, H = vs.height;
     const g = this.g; g.clear();
     g.fillColor = new Color(0, 0, 0, 150);
-    const L = center.x - halfW, R = center.x + halfW;
-    const B = center.y - halfH, T = center.y + halfH;
-    g.rect(-W / 2, T, W, H / 2 - T); g.fill();          // 上
-    g.rect(-W / 2, -H / 2, W, B + H / 2); g.fill();      // 下
-    g.rect(-W / 2, B, L + W / 2, T - B); g.fill();       // 左
-    g.rect(R, B, W / 2 - R, T - B); g.fill();            // 右
+    if (holes.length === 0) { g.rect(-W / 2, -H / 2, W, H); g.fill(); return; }
+
+    const clampY = (y: number) => Math.max(-H / 2, Math.min(H / 2, y));
+    const ys = new Set<number>([-H / 2, H / 2]);
+    for (const h of holes) { ys.add(clampY(h.y - h.hh)); ys.add(clampY(h.y + h.hh)); }
+    const sortedY = Array.from(ys).sort((a, b) => a - b);
+
+    for (let i = 0; i < sortedY.length - 1; i++) {
+      const yb0 = sortedY[i], yb1 = sortedY[i + 1];
+      if (yb1 - yb0 < 0.5) continue;
+      const ymid = (yb0 + yb1) / 2;
+      const xs = holes
+        .filter(h => h.y - h.hh <= ymid && h.y + h.hh >= ymid)
+        .map(h => [Math.max(-W / 2, h.x - h.hw), Math.min(W / 2, h.x + h.hw)] as [number, number])
+        .sort((a, b) => a[0] - b[0]);
+      let cursor = -W / 2;
+      for (const [x0, x1] of xs) {
+        if (x0 > cursor) { g.rect(cursor, yb0, x0 - cursor, yb1 - yb0); g.fill(); }
+        cursor = Math.max(cursor, x1);
+      }
+      if (cursor < W / 2) { g.rect(cursor, yb0, W / 2 - cursor, yb1 - yb0); g.fill(); }
+    }
+
+    // 金色高亮边框,标出每个洞。
+    g.strokeColor = new Color(255, 224, 130, 220);
+    g.lineWidth = 3;
+    for (const h of holes) { g.rect(h.x - h.hw, h.y - h.hh, h.hw * 2, h.hh * 2); g.stroke(); }
   }
 
   /** 无洞的整屏变暗(纯文字步可用)。 */
