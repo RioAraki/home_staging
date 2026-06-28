@@ -546,12 +546,12 @@ export class RoomPanel extends Component {
       // Placed/resolved card: greyed and inert (a ✓ badge is drawn on top).
       (node.addComponent(UIOpacity)).opacity = 110;
     } else if (tapOnly) {
-      // Inside the scrollable palette:
+      // Inside the scrollable palette — NO pre-tap needed to pick a piece up:
       //  • TAP → select this furniture (then 放置, or drag it onto the plan);
-      //  • VERTICAL drag (up toward the plan) → pick it up and drag a ghost onto
-      //    the floor plan, dropping to place. The strip is horizontal-only, so a
-      //    vertical drag never fights the scroll;
-      //  • HORIZONTAL drag → left to the ScrollView so the strip scrolls.
+      //  • PRESS + slide UP (toward the plan) → immediately pick it up and drag a
+      //    ghost onto the floor plan. Any upward-ish slide counts (we only reserve
+      //    near-horizontal slides for scrolling), so press-and-drag feels direct;
+      //  • HORIZONTAL slide → left to the ScrollView so the strip scrolls.
       let sx = 0, sy = 0, mode: 'none' | 'scroll' | 'drag' = 'none';
       node.on(Node.EventType.TOUCH_START, (e: EventTouch) => {
         const p = e.getUILocation(); sx = p.x; sy = p.y; mode = 'none';
@@ -561,14 +561,17 @@ export class RoomPanel extends Component {
         const dx = p.x - sx, dy = p.y - sy;
         if (mode === 'none') {
           if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return;
-          if (Math.abs(dy) > Math.abs(dx)) {
+          // Upward-ish slide = pick up the piece (drag toward the plan). Only a
+          // clearly horizontal slide scrolls — so a casual diagonal-up grab still
+          // lifts the furniture without a separate tap-to-select first.
+          if (dy > 0 && Math.abs(dy) * 2 >= Math.abs(dx)) {
             mode = 'drag';
             const tc = TutorialController.instance;
-            if (tc && !tc.gate({ kind: 'select', slotIdx })) return;
+            if (tc && !tc.gate({ kind: 'select', slotIdx })) { mode = 'scroll'; return; }
             gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
             this.beginTrayDrag();
           } else {
-            mode = 'scroll';   // let the ScrollView scroll the strip
+            mode = 'scroll';   // near-horizontal (or downward) → scroll the strip
             return;
           }
         }

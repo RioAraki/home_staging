@@ -18,7 +18,9 @@ export type PointTarget =
   | { kind: 'card'; index: number }                         // 托盘里 card_<index> 节点
   | { kind: 'button'; name: '放置' | '拆除' }                // 动作按钮(按节点名找)
   | { kind: 'cell'; cell: [number, number] }                // 户型图某格(绝对网格坐标)
-  | { kind: 'dragPath'; fromCard: number; to: [number, number] }; // 从卡片到某格的拖拽路径
+  | { kind: 'dragPath'; fromCard: number; to: [number, number] } // 卡片→某格(to=footprint 左上角原点)
+  | { kind: 'ghost' }                                       // 当前 ghost(选中家具)所在 footprint
+  | { kind: 'lastPlaced' };                                 // 最近放下的家具 footprint(位置无关)
 
 /** 本步只放行的动作(强锁步)。 */
 export type GateRule =

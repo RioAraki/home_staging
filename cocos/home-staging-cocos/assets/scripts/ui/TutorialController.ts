@@ -196,8 +196,9 @@ export class TutorialController extends Component {
     const pt = step.pointTo;
 
     if (pt.kind === 'dragPath') {
-      // 目标格洞按被拖家具的真实尺寸(如单人床 2×2 → 4 格)。
-      const cellH = this.cellFootprintHole(pt.to, this.cardBBox(pt.fromCard));
+      // 目标格洞按被拖家具真实尺寸(单人床 2×2 → 4 格);to = footprint 左上角原点。
+      const bbox = this.cardBBox(pt.fromCard);
+      const cellH = this.footprintHoleAt(pt.to[0], pt.to[1], bbox[0], bbox[1]);
       if (!cellH) return null;
       const cardH = this.nodeHole(`card_${pt.fromCard}`);   // 被拖的卡片也高亮
       const holes = cardH ? [cellH, cardH] : [cellH];
@@ -206,7 +207,23 @@ export class TutorialController extends Component {
     }
 
     if (pt.kind === 'cell') {
-      const h = this.cellFootprintHole(pt.cell, [1, 1]);
+      const h = this.footprintHoleAt(pt.cell[0], pt.cell[1], 1, 1);
+      if (!h) return null;
+      const c = new Vec3(h.x, h.y, 0);
+      return { holes: [h], bubbleAt: c, handTo: c };
+    }
+
+    // 当前 ghost(旋转步用):高亮选中家具实际所在位置,与玩家放哪无关。
+    if (pt.kind === 'ghost') {
+      const h = this.ghostHole();
+      if (!h) return null;
+      const c = new Vec3(h.x, h.y, 0);
+      return { holes: [h], bubbleAt: c, handTo: c };
+    }
+
+    // 最近放下的家具(拆除步用):位置无关地指向它。
+    if (pt.kind === 'lastPlaced') {
+      const h = this.lastPlacedHole();
       if (!h) return null;
       const c = new Vec3(h.x, h.y, 0);
       return { holes: [h], bubbleAt: c, handTo: c };
@@ -224,20 +241,40 @@ export class TutorialController extends Component {
     return this.overlay.node.getComponent(UITransform)!.convertToNodeSpaceAR(world);
   }
 
-  /** 以 target 格为中心、bbox(行,列)大小的网格对齐洞。 */
-  private cellFootprintHole(target: [number, number], bbox: [number, number]): Hole | null {
+  /** 网格对齐洞:左上角原点 (oR,oC),大小 rows×cols 格。 */
+  private footprintHoleAt(oR: number, oC: number, rows: number, cols: number): Hole | null {
     const fp = this.floorPlan;
     if (!fp || !fp.isValid) return null;
     const ui = fp.getComponent(UITransform);
     if (!ui) return null;
-    const [rows, cols] = bbox;
-    // moveGhost 把家具中心放到手指格:origin = target - floor(bbox/2)。
-    const oR = target[0] - Math.floor(rows / 2), oC = target[1] - Math.floor(cols / 2);
     const cx = (edgeX(oC) + edgeX(oC + cols)) / 2;
     const cy = (edgeY(oR) + edgeY(oR + rows)) / 2;
     const local = this.toOverlay(ui.convertToWorldSpaceAR(new Vec3(cx, cy, 0)));
     const px = layout().cell;
     return { x: local.x, y: local.y, hw: (cols * px) / 2, hh: (rows * px) / 2 };
+  }
+
+  /** 当前 ghost(选中家具)所在 footprint 的洞。 */
+  private ghostHole(): Hole | null {
+    const g = this.getGhost();
+    const sel = gameStore.getState().selectedOption;
+    if (!g || !g.isPositioned() || !sel) return null;
+    const opt = resolveOption(sel);
+    if (!opt) return null;
+    const t = transformOption(opt, sel.rotation, sel.mirrored);
+    const [oR, oC] = g.getOrigin();
+    return this.footprintHoleAt(oR, oC, t.bbox[0], t.bbox[1]);
+  }
+
+  /** 最近放下的家具 footprint 的洞。 */
+  private lastPlacedHole(): Hole | null {
+    const pp = gameStore.getState().placedPieces;
+    const p = pp[pp.length - 1];
+    if (!p) return null;
+    const opt = resolveOption(p);
+    if (!opt) return null;
+    const t = transformOption(opt, p.rotation, p.mirrored);
+    return this.footprintHoleAt(p.origin[0], p.origin[1], t.bbox[0], t.bbox[1]);
   }
 
   /** 节点(卡片/按钮)的包围盒洞。按钮进拆除模式后名字带 ✓,故名字找不到时再试 "<name> ✓"。 */

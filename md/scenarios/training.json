@@ -71,7 +71,7 @@
     "steps": [
       {
         "id": "drag-bed", "text": "按住家具，拖进户型图", "hand": "drag",
-        "pointTo": { "kind": "dragPath", "fromCard": 0, "to": [5, 5] },
+        "pointTo": { "kind": "dragPath", "fromCard": 0, "to": [4, 5] },
         "gate": { "action": "drag", "cardIndex": 0 },
         "advanceOn": { "on": "ghostPositioned" }
       },
@@ -83,13 +83,13 @@
       },
       {
         "id": "drag-sofa", "text": "再拖一个沙发进来", "hand": "drag",
-        "pointTo": { "kind": "dragPath", "fromCard": 1, "to": [6, 7] },
+        "pointTo": { "kind": "dragPath", "fromCard": 1, "to": [6, 5] },
         "gate": { "action": "drag", "cardIndex": 1 },
         "advanceOn": { "on": "ghostPositioned" }
       },
       {
         "id": "rotate-sofa", "text": "点一下家具，可以旋转方向", "hand": "rotate",
-        "pointTo": { "kind": "cell", "cell": [6, 7] },
+        "pointTo": { "kind": "ghost" },
         "gate": { "action": "rotate", "minTimes": 1 },
         "advanceOn": { "on": "rotatedAtLeast", "times": 1 }
       },
@@ -101,7 +101,7 @@
       },
       {
         "id": "drag-table", "text": "多件家具能共用开放格——把桌椅挨着沙发放", "hand": "drag",
-        "pointTo": { "kind": "dragPath", "fromCard": 2, "to": [5, 7] },
+        "pointTo": { "kind": "dragPath", "fromCard": 2, "to": [6, 6] },
         "gate": { "action": "drag", "cardIndex": 2 },
         "advanceOn": { "on": "ghostPositioned" }
       },
@@ -113,14 +113,14 @@
       },
       {
         "id": "drag-toilet", "text": "再放个马桶试试", "hand": "drag",
-        "pointTo": { "kind": "dragPath", "fromCard": 3, "to": [7, 5] },
+        "pointTo": { "kind": "dragPath", "fromCard": 3, "to": [4, 7] },
         "gate": { "action": "drag", "cardIndex": 3 },
         "advanceOn": { "on": "ghostPositioned" }
       },
       {
-        "id": "place-toilet", "text": "把它放在这里", "hand": "tap",
+        "id": "place-toilet", "text": "把马桶也放下", "hand": "tap",
         "pointTo": { "kind": "button", "name": "放置" },
-        "gate": { "action": "place", "cardIndex": 3, "cell": [7, 5] },
+        "gate": { "action": "place", "cardIndex": 3 },
         "advanceOn": { "on": "placed" }
       },
       {
@@ -130,9 +130,9 @@
         "advanceOn": { "on": "demolishModeOn" }
       },
       {
-        "id": "demolish-cell", "text": "再点马桶，它会回到列表", "hand": "tap",
-        "pointTo": { "kind": "cell", "cell": [7, 5] },
-        "gate": { "action": "demolishCell", "cell": [7, 5] },
+        "id": "demolish-cell", "text": "再点刚放的家具，它会回到列表", "hand": "tap",
+        "pointTo": { "kind": "lastPlaced" },
+        "gate": { "action": "demolishCell" },
         "advanceOn": { "on": "removed" }
       },
       {
