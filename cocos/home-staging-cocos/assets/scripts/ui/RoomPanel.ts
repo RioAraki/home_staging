@@ -352,17 +352,16 @@ export class RoomPanel extends Component {
     }
 
     // Right-hand action column — its own zone, vertically centred on the strip.
-    // 放置 / 撤销 / 拆除 / 完成摆放, evenly stacked. rx/STRIP_CY come from above.
-    this.makeButton(rx,  STRIP_CY + 120, '放置', BTN_GREEN, !!sel,
+    // 放置 / 拆除 / 完成摆放, evenly stacked. 撤销 was dropped now that 拆除 lets
+    // the player pull a placed piece back off the plan. rx/STRIP_CY from above.
+    this.makeButton(rx,  STRIP_CY + 80, '放置', BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
-    this.makeButton(rx,  STRIP_CY + 40,  '撤销', BTN_RED, s.past.length > 0,
-      () => gameStore.getState().undo(), 120, this.listContent);
     // 拆除: toggles remove mode — tap a placed piece on the plan to pull it back
     // off; its card returns to the palette. Darker amber + ✓ while active.
-    this.makeButton(rx,  STRIP_CY - 40,  s.demolishMode ? '拆除 ✓' : '拆除',
+    this.makeButton(rx,  STRIP_CY,      s.demolishMode ? '拆除 ✓' : '拆除',
       s.demolishMode ? BTN_AMBER_ON : BTN_AMBER, true,
       () => gameStore.getState().toggleDemolishMode(), 120, this.listContent);
-    this.makeButton(rx,  STRIP_CY - 120, '完成摆放', BTN_PRIMARY, true,
+    this.makeButton(rx,  STRIP_CY - 80, '完成摆放', BTN_PRIMARY, true,
       () => gameStore.getState().finishPlacing(), 120, this.listContent);
   }
 
@@ -422,13 +421,10 @@ export class RoomPanel extends Component {
     if (prevSel && prevSel.slot === slot) patch(prevSel.slotIdx);
     if (sel && sel.slot === slot && (!prevSel || prevSel.slotIdx !== sel.slotIdx)) patch(sel.slotIdx);
 
-    // 放置 enabled tracks the selection; 撤销 tracks past.length (selecting pushes
-    // an undo snapshot). Both live on listContent, so refreshing them never
-    // touches the scrollable strip.
-    this.refreshButton('放置', this.trayCy + 120, BTN_GREEN, !!sel,
+    // 放置 enabled tracks the selection; it lives on listContent, so refreshing
+    // it never touches the scrollable strip.
+    this.refreshButton('放置', this.trayCy + 80, BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.refreshButton('撤销', this.trayCy + 40, BTN_RED, s.past.length > 0,
-      () => gameStore.getState().undo());
   }
 
   /** A placed/skipped/un-done card change: remove (or re-add) the affected card
@@ -495,10 +491,8 @@ export class RoomPanel extends Component {
     // Progress label + action buttons.
     const prog = this.listContent.getChildByName('RoomProgress')?.getComponent(Label);
     if (prog) prog.string = `已摆放 ${total2 - pending.length} / ${total2}`;
-    this.refreshButton('放置', this.trayCy + 120, BTN_GREEN, !!sel,
+    this.refreshButton('放置', this.trayCy + 80, BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.refreshButton('撤销', this.trayCy + 40, BTN_RED, s.past.length > 0,
-      () => gameStore.getState().undo());
   }
 
   /** Re-create one action button (on listContent, not the strip) so its enabled
