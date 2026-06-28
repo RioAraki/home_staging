@@ -5,6 +5,7 @@ import { validatePlacement } from '../core/validation';
 import { transformOption } from '../core/geometry';
 import { hitTestLocal, cellAtLocal, type HitResult } from './viewport';
 import { GhostPiece } from './GhostPiece';
+import { TutorialController } from './TutorialController';
 const { ccclass, property } = _decorator;
 
 export type { HitResult };
@@ -43,6 +44,8 @@ export class InputHandler extends Component {
     if (hit.kind === 'cell') {
       if (s.demolishMode) {
         e.propagationStopped = true;
+        const tc = TutorialController.instance;
+        if (tc && !tc.gate({ kind: 'demolishCell', cell: [hit.row, hit.col] })) return;
         s.demolishAtCell([hit.row, hit.col]);
       }
       return;
@@ -99,8 +102,11 @@ export class InputHandler extends Component {
       // about the tapped cell, so the cell stays under the finger and repeated
       // taps spin it in place. Tapping the irregular "missing" cells (or empty
       // grid) does nothing — moving the piece is drag-only.
+      const tc = TutorialController.instance;
+      if (tc && !tc.gate({ kind: 'rotate' })) return;
       const newOrigin = this.rotateOriginAround(sel, this.ghost.getOrigin(), c.row, c.col);
       s.rotateSelection(1);
+      tc?.notifyRotated();
       this.ghost.setOrigin(newOrigin[0], newOrigin[1]);
     }
   }
@@ -162,6 +168,8 @@ export class InputHandler extends Component {
       return;
     }
     const origin = this.ghost.getOrigin();
+    const tc = TutorialController.instance;
+    if (tc && !tc.gate({ kind: 'place', origin })) return;
     const transformed = transformOption(opt, sel.rotation, sel.mirrored);
     const result = validatePlacement(
       s.scenario,

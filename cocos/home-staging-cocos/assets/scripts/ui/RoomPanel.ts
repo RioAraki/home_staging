@@ -10,6 +10,7 @@ import { cardByNumberVariant, furnitureByName, type FurnitureLibraryEntry } from
 import { roomItemCount, roomItemAt } from '../core/roomItems';
 import { resolveOption } from '../core/pieces';
 import { InputHandler } from './InputHandler';
+import { TutorialController } from './TutorialController';
 import {
   PANEL, PANEL_LINE as TOKEN_PANEL_LINE, ACCENT, ACCENT_DARK, TEXT_MUTED,
   CARD_FILL, CARD_LINE, CARD_NAME, BTN_GREEN, BTN_RED,
@@ -360,7 +361,11 @@ export class RoomPanel extends Component {
     // off; its card returns to the palette. Darker amber + ✓ while active.
     this.makeButton(rx,  STRIP_CY,      s.demolishMode ? '拆除 ✓' : '拆除',
       s.demolishMode ? BTN_AMBER_ON : BTN_AMBER, true,
-      () => gameStore.getState().toggleDemolishMode(), 120, this.listContent);
+      () => {
+        const tc = TutorialController.instance;
+        if (tc && !tc.gate({ kind: 'demolishToggle' })) return;
+        gameStore.getState().toggleDemolishMode();
+      }, 120, this.listContent);
     this.makeButton(rx,  STRIP_CY - 80, '完成摆放', BTN_RED, true,
       () => gameStore.getState().finishPlacing(), 120, this.listContent);
   }
@@ -556,6 +561,8 @@ export class RoomPanel extends Component {
           if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return;
           if (Math.abs(dy) > Math.abs(dx)) {
             mode = 'drag';
+            const tc = TutorialController.instance;
+            if (tc && !tc.gate({ kind: 'select', slotIdx })) return;
             gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
             this.beginTrayDrag();
           } else {
@@ -566,7 +573,10 @@ export class RoomPanel extends Component {
         if (mode === 'drag') { e.propagationStopped = true; this.getInput()?.dragGhost(e); }
       });
       node.on(Node.EventType.TOUCH_END, () => {
-        if (mode === 'none') gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
+        if (mode !== 'none') return;
+        const tc = TutorialController.instance;
+        if (tc && !tc.gate({ kind: 'select', slotIdx })) return;
+        gameStore.getState().selectOption({ slot, slotIdx, optionIndex });
       });
     } else {
       // Old 2-option chooser: touch-down picks the option up and drags it onto

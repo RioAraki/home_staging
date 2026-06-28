@@ -184,6 +184,8 @@ export interface Scenario {
   bonus_points: BonusPoint[];
   theme?: ScenarioTheme;
   stats?: Record<string, unknown>;
+  /** 可选互动教程：强引导分步脚本。结构见 ui/tutorialTypes.ts(TutorialStep[])。 */
+  tutorial?: { steps: unknown[] };
 }
 
 export interface MapsData {

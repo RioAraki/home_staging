@@ -7,6 +7,9 @@ import { RoomProgressPanel } from './RoomProgressPanel';
 import { ScenarioSelectScreen } from './ScenarioSelectScreen';
 import { HeaderBar } from './HeaderBar';
 import { Background } from './Background';
+import { TutorialController } from './TutorialController';
+import { HandPointer } from './HandPointer';
+import { TutorialOverlay } from './TutorialOverlay';
 const { ccclass } = _decorator;
 
 @ccclass('GameBootstrap')
@@ -84,6 +87,23 @@ export class GameBootstrap extends Component {
       const n = new Node('ScenarioSelectScreen');
       canvas.node.addChild(n);
       n.addComponent(ScenarioSelectScreen);
+    }
+
+    // Interactive tutorial layer — a persistent top-most node that stays inert
+    // until the player enters a scenario whose data carries a `tutorial` field
+    // (e.g. 陋室/training). It self-starts via TutorialController.autoStart.
+    if (canvas && !canvas.node.getChildByName('Tutorial')) {
+      const root = new Node('Tutorial');
+      canvas.node.addChild(root);
+      root.setSiblingIndex(canvas.node.children.length - 1);   // top-most layer
+      const overlayNode = new Node('TutorialOverlay');
+      root.addChild(overlayNode);
+      const overlay = overlayNode.addComponent(TutorialOverlay);
+      const handNode = new Node('Hand');
+      root.addChild(handNode);
+      const hand = handNode.addComponent(HandPointer);
+      const ctl = root.addComponent(TutorialController);
+      ctl.autoStart(overlay, hand);
     }
 
     // Expose to console for manual smoke tests.

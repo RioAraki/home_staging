@@ -3,6 +3,7 @@ import type { RoomSlot, Scenario } from '../core/types';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology, doorEdgeKey } from '../core/walls';
 import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
 import { resolveOption, pieceShapeCells, pieceFootprintCells } from '../core/pieces';
+import { transformOption } from '../core/geometry';
 import { roomItemCount, roomItemAt } from '../core/roomItems';
 import { furnitureByName } from '../core/dataLoader';
 import { audioManager } from '../platform/audio';
@@ -1259,6 +1260,17 @@ export function isRoomReadyToSeal(
     const key = instanceKey(slot, slotIdx);
     return state.placedCardKeys.has(key) || state.skippedCardKeys.has(key);
   });
+}
+
+/** 一件已放家具的「开放格」(open_spaces)绝对网格坐标 "r,c" 集合。
+ *  教程用它判定 sharesOpenCell(多件家具是否共用开放格)。 */
+export function pieceOpenCells(p: PlacedPiece): Set<string> {
+  const out = new Set<string>();
+  const opt = resolveOption(p);
+  if (!opt) return out;
+  const t = transformOption(opt, p.rotation, p.mirrored);
+  for (const [r, c] of t.open_spaces) out.add(`${p.origin[0] + r},${p.origin[1] + c}`);
+  return out;
 }
 
 // Convenience accessors for non-React consumers (Cocos Components).
