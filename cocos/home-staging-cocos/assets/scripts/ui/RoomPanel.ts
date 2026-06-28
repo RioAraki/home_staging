@@ -12,7 +12,7 @@ import { resolveOption } from '../core/pieces';
 import { InputHandler } from './InputHandler';
 import {
   PANEL, PANEL_LINE as TOKEN_PANEL_LINE, ACCENT, ACCENT_DARK, TEXT_MUTED,
-  CARD_FILL, CARD_LINE, CARD_NAME, BTN_GREEN, BTN_RED, BTN_PRIMARY,
+  CARD_FILL, CARD_LINE, CARD_NAME, BTN_GREEN, BTN_RED,
 } from './uiTheme';
 const { ccclass, property } = _decorator;
 
@@ -361,7 +361,7 @@ export class RoomPanel extends Component {
     this.makeButton(rx,  STRIP_CY,      s.demolishMode ? '拆除 ✓' : '拆除',
       s.demolishMode ? BTN_AMBER_ON : BTN_AMBER, true,
       () => gameStore.getState().toggleDemolishMode(), 120, this.listContent);
-    this.makeButton(rx,  STRIP_CY - 80, '完成摆放', BTN_PRIMARY, true,
+    this.makeButton(rx,  STRIP_CY - 80, '完成摆放', BTN_RED, true,
       () => gameStore.getState().finishPlacing(), 120, this.listContent);
   }
 
