@@ -493,6 +493,7 @@ export const gameStore = createStore<GameState>((set, get) => {
           activeRoomSlot: slot,
           completedRoomSlots: nextCompleted,
           wallPhase: nextPhase,
+          demolishMode: false,   // don't carry 拆除 mode across a room switch
           gameFinished: wasSealed ? false : get().gameFinished,
           lastError: null,
         });
@@ -650,6 +651,7 @@ export const gameStore = createStore<GameState>((set, get) => {
           revealedCardKeys: nextRevealed,
           skippedCardKeys: nextSkipped,
           selectedOption: null,
+          demolishMode: false,   // leaving 摆放 → don't carry 拆除 mode into construction
           lastError: null,
         });
       });
@@ -909,7 +911,11 @@ export const gameStore = createStore<GameState>((set, get) => {
     },
 
     toggleDemolishMode: () => {
-      if (constructionLocked()) return;
+      // No construction lock: the 拆除 button is also offered during the
+      // furniture (摆放) phase so the player can pull a placed piece back off
+      // the plan — demolishAtCell frees its card, which re-appears in the
+      // palette. During the furniture phase InputHandler ignores edge taps,
+      // so this only ever removes furniture there (walls/doors come later).
       set({
         demolishMode: !get().demolishMode,
         frontDoorMode: false,

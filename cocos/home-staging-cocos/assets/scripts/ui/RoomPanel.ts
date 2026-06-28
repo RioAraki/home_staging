@@ -40,6 +40,10 @@ const PALETTE_GAP = 210;   // x spacing between palette card slots
 const PANEL_FILL = PANEL;             // light cream block background
 const PANEL_LINE = TOKEN_PANEL_LINE;  // block border / divider
 
+// 拆除 (remove) action button: amber, and a darker amber when the mode is ON.
+const BTN_AMBER    = new Color(208, 138, 44, 255);
+const BTN_AMBER_ON = new Color(168, 101, 26, 255);
+
 /** X of the right-hand action column, pinned to the VISIBLE right edge so it
  *  never clips on narrow / tall phones (where the design width exceeds the
  *  visible width under a fit-height resolution policy). listContent is centred
@@ -115,6 +119,7 @@ export class RoomPanel extends Component {
           s.completedRoomSlots !== prev.completedRoomSlots ||
           s.frontDoorEdge      !== prev.frontDoorEdge      ||
           s.frontDoorMode      !== prev.frontDoorMode      ||
+          s.demolishMode       !== prev.demolishMode       ||
           s.gameFinished       !== prev.gameFinished;
       if (structuralChanged) { this.rebuild(); return; }
       // Which furniture is resolved changed (placed / skipped / un-done) → remove
@@ -347,12 +352,17 @@ export class RoomPanel extends Component {
     }
 
     // Right-hand action column — its own zone, vertically centred on the strip.
-    // 放置 / 撤销 / 完成摆放 (跳过 removed). rx/STRIP_CY come from the layout above.
-    this.makeButton(rx,  STRIP_CY + 80, '放置', BTN_GREEN, !!sel,
+    // 放置 / 撤销 / 拆除 / 完成摆放, evenly stacked. rx/STRIP_CY come from above.
+    this.makeButton(rx,  STRIP_CY + 120, '放置', BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost(), 120, this.listContent);
-    this.makeButton(rx,  STRIP_CY,      '撤销', BTN_RED, s.past.length > 0,
+    this.makeButton(rx,  STRIP_CY + 40,  '撤销', BTN_RED, s.past.length > 0,
       () => gameStore.getState().undo(), 120, this.listContent);
-    this.makeButton(rx,  STRIP_CY - 80, '完成摆放', BTN_PRIMARY, true,
+    // 拆除: toggles remove mode — tap a placed piece on the plan to pull it back
+    // off; its card returns to the palette. Darker amber + ✓ while active.
+    this.makeButton(rx,  STRIP_CY - 40,  s.demolishMode ? '拆除 ✓' : '拆除',
+      s.demolishMode ? BTN_AMBER_ON : BTN_AMBER, true,
+      () => gameStore.getState().toggleDemolishMode(), 120, this.listContent);
+    this.makeButton(rx,  STRIP_CY - 120, '完成摆放', BTN_PRIMARY, true,
       () => gameStore.getState().finishPlacing(), 120, this.listContent);
   }
 
@@ -415,9 +425,9 @@ export class RoomPanel extends Component {
     // 放置 enabled tracks the selection; 撤销 tracks past.length (selecting pushes
     // an undo snapshot). Both live on listContent, so refreshing them never
     // touches the scrollable strip.
-    this.refreshButton('放置', this.trayCy + 80, BTN_GREEN, !!sel,
+    this.refreshButton('放置', this.trayCy + 120, BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.refreshButton('撤销', this.trayCy, BTN_RED, s.past.length > 0,
+    this.refreshButton('撤销', this.trayCy + 40, BTN_RED, s.past.length > 0,
       () => gameStore.getState().undo());
   }
 
@@ -485,9 +495,9 @@ export class RoomPanel extends Component {
     // Progress label + action buttons.
     const prog = this.listContent.getChildByName('RoomProgress')?.getComponent(Label);
     if (prog) prog.string = `已摆放 ${total2 - pending.length} / ${total2}`;
-    this.refreshButton('放置', this.trayCy + 80, BTN_GREEN, !!sel,
+    this.refreshButton('放置', this.trayCy + 120, BTN_GREEN, !!sel,
       () => this.getInput()?.tryPlaceAtGhost());
-    this.refreshButton('撤销', this.trayCy, BTN_RED, s.past.length > 0,
+    this.refreshButton('撤销', this.trayCy + 40, BTN_RED, s.past.length > 0,
       () => gameStore.getState().undo());
   }
 

@@ -1,5 +1,5 @@
 import { _decorator, Component, EventTouch, Node, Vec3, UITransform } from 'cc';
-import { gameStore, type SelectedOption } from '../state/gameStore';
+import { gameStore, getRoomPhase, type SelectedOption } from '../state/gameStore';
 import { resolveOption } from '../core/pieces';
 import { validatePlacement } from '../core/validation';
 import { transformOption } from '../core/geometry';
@@ -50,7 +50,10 @@ export class InputHandler extends Component {
     if (hit.kind === 'edge') {
       e.propagationStopped = true;
       if (s.demolishMode) {
-        s.demolishAtEdge(hit.key);
+        // 拆除 mode removes edges (walls/doors/windows) ONLY during the
+        // construction phase. In the furniture (摆放) phase it's a
+        // furniture-only "remove" tool, so edge taps are ignored.
+        if (getRoomPhase(s) === 'construction') s.demolishAtEdge(hit.key);
         return;
       }
       this.routeEdge(hit);
