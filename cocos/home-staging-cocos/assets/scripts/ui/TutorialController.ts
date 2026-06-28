@@ -2,7 +2,7 @@ import { _decorator, Component, Node, Vec3, UITransform, director } from 'cc';
 import { gameStore, pieceOpenCells, type GameState } from '../state/gameStore';
 import { resolveOption } from '../core/pieces';
 import { transformOption } from '../core/geometry';
-import { edgeX, edgeY } from './viewport';
+import { edgeX, edgeY, layout } from './viewport';
 import { HandPointer } from './HandPointer';
 import { TutorialOverlay } from './TutorialOverlay';
 import { GhostPiece } from './GhostPiece';
@@ -106,25 +106,20 @@ export class TutorialController extends Component {
   update() {
     if (!this.active()) { this.node.active = false; return; }
     const step = this.cur()!;
-    const target = this.resolveTarget(step);
-    if (target) {
-      const oui = this.overlay.node.getComponent(UITransform)!;
-      const local = oui.convertToNodeSpaceAR(target);
-      this.overlay.setHole(local, 90, 70);
-      this.overlay.setBubble(step.text, local);
+    const geom = this.targetGeom(step);
+    if (geom) {
+      this.overlay.setHole(geom.center, geom.halfW, geom.halfH);
+      this.overlay.setBubble(step.text, geom.center);
 
       if (this.startedIdx !== this.idx) {
         this.startedIdx = this.idx;
-        if (step.hand === 'drag' && step.pointTo.kind === 'dragPath') {
-          const from = this.resolveCard(step.pointTo.fromCard);
-          if (from) this.hand.playDrag(from, target); else this.hand.playTap(target);
-        } else if (step.hand === 'rotate') {
-          this.hand.playRotate(target);
+        if (step.hand === 'drag' && geom.fromLocal) {
+          this.hand.playDrag(geom.fromLocal, geom.center);
         } else {
-          this.hand.playTap(target);
+          this.hand.playTap(geom.center);   // tap / rotate / drag-without-source
         }
       } else if (step.hand !== 'drag') {
-        this.hand.pointAt(target);   // 目标动了就同步位置(脉冲继续)
+        this.hand.setPos(geom.center);       // 目标动了就同步位置(脉冲继续)
       }
     }
 
@@ -183,17 +178,43 @@ export class TutorialController extends Component {
   }
 
   // ── 坐标解析 ──
-  private resolveTarget(step: TutorialStep): Vec3 | null {
+  /** 当前步目标的【overlay 本地坐标】中心 + 半尺寸(用于挖洞),拖拽步还带起点。 */
+  private targetGeom(step: TutorialStep):
+    { center: Vec3; halfW: number; halfH: number; fromLocal?: Vec3 } | null {
     const pt = step.pointTo;
-    if (pt.kind === 'card')     return this.resolveCard(pt.index);
-    if (pt.kind === 'button')   return this.worldOf(pt.name);
-    if (pt.kind === 'cell')     return this.resolveCell(pt.cell);
-    if (pt.kind === 'dragPath') return this.resolveCell(pt.to);
-    return null;
-  }
-  private resolveCard(idx: number): Vec3 | null { return this.worldOf(`card_${idx}`); }
 
-  private resolveCell(cell: [number, number]): Vec3 | null {
+    // 户型图格子:洞尺寸 = 真实格边长,与网格对齐。
+    if (pt.kind === 'cell' || pt.kind === 'dragPath') {
+      const cell = pt.kind === 'cell' ? pt.cell : pt.to;
+      const w = this.cellWorld(cell);
+      if (!w) return null;
+      const half = layout().cell / 2;
+      const out: { center: Vec3; halfW: number; halfH: number; fromLocal?: Vec3 } =
+        { center: this.toOverlay(w), halfW: half, halfH: half };
+      if (pt.kind === 'dragPath') {
+        const fw = this.nodeWorld(`card_${pt.fromCard}`);
+        if (fw) out.fromLocal = this.toOverlay(fw);
+      }
+      return out;
+    }
+
+    // 卡片 / 按钮:洞尺寸 = 该节点的包围盒。
+    const name = pt.kind === 'card' ? `card_${pt.index}` : pt.name;
+    const node = this.findByName(director.getScene()!, name);
+    if (!node) return null;
+    const ui = node.getComponent(UITransform);
+    const world = ui ? ui.convertToWorldSpaceAR(new Vec3(0, 0, 0)) : node.worldPosition.clone();
+    const sx = Math.abs(node.worldScale.x), sy = Math.abs(node.worldScale.y);
+    const halfW = ui ? (ui.contentSize.width * sx) / 2 + 8 : 60;
+    const halfH = ui ? (ui.contentSize.height * sy) / 2 + 8 : 40;
+    return { center: this.toOverlay(world), halfW, halfH };
+  }
+
+  private toOverlay(world: Vec3): Vec3 {
+    return this.overlay.node.getComponent(UITransform)!.convertToNodeSpaceAR(world);
+  }
+
+  private cellWorld(cell: [number, number]): Vec3 | null {
     const fp = this.floorPlan;
     if (!fp || !fp.isValid) return null;
     const ui = fp.getComponent(UITransform);
@@ -203,7 +224,7 @@ export class TutorialController extends Component {
     return ui.convertToWorldSpaceAR(new Vec3(cx, cy, 0));
   }
 
-  private worldOf(nodeName: string): Vec3 | null {
+  private nodeWorld(nodeName: string): Vec3 | null {
     const scene = director.getScene();
     if (!scene) return null;
     const n = this.findByName(scene, nodeName);

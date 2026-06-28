@@ -99,8 +99,10 @@ export class GameBootstrap extends Component {
       const overlayNode = new Node('TutorialOverlay');
       root.addChild(overlayNode);
       const overlay = overlayNode.addComponent(TutorialOverlay);
+      // Hand is a CHILD of the overlay so both share one coordinate space — the
+      // controller hands it overlay-local positions directly (no world conversion).
       const handNode = new Node('Hand');
-      root.addChild(handNode);
+      overlayNode.addChild(handNode);
       const hand = handNode.addComponent(HandPointer);
       const ctl = root.addComponent(TutorialController);
       ctl.autoStart(overlay, hand);
