@@ -88,10 +88,10 @@
         "advanceOn": { "on": "ghostPositioned" }
       },
       {
-        "id": "rotate-sofa", "text": "点一下家具，可以旋转方向", "hand": "rotate",
+        "id": "rotate-sofa", "text": "点一下家具可以旋转——连点 3 次，把沙发摆正在床的正下方", "hand": "rotate",
         "pointTo": { "kind": "ghost" },
-        "gate": { "action": "rotate", "minTimes": 1 },
-        "advanceOn": { "on": "rotatedAtLeast", "times": 1 }
+        "gate": { "action": "rotate", "minTimes": 3 },
+        "advanceOn": { "on": "rotatedAtLeast", "times": 3 }
       },
       {
         "id": "place-sofa", "text": "满意了就按「放置」", "hand": "tap",
