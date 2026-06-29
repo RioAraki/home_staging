@@ -31,6 +31,7 @@ export class TutorialController extends Component {
   private rotateCount = 0;
   private prevPlaced = 0;
   private dragged = false;       // 拖拽步:玩家是否已松手(只在松手后才进下一步)
+  private confirmed = false;     // 讲解步:玩家是否点了「我知道了」
 
   private hand!: HandPointer;
   private overlay!: TutorialOverlay;
@@ -101,6 +102,8 @@ export class TutorialController extends Component {
       case 'demolishCell':
         ok = a.kind === 'demolishCell'
           && (!g.cell || (a.cell[0] === g.cell[0] && a.cell[1] === g.cell[1])); break;
+      case 'none':
+        ok = false; break;   // 讲解步:任何游戏操作都不放行
     }
     if (!ok && this.hand) this.hand.shake();
     return ok;
@@ -113,7 +116,7 @@ export class TutorialController extends Component {
   notifyDragDropped() { this.dragged = true; }
 
   update() {
-    if (!this.active()) { this.node.active = false; return; }
+    if (!this.active()) { this.node.active = false; this.overlay.hideConfirm(); return; }
     const step = this.cur()!;
     const vis = this.stepVisual(step);
     if (vis) {
@@ -122,10 +125,14 @@ export class TutorialController extends Component {
 
       if (this.startedIdx !== this.idx) {
         this.startedIdx = this.idx;
-        if (step.hand === 'drag' && vis.handFrom) {
-          this.hand.playDrag(vis.handFrom, vis.handTo);
+        // 讲解步:显示「我知道了」按钮;其余步隐藏。
+        if (step.advanceOn.on === 'confirm') {
+          this.overlay.showConfirm(() => { this.confirmed = true; });
+          this.hand.setPos(vis.handTo);
         } else {
-          this.hand.playTap(vis.handTo);   // tap / rotate / drag-without-source
+          this.overlay.hideConfirm();
+          if (step.hand === 'drag' && vis.handFrom) this.hand.playDrag(vis.handFrom, vis.handTo);
+          else this.hand.playTap(vis.handTo);   // tap / rotate / drag-without-source
         }
       } else if (step.hand !== 'drag') {
         this.hand.setPos(vis.handTo);       // 目标动了就同步位置(脉冲继续)
@@ -137,6 +144,8 @@ export class TutorialController extends Component {
       this.startedIdx = -1;
       this.rotateCount = 0;
       this.dragged = false;
+      this.confirmed = false;
+      this.overlay.hideConfirm();
       this.prevPlaced = gameStore.getState().placedPieces.length;
     }
   }
@@ -155,6 +164,7 @@ export class TutorialController extends Component {
       case 'demolishModeOn':  return s.demolishMode === true;
       case 'demolishModeOff': return s.demolishMode === false;
       case 'removed':         return s.placedPieces.length < this.prevPlaced;
+      case 'confirm':         return this.confirmed;
     }
     return false;
   }
@@ -190,10 +200,13 @@ export class TutorialController extends Component {
   }
 
   // ── 视觉解析(全部 overlay 本地坐标)──
-  /** 当前步要挖的洞 + 气泡锚点 + 示意手起讫点。拖拽步挖两个洞:被拖的卡片 + 目标格。 */
+  /** 当前步要挖的洞 + 示意手起讫点。 */
   private stepVisual(step: TutorialStep):
     { holes: Hole[]; bubbleAt: Vec3; handTo: Vec3; handFrom?: Vec3 } | null {
     const pt = step.pointTo;
+    let holes: Hole[] = [];
+    let handTo: Vec3 | null = null;
+    let handFrom: Vec3 | undefined;
 
     if (pt.kind === 'dragPath') {
       // 目标格洞按被拖家具真实尺寸(单人床 2×2 → 4 格);to = footprint 左上角原点。
@@ -201,40 +214,70 @@ export class TutorialController extends Component {
       const cellH = this.footprintHoleAt(pt.to[0], pt.to[1], bbox[0], bbox[1]);
       if (!cellH) return null;
       const cardH = this.nodeHole(`card_${pt.fromCard}`);   // 被拖的卡片也高亮
-      const holes = cardH ? [cellH, cardH] : [cellH];
-      const to = new Vec3(cellH.x, cellH.y, 0);
-      return { holes, bubbleAt: to, handTo: to, handFrom: cardH ? new Vec3(cardH.x, cardH.y, 0) : undefined };
-    }
-
-    if (pt.kind === 'cell') {
+      holes = cardH ? [cellH, cardH] : [cellH];
+      handTo = new Vec3(cellH.x, cellH.y, 0);
+      handFrom = cardH ? new Vec3(cardH.x, cardH.y, 0) : undefined;
+    } else if (pt.kind === 'cell') {
       const h = this.footprintHoleAt(pt.cell[0], pt.cell[1], 1, 1);
       if (!h) return null;
-      const c = new Vec3(h.x, h.y, 0);
-      return { holes: [h], bubbleAt: c, handTo: c };
-    }
-
-    // 当前 ghost(旋转步用):高亮选中家具实际所在位置,与玩家放哪无关。
-    if (pt.kind === 'ghost') {
+      holes = [h]; handTo = new Vec3(h.x, h.y, 0);
+    } else if (pt.kind === 'ghost') {
       const h = this.ghostHole();
       if (!h) return null;
-      const c = new Vec3(h.x, h.y, 0);
-      return { holes: [h], bubbleAt: c, handTo: c };
-    }
-
-    // 最近放下的家具(拆除步用):位置无关地指向它。
-    if (pt.kind === 'lastPlaced') {
+      holes = [h]; handTo = new Vec3(h.x, h.y, 0);
+    } else if (pt.kind === 'lastPlaced') {
       const h = this.lastPlacedHole();
       if (!h) return null;
-      const c = new Vec3(h.x, h.y, 0);
-      return { holes: [h], bubbleAt: c, handTo: c };
+      holes = [h]; handTo = new Vec3(h.x, h.y, 0);
+    } else if (pt.kind === 'goal') {
+      // 旋转步:高亮「希望玩家旋转到」的终点 footprint;手指向当前 ghost(点它旋转)。
+      const gh = this.goalHole(pt.cardIndex, pt.rotation, pt.origin);
+      if (!gh) return null;
+      holes = [gh];
+      const gz = this.ghostHole();
+      handTo = gz ? new Vec3(gz.x, gz.y, 0) : new Vec3(gh.x, gh.y, 0);
+    } else if (pt.kind === 'openCells') {
+      // 讲解步:高亮所有已放家具的开放格。
+      holes = this.openCellHoles();
+      if (holes.length === 0) return null;
+      handTo = new Vec3(holes[0].x, holes[0].y, 0);
+    } else {
+      // 卡片 / 按钮:洞 = 节点包围盒。
+      const name = pt.kind === 'card' ? `card_${pt.index}` : pt.name;
+      const h = this.nodeHole(name);
+      if (!h) return null;
+      holes = [h]; handTo = new Vec3(h.x, h.y, 0);
     }
 
-    // 卡片 / 按钮:洞 = 节点包围盒。
-    const name = pt.kind === 'card' ? `card_${pt.index}` : pt.name;
-    const h = this.nodeHole(name);
-    if (!h) return null;
-    const c = new Vec3(h.x, h.y, 0);
-    return { holes: [h], bubbleAt: c, handTo: c };
+    // 放置步:家具尚未真正落子,连同当前 ghost 一起高亮。
+    if (step.gate.action === 'place') {
+      const gz = this.ghostHole();
+      if (gz) holes = [...holes, gz];
+    }
+
+    if (!handTo) return null;
+    return { holes, bubbleAt: handTo, handTo, handFrom };
+  }
+
+  /** 第 cardIndex 件家具转到 rotation、放在 origin 时的 footprint 洞(旋转终点)。 */
+  private goalHole(cardIndex: number, rotation: number, origin: [number, number]): Hole | null {
+    const opt = this.cardOption(cardIndex);
+    if (!opt) return null;
+    const t = transformOption(opt, rotation as any, false);
+    return this.footprintHoleAt(origin[0], origin[1], t.bbox[0], t.bbox[1]);
+  }
+
+  /** 所有已放家具的开放格,各一个 1×1 洞。 */
+  private openCellHoles(): Hole[] {
+    const out: Hole[] = [];
+    for (const p of gameStore.getState().placedPieces) {
+      for (const k of pieceOpenCells(p)) {
+        const [r, c] = k.split(',').map(Number);
+        const h = this.footprintHoleAt(r, c, 1, 1);
+        if (h) out.push(h);
+      }
+    }
+    return out;
   }
 
   private toOverlay(world: Vec3): Vec3 {
@@ -293,26 +336,30 @@ export class TutorialController extends Component {
   }
 
   /** 房间第 cardIndex 件家具的未旋转 bbox(行,列);解析不到则 1×1。 */
-  private cardBBox(cardIndex: number): [number, number] {
+  /** 房间第 cardIndex 件家具的未旋转 option(含 bbox/shape/open_spaces)。 */
+  private cardOption(cardIndex: number) {
     const s = gameStore.getState();
     const room = s.scenario?.rooms.find(r => r.slot === s.activeRoomSlot);
-    if (!room) return [1, 1];
+    if (!room) return null;
     const item = roomItemAt(room, cardIndex);
-    if (!item) return [1, 1];
-    let opt = null;
+    if (!item) return null;
     if (item.kind === 'named') {
       const e = furnitureByName(item.name);
-      if (e) opt = resolveOption({
+      return e ? resolveOption({
         number: e.number ?? 0, variant: e.variant ?? 'A', optionIndex: e.option_index ?? 1,
         rotation: 0, mirrored: false, name: item.name,
-      } as any);
-    } else {
-      const variant = s.chosenVariants[item.number] ?? 'A';
-      const o = cardByNumberVariant(item.number, variant)?.options?.[0];
-      if (o) opt = resolveOption({
-        number: item.number, variant, optionIndex: o.option_index, rotation: 0, mirrored: false,
-      } as any);
+      } as any) : null;
     }
+    const variant = s.chosenVariants[item.number] ?? 'A';
+    const o = cardByNumberVariant(item.number, variant)?.options?.[0];
+    return o ? resolveOption({
+      number: item.number, variant, optionIndex: o.option_index, rotation: 0, mirrored: false,
+    } as any) : null;
+  }
+
+  /** 第 cardIndex 件家具的未旋转 bbox(行,列);解析不到则 1×1。 */
+  private cardBBox(cardIndex: number): [number, number] {
+    const opt = this.cardOption(cardIndex);
     return opt ? (opt.bbox as [number, number]) : [1, 1];
   }
   private findByName(root: Node, name: string): Node | null {

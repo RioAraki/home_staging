@@ -20,7 +20,10 @@ export type PointTarget =
   | { kind: 'cell'; cell: [number, number] }                // 户型图某格(绝对网格坐标)
   | { kind: 'dragPath'; fromCard: number; to: [number, number] } // 卡片→某格(to=footprint 左上角原点)
   | { kind: 'ghost' }                                       // 当前 ghost(选中家具)所在 footprint
-  | { kind: 'lastPlaced' };                                 // 最近放下的家具 footprint(位置无关)
+  | { kind: 'lastPlaced' }                                  // 最近放下的家具 footprint(位置无关)
+  // 旋转步「目标终点」:第 cardIndex 件家具在 origin、转到 rotation 时的 footprint。
+  | { kind: 'goal'; cardIndex: number; rotation: number; origin: [number, number] }
+  | { kind: 'openCells' };                                  // 所有已放家具的开放格(讲解用)
 
 /** 本步只放行的动作(强锁步)。 */
 export type GateRule =
@@ -30,7 +33,8 @@ export type GateRule =
   // cardIndex 让该步仍能重新选中这张卡(防止丢失选中后卡死,因被拦的放置从未真正落子)。
   | { action: 'place'; cell?: [number, number]; requireShare?: boolean; cardIndex?: number }
   | { action: 'demolishToggle' }                            // 点「拆除」进入拆除模式
-  | { action: 'demolishCell'; cell?: [number, number] };    // 点已放家具退回(cell 省略=任意一件)
+  | { action: 'demolishCell'; cell?: [number, number] }     // 点已放家具退回(cell 省略=任意一件)
+  | { action: 'none' };                                     // 讲解步:不放行任何游戏操作
 
 /** 满足即跳下一步。 */
 export type AdvanceRule =
@@ -39,7 +43,8 @@ export type AdvanceRule =
   | { on: 'rotatedAtLeast'; times: number }
   | { on: 'demolishModeOn' }                                // demolishMode 变 true
   | { on: 'demolishModeOff' }                               // demolishMode 变 false(退出拆除模式)
-  | { on: 'removed' };                                      // placedPieces 数量减少
+  | { on: 'removed' }                                       // placedPieces 数量减少
+  | { on: 'confirm' };                                      // 玩家点了教程气泡上的「确定」
 
 /** 运行时玩家动作——InputHandler / RoomPanel 调 gate() 时传入。 */
 export type GateAction =

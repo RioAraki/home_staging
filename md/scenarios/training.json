@@ -88,25 +88,37 @@
         "advanceOn": { "on": "ghostPositioned" }
       },
       {
-        "id": "rotate-sofa", "text": "点一下家具可以旋转——连点 3 次，把沙发摆正在床的正下方", "hand": "rotate",
-        "pointTo": { "kind": "ghost" },
+        "id": "rotate-sofa", "text": "点一下家具可以旋转——连点 3 次，把沙发转成高亮的样子（床的正下方）", "hand": "rotate",
+        "pointTo": { "kind": "goal", "cardIndex": 1, "rotation": 3, "origin": [6, 5] },
         "gate": { "action": "rotate", "minTimes": 3 },
         "advanceOn": { "on": "rotatedAtLeast", "times": 3 }
       },
       {
-        "id": "place-sofa", "text": "满意了就按「放置」", "hand": "tap",
+        "id": "place-sofa", "text": "按「放置」固定沙发", "hand": "tap",
         "pointTo": { "kind": "button", "name": "放置" },
-        "gate": { "action": "place", "cardIndex": 1 },
+        "gate": { "action": "place", "cardIndex": 1, "cell": [6, 5] },
         "advanceOn": { "on": "placed" }
       },
       {
-        "id": "drag-table", "text": "多件家具能共用开放格——把桌椅挨着沙发放", "hand": "drag",
+        "id": "explain-open", "text": "家具旁的圆点是「开放格」：这一格不能被占用，且要能连到房间出口。床和沙发旁都有——看明白就点「我知道了」", "hand": "tap",
+        "pointTo": { "kind": "openCells" },
+        "gate": { "action": "none" },
+        "advanceOn": { "on": "confirm" }
+      },
+      {
+        "id": "drag-table", "text": "拖来一个桌椅组合，放到沙发旁边", "hand": "drag",
         "pointTo": { "kind": "dragPath", "fromCard": 2, "to": [6, 6] },
         "gate": { "action": "drag", "cardIndex": 2 },
         "advanceOn": { "on": "ghostPositioned" }
       },
       {
-        "id": "place-table", "text": "按「放置」——它和沙发共用了格子", "hand": "tap",
+        "id": "rotate-table", "text": "桌椅的开放格默认朝下——连点 2 次让它朝上，才能和沙发共用开放格", "hand": "rotate",
+        "pointTo": { "kind": "goal", "cardIndex": 2, "rotation": 2, "origin": [6, 6] },
+        "gate": { "action": "rotate", "minTimes": 2 },
+        "advanceOn": { "on": "rotatedAtLeast", "times": 2 }
+      },
+      {
+        "id": "place-table", "text": "按「放置」——它和沙发共用了一个开放格", "hand": "tap",
         "pointTo": { "kind": "button", "name": "放置" },
         "gate": { "action": "place", "cardIndex": 2, "requireShare": true },
         "advanceOn": { "on": "placed", "sharesOpenCell": true }
