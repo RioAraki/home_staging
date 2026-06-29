@@ -198,6 +198,11 @@ export class InputHandler extends Component {
   dragGhost(e: EventTouch) { this.moveGhost(e); }
 
   private moveGhost(e: EventTouch) {
+    // Tutorial lock: in a place/rotate step the furniture is pinned in place, so
+    // the player can't drag it off the highlighted target. Free-drag only in a
+    // drag step (and in normal, non-tutorial play).
+    const tc = TutorialController.instance;
+    if (tc && !tc.allowsMove()) return;
     // Use the containing cell (NO edge-slop dead-zone) so the ghost tracks the
     // finger everywhere on the grid, not only in each cell's central 16%.
     const c = this.cellAt(e);

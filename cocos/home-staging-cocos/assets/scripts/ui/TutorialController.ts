@@ -81,6 +81,12 @@ export class TutorialController extends Component {
   /** 教程是否正在进行(还有未完成的步骤)。其它 UI 可据此让位。 */
   isRunning(): boolean { return this.active(); }
 
+  /** 当前是否允许自由拖动 ghost。只在「拖拽步」允许;放置/旋转等步家具锁定不动。 */
+  allowsMove(): boolean {
+    if (!this.active()) return true;
+    return this.cur()!.gate.action === 'drag';
+  }
+
   // ── 强锁步门控 ──
   gate(a: GateAction): boolean {
     if (!this.active()) return true;            // 教程结束 → 全部放行
@@ -130,6 +136,12 @@ export class TutorialController extends Component {
 
       if (this.startedIdx !== this.idx) {
         this.startedIdx = this.idx;
+        // 放置步:把家具吸附到目标格并锁定(下方 allowsMove 阻止再拖动),
+        // 使「放置」一直有效、引导清晰。
+        if (step.gate.action === 'place' && step.gate.fixedGoal) {
+          const fg = step.gate.fixedGoal;
+          this.getGhost()?.setOrigin(fg.origin[0], fg.origin[1]);
+        }
         // 讲解步/收尾步:显示「我知道了」按钮;其余步隐藏。
         if (step.advanceOn.on === 'confirm') {
           this.overlay.showConfirm(() => { this.confirmed = true; });

@@ -841,10 +841,14 @@ export class RoomPanel extends Component {
     const isWindow = s.windowMode;
     const HL = new Color(70, 120, 200, 255);
     const DIM = new Color(110, 120, 135, 255);
-    this.makeButton(-220, 0, '门', isWindow ? DIM : HL, true, () => {
-      const st = gameStore.getState(); if (st.windowMode) st.toggleWindowMode();
-    });
-    this.makeButton(-90, 0, '窗', isWindow ? HL : DIM, true, () => {
+    // Single-room floor plans have no interior door to add — show 窗 only.
+    const singleRoom = !!s.scenario && s.scenario.rooms.length === 1;
+    if (!singleRoom) {
+      this.makeButton(-220, 0, '门', isWindow ? DIM : HL, true, () => {
+        const st = gameStore.getState(); if (st.windowMode) st.toggleWindowMode();
+      });
+    }
+    this.makeButton(-90, 0, '窗', singleRoom || isWindow ? HL : DIM, true, () => {
       const st = gameStore.getState(); if (!st.windowMode) st.toggleWindowMode();
     });
     this.makeButton(80, 0, '完成房间', GREEN, true,

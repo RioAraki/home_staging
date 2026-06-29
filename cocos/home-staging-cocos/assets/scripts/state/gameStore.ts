@@ -807,7 +807,13 @@ export const gameStore = createStore<GameState>((set, get) => {
 
     setWallPhase: (phase) => {
       if (constructionLocked()) return;
-      set({ wallPhase: phase, lastError: null });
+      // 单房间没有内门可加:进入门/窗步直接锁定为「加窗」模式。
+      const singleRoom = get().scenario?.rooms.length === 1;
+      set({
+        wallPhase: phase,
+        windowMode: phase === 'door' && singleRoom ? true : get().windowMode,
+        lastError: null,
+      });
     },
 
     toggleFrontDoorMode: () => {
