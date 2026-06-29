@@ -15,7 +15,6 @@
         "单人床",
         "沙发",
         "桌椅组合2",
-        "马桶",
         "猫",
         "粉植物",
         "猫砂"
@@ -126,15 +125,15 @@
         "advanceOn": { "on": "placed", "sharesOpenCell": true }
       },
       {
-        "id": "drag-toilet", "text": "再放个马桶试试", "hand": "drag",
-        "pointTo": { "kind": "dragPath", "fromCard": 3, "to": [4, 7] },
-        "gate": { "action": "drag", "cardIndex": 3 },
+        "id": "drag-plant", "text": "再放个粉植物试试", "hand": "drag",
+        "pointTo": { "kind": "dragPath", "fromCard": 4, "to": [4, 7] },
+        "gate": { "action": "drag", "cardIndex": 4 },
         "advanceOn": { "on": "ghostPositioned" }
       },
       {
-        "id": "place-toilet", "text": "把马桶也放下", "hand": "tap",
+        "id": "place-plant", "text": "把粉植物也放下", "hand": "tap",
         "pointTo": { "kind": "button", "name": "放置" },
-        "gate": { "action": "place", "cardIndex": 3 },
+        "gate": { "action": "place", "cardIndex": 4 },
         "advanceOn": { "on": "placed" }
       },
       {

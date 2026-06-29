@@ -78,6 +78,9 @@ export class TutorialController extends Component {
   private cur(): TutorialStep | null { return this.steps[this.idx] ?? null; }
   private active(): boolean { return this.idx < this.steps.length; }
 
+  /** 教程是否正在进行(还有未完成的步骤)。其它 UI 可据此让位。 */
+  isRunning(): boolean { return this.active(); }
+
   // ── 强锁步门控 ──
   gate(a: GateAction): boolean {
     if (!this.active()) return true;            // 教程结束 → 全部放行
