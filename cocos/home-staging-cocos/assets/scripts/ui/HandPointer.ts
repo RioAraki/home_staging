@@ -51,6 +51,9 @@ export class HandPointer extends Component {
     this.node.setScale(1, 1, 1);
   }
 
+  /** 显隐示意手(纯文字步隐藏)。 */
+  setVisible(v: boolean) { if (!v) this.stop(); this.node.active = v; }
+
   /** 立刻定位(overlay 本地坐标)。 */
   setPos(local: Vec3) { this.node.setPosition(local.x, local.y, 0); }
 

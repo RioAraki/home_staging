@@ -23,7 +23,8 @@ export type PointTarget =
   | { kind: 'lastPlaced' }                                  // 最近放下的家具 footprint(位置无关)
   // 旋转步「目标终点」:第 cardIndex 件家具在 origin、转到 rotation 时的 footprint。
   | { kind: 'goal'; cardIndex: number; rotation: number; origin: [number, number] }
-  | { kind: 'openCells' };                                  // 所有已放家具的开放格(讲解用)
+  | { kind: 'openCells' }                                   // 所有已放家具的开放格(讲解用)
+  | { kind: 'none' };                                       // 纯文字步:不挖洞、不显示手
 
 /** 本步只放行的动作(强锁步)。 */
 export type GateRule =
@@ -31,7 +32,9 @@ export type GateRule =
   | { action: 'rotate'; minTimes: number }
   // place: 可选 cell 锁定落点;requireShare 时只放行「会与已有家具共用开放格」的落点;
   // cardIndex 让该步仍能重新选中这张卡(防止丢失选中后卡死,因被拦的放置从未真正落子)。
-  | { action: 'place'; cell?: [number, number]; requireShare?: boolean; cardIndex?: number }
+  // fixedGoal: 放置步高亮固定在该 footprint(不跟随会移动的 ghost),用于位置要求严格的步。
+  | { action: 'place'; cell?: [number, number]; requireShare?: boolean; cardIndex?: number;
+      fixedGoal?: { cardIndex: number; rotation: number; origin: [number, number] } }
   | { action: 'demolishToggle' }                            // 点「拆除」进入拆除模式
   | { action: 'demolishCell'; cell?: [number, number] }     // 点已放家具退回(cell 省略=任意一件)
   | { action: 'none' };                                     // 讲解步:不放行任何游戏操作

@@ -122,19 +122,21 @@ export class TutorialController extends Component {
     if (vis) {
       this.overlay.setHoles(vis.holes);
       this.overlay.setBubble(step.text, vis.bubbleAt);
+      const hasTarget = vis.holes.length > 0;
+      this.hand.setVisible(hasTarget);       // 纯文字步隐藏示意手
 
       if (this.startedIdx !== this.idx) {
         this.startedIdx = this.idx;
-        // 讲解步:显示「我知道了」按钮;其余步隐藏。
+        // 讲解步/收尾步:显示「我知道了」按钮;其余步隐藏。
         if (step.advanceOn.on === 'confirm') {
           this.overlay.showConfirm(() => { this.confirmed = true; });
-          this.hand.setPos(vis.handTo);
+          if (hasTarget) this.hand.setPos(vis.handTo);
         } else {
           this.overlay.hideConfirm();
           if (step.hand === 'drag' && vis.handFrom) this.hand.playDrag(vis.handFrom, vis.handTo);
           else this.hand.playTap(vis.handTo);   // tap / rotate / drag-without-source
         }
-      } else if (step.hand !== 'drag') {
+      } else if (step.hand !== 'drag' && hasTarget) {
         this.hand.setPos(vis.handTo);       // 目标动了就同步位置(脉冲继续)
       }
     }
@@ -241,6 +243,9 @@ export class TutorialController extends Component {
       holes = this.openCellHoles();
       if (holes.length === 0) return null;
       handTo = new Vec3(holes[0].x, holes[0].y, 0);
+    } else if (pt.kind === 'none') {
+      // 纯文字步(收尾):整屏变暗、不挖洞、不显示手。
+      holes = []; handTo = new Vec3(0, 0, 0);
     } else {
       // 卡片 / 按钮:洞 = 节点包围盒。
       const name = pt.kind === 'card' ? `card_${pt.index}` : pt.name;
@@ -249,10 +254,12 @@ export class TutorialController extends Component {
       holes = [h]; handTo = new Vec3(h.x, h.y, 0);
     }
 
-    // 放置步:家具尚未真正落子,连同当前 ghost 一起高亮。
+    // 放置步:家具尚未真正落子,连同它的位置一起高亮。位置要求严格的步(沙发/桌椅)
+    // 用 fixedGoal 固定高亮(不跟随会移动的 ghost),其余步高亮当前 ghost。
     if (step.gate.action === 'place') {
-      const gz = this.ghostHole();
-      if (gz) holes = [...holes, gz];
+      const fg = step.gate.fixedGoal;
+      const extra = fg ? this.goalHole(fg.cardIndex, fg.rotation, fg.origin) : this.ghostHole();
+      if (extra) holes = [...holes, extra];
     }
 
     if (!handTo) return null;

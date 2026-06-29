@@ -30,12 +30,13 @@ export class TutorialOverlay extends Component {
 
     const lblNode = new Node('text');
     this.bubble.addChild(lblNode);
-    lblNode.addComponent(UITransform).setContentSize(530, 60);
+    lblNode.addComponent(UITransform).setContentSize(520, 60);
     this.label = lblNode.addComponent(Label);
     this.label.fontSize = 24;
-    this.label.lineHeight = 30;
+    this.label.lineHeight = 32;
     this.label.color = new Color(255, 255, 255, 255);
     this.label.enableWrapText = true;
+    this.label.overflow = Label.Overflow.RESIZE_HEIGHT;   // 文字过长自动换行、撑高
 
     // 「确定」按钮(讲解步用),默认隐藏,挂在气泡正下方。
     this.confirmBtn = new Node('TutorialConfirm');
@@ -102,11 +103,19 @@ export class TutorialOverlay extends Component {
     this.g.rect(-vs.width / 2, -vs.height / 2, vs.width, vs.height); this.g.fill();
   }
 
-  /** 设置气泡文字。气泡固定在顶部(不随目标移动,以免遮挡户型图高亮)。 */
+  /** 设置气泡文字。气泡固定在顶部,背景随换行后的文字高度自适应,顶边贴近屏幕顶部
+   *  向下生长(不遮挡户型图)。「我知道了」按钮跟在气泡正下方。 */
   setBubble(text: string, _anchor?: Vec3) {
     this.label.string = text;
+    const vs = view.getVisibleSize();
+    const lblH = this.label.node.getComponent(UITransform)!.contentSize.height;  // 换行后实际高度
+    const h = Math.max(64, lblH + 28);
+    const topY = vs.height / 2 - 16;                 // 气泡顶边贴近屏幕顶部
+    const cy = topY - h / 2;
+    this.bubble.setPosition(0, cy, 0);
     const bg = this.bubbleBg; bg.clear();
     bg.fillColor = new Color(40, 30, 25, 235);
-    bg.roundRect(-280, -32, 560, 64, 12); bg.fill();
+    bg.roundRect(-290, -h / 2, 580, h, 12); bg.fill();
+    this.confirmBtn.setPosition(0, cy - h / 2 - 36, 0);   // 紧贴气泡下方
   }
 }

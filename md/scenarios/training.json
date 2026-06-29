@@ -96,11 +96,12 @@
       {
         "id": "place-sofa", "text": "按「放置」固定沙发", "hand": "tap",
         "pointTo": { "kind": "button", "name": "放置" },
-        "gate": { "action": "place", "cardIndex": 1, "cell": [6, 5] },
+        "gate": { "action": "place", "cardIndex": 1, "cell": [6, 5],
+          "fixedGoal": { "cardIndex": 1, "rotation": 3, "origin": [6, 5] } },
         "advanceOn": { "on": "placed" }
       },
       {
-        "id": "explain-open", "text": "家具旁的圆点是「开放格」：这一格不能被占用，且要能连到房间出口。床和沙发旁都有——看明白就点「我知道了」", "hand": "tap",
+        "id": "explain-open", "text": "家具旁的圆点是「开放格」：这一格不能被占用，而且要能连到房间出口。床和沙发旁都有这样的格子。", "hand": "tap",
         "pointTo": { "kind": "openCells" },
         "gate": { "action": "none" },
         "advanceOn": { "on": "confirm" }
@@ -118,9 +119,10 @@
         "advanceOn": { "on": "rotatedAtLeast", "times": 2 }
       },
       {
-        "id": "place-table", "text": "按「放置」——它和沙发共用了一个开放格", "hand": "tap",
+        "id": "place-table", "text": "把桌椅对齐到高亮处，按「放置」——它和沙发共用一个开放格", "hand": "tap",
         "pointTo": { "kind": "button", "name": "放置" },
-        "gate": { "action": "place", "cardIndex": 2, "requireShare": true },
+        "gate": { "action": "place", "cardIndex": 2, "requireShare": true,
+          "fixedGoal": { "cardIndex": 2, "rotation": 2, "origin": [6, 6] } },
         "advanceOn": { "on": "placed", "sharesOpenCell": true }
       },
       {
@@ -136,7 +138,7 @@
         "advanceOn": { "on": "placed" }
       },
       {
-        "id": "demolish-on", "text": "放错了？先点「拆除」", "hand": "tap",
+        "id": "demolish-on", "text": "位置不好？先点「拆除」", "hand": "tap",
         "pointTo": { "kind": "button", "name": "拆除" },
         "gate": { "action": "demolishToggle" },
         "advanceOn": { "on": "demolishModeOn" }
@@ -152,6 +154,12 @@
         "pointTo": { "kind": "button", "name": "拆除" },
         "gate": { "action": "demolishToggle" },
         "advanceOn": { "on": "demolishModeOff" }
+      },
+      {
+        "id": "all-done", "text": "以上就是全部操作啦！现在试着把所有家具都摆进房间吧。", "hand": "tap",
+        "pointTo": { "kind": "none" },
+        "gate": { "action": "none" },
+        "advanceOn": { "on": "confirm" }
       }
     ]
   }
