@@ -81,10 +81,12 @@ export class TutorialController extends Component {
   /** 教程是否正在进行(还有未完成的步骤)。其它 UI 可据此让位。 */
   isRunning(): boolean { return this.active(); }
 
-  /** 当前是否允许自由拖动 ghost。只在「拖拽步」允许;放置/旋转等步家具锁定不动。 */
+  /** 当前是否允许自由拖动 ghost。拖拽步和旋转步都允许(旋转步要能把放偏的家具
+   *  拖回高亮格再旋转);只有放置步锁定不动(此时已吸附到正确位置)。 */
   allowsMove(): boolean {
     if (!this.active()) return true;
-    return this.cur()!.gate.action === 'drag';
+    const a = this.cur()!.gate.action;
+    return a === 'drag' || a === 'rotate';
   }
 
   // ── 强锁步门控 ──
