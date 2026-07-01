@@ -54,7 +54,8 @@ export type AdvanceRule =
   | { on: 'confirm' }                                       // 玩家点了教程气泡上的「确定」
   | { on: 'ghostCovers'; cell: [number, number] }           // 当前 ghost 的 footprint 盖住了某格
   // 盖住某格(变红)后,气泡下出现「我知道了」,点了才推进(错误示范:不帮玩家改对)。
-  | { on: 'ackCovers'; cell: [number, number] };
+  | { on: 'ackCovers'; cell: [number, number] }
+  | { on: 'selectionCleared' };                             // 选中被清空(玩家把 ghost 拖出户型图丢掉)
 
 /** 运行时玩家动作——InputHandler / RoomPanel 调 gate() 时传入。 */
 export type GateAction =

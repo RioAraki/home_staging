@@ -155,8 +155,6 @@ export class TutorialController extends Component {
           const fg = step.gate.fixedGoal;
           this.getGhost()?.setOrigin(fg.origin[0], fg.origin[1]);
         }
-        // 进入拆除步前,清掉可能残留的 ghost(错误示范里粉植物一直没落子)。
-        if (step.gate.action === 'demolishToggle') gameStore.getState().clearSelection();
         if (step.hand === 'drag' && vis.handFrom) this.hand.playDrag(vis.handFrom, vis.handTo);
         else this.hand.playTap(vis.handTo);   // tap / rotate / drag-without-source
       } else if (step.hand !== 'drag' && hasTarget) {
@@ -192,6 +190,7 @@ export class TutorialController extends Component {
       case 'confirm':         return this.confirmed;
       case 'ghostCovers':     return this.ghostCoversCell(step.advanceOn.cell);
       case 'ackCovers':       return this.confirmed;   // 盖住变红后点「我知道了」
+      case 'selectionCleared': return s.selectedOption === null;   // 拖出户型图丢掉
     }
     return false;
   }

@@ -126,8 +126,8 @@
         "advanceOn": { "on": "placed", "sharesOpenCell": true }
       },
       {
-        "id": "plant-cover-open", "text": "家具不能压住别的家具的开放格！把粉植物拖去盖住桌椅旁的圆点试试——变红就是放不下", "hand": "drag",
-        "pointTo": { "kind": "badCell", "cell": [6, 7], "fromCard": 4 },
+        "id": "plant-cover-open", "text": "家具不能压住别的家具的开放格！把粉植物拖去盖住桌椅旁的这两个圆点试试——变红就是放不下", "hand": "drag",
+        "pointTo": { "kind": "badCell", "cell": [6, 6], "bbox": [1, 2], "fromCard": 4 },
         "gate": { "action": "drag", "cardIndex": 4 },
         "advanceOn": { "on": "ackCovers", "cell": [6, 7] }
       },
@@ -142,6 +142,12 @@
         "pointTo": { "kind": "badCell", "cell": [5, 8], "bbox": [2, 1] },
         "gate": { "action": "drag", "cardIndex": 4 },
         "advanceOn": { "on": "ackCovers", "cell": [6, 8] }
+      },
+      {
+        "id": "plant-discard", "text": "这个粉植物哪都放不下——把它拖出户型图外面，就能丢掉它", "hand": "drag",
+        "pointTo": { "kind": "ghost" },
+        "gate": { "action": "drag", "cardIndex": 4 },
+        "advanceOn": { "on": "selectionCleared" }
       },
       {
         "id": "demolish-on", "text": "想拿走已经放好的家具？先点「拆除」", "hand": "tap",
