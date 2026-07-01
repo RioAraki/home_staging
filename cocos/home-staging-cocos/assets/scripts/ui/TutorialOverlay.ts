@@ -61,7 +61,7 @@ export class TutorialOverlay extends Component {
   /** 变暗整屏,并给【多个】目标挖亮洞 + 金色高亮边框。
    *  洞坐标用本节点本地坐标(中心原点),{x,y} 中心、{hw,hh} 半尺寸。
    *  用「水平分带 + 每带挖洞 x 区间」实现任意多洞(Graphics 不能布尔挖洞)。 */
-  setHoles(holes: { x: number; y: number; hw: number; hh: number }[]) {
+  setHoles(holes: { x: number; y: number; hw: number; hh: number; bad?: boolean }[]) {
     const vs = view.getVisibleSize();
     const W = vs.width, H = vs.height;
     const g = this.g; g.clear();
@@ -89,10 +89,13 @@ export class TutorialOverlay extends Component {
       if (cursor < W / 2) { g.rect(cursor, yb0, W / 2 - cursor, yb1 - yb0); g.fill(); }
     }
 
-    // 金色高亮边框,标出每个洞。
-    g.strokeColor = new Color(255, 224, 130, 220);
+    // 高亮边框:正常金色;bad=true(错误示范)用红色。
     g.lineWidth = 3;
-    for (const h of holes) { g.rect(h.x - h.hw, h.y - h.hh, h.hw * 2, h.hh * 2); g.stroke(); }
+    for (const h of holes) {
+      g.strokeColor = h.bad ? new Color(255, 80, 80, 235) : new Color(255, 224, 130, 220);
+      g.rect(h.x - h.hw, h.y - h.hh, h.hw * 2, h.hh * 2);
+      g.stroke();
+    }
   }
 
   /** 无洞的整屏变暗(纯文字步可用)。 */

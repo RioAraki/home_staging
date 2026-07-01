@@ -126,13 +126,13 @@
         "advanceOn": { "on": "placed", "sharesOpenCell": true }
       },
       {
-        "id": "drag-plant", "text": "再放个粉植物试试", "hand": "drag",
-        "pointTo": { "kind": "dragPath", "fromCard": 4, "to": [4, 7] },
+        "id": "plant-try-cover", "text": "家具不能压住别的家具的开放格！先试试把粉植物拖去盖住桌椅旁的圆点——会发现放不下（变红）", "hand": "drag",
+        "pointTo": { "kind": "dragPath", "fromCard": 4, "to": [6, 7], "bad": true },
         "gate": { "action": "drag", "cardIndex": 4 },
-        "advanceOn": { "on": "ghostPositioned" }
+        "advanceOn": { "on": "ghostCovers", "cell": [6, 7] }
       },
       {
-        "id": "place-plant", "text": "把粉植物也放下", "hand": "tap",
+        "id": "plant-place-ok", "text": "看，红色就是放不下。我帮你挪到旁边的合法格，按「放置」", "hand": "tap",
         "pointTo": { "kind": "button", "name": "放置" },
         "gate": { "action": "place", "cardIndex": 4,
           "fixedGoal": { "cardIndex": 4, "rotation": 0, "origin": [4, 7] } },

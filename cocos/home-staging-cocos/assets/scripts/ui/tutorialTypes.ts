@@ -18,7 +18,8 @@ export type PointTarget =
   | { kind: 'card'; index: number }                         // 托盘里 card_<index> 节点
   | { kind: 'button'; name: '放置' | '拆除' }                // 动作按钮(按节点名找)
   | { kind: 'cell'; cell: [number, number] }                // 户型图某格(绝对网格坐标)
-  | { kind: 'dragPath'; fromCard: number; to: [number, number] } // 卡片→某格(to=footprint 左上角原点)
+  // 卡片→某格(to=footprint 左上角原点)。bad:true 时目标格高亮为红色(引导玩家去试「错误」位置)。
+  | { kind: 'dragPath'; fromCard: number; to: [number, number]; bad?: boolean }
   | { kind: 'ghost' }                                       // 当前 ghost(选中家具)所在 footprint
   | { kind: 'lastPlaced' }                                  // 最近放下的家具 footprint(位置无关)
   // 旋转步「目标终点」:第 cardIndex 件家具在 origin、转到 rotation 时的 footprint。
@@ -47,7 +48,8 @@ export type AdvanceRule =
   | { on: 'demolishModeOn' }                                // demolishMode 变 true
   | { on: 'demolishModeOff' }                               // demolishMode 变 false(退出拆除模式)
   | { on: 'removed' }                                       // placedPieces 数量减少
-  | { on: 'confirm' };                                      // 玩家点了教程气泡上的「确定」
+  | { on: 'confirm' }                                       // 玩家点了教程气泡上的「确定」
+  | { on: 'ghostCovers'; cell: [number, number] };          // 当前 ghost 的 footprint 盖住了某格
 
 /** 运行时玩家动作——InputHandler / RoomPanel 调 gate() 时传入。 */
 export type GateAction =

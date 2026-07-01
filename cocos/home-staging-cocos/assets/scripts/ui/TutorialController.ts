@@ -12,8 +12,8 @@ import { InputHandler } from './InputHandler';
 import type { TutorialStep, GateAction } from './tutorialTypes';
 const { ccclass } = _decorator;
 
-/** 一个高亮洞:overlay 本地坐标的中心 {x,y} + 半尺寸 {hw,hh}。 */
-interface Hole { x: number; y: number; hw: number; hh: number }
+/** 一个高亮洞:overlay 本地坐标的中心 {x,y} + 半尺寸 {hw,hh};bad=红色错误示范。 */
+interface Hole { x: number; y: number; hw: number; hh: number; bad?: boolean }
 
 /**
  * 强引导教程状态机。
@@ -184,6 +184,7 @@ export class TutorialController extends Component {
       case 'demolishModeOff': return s.demolishMode === false;
       case 'removed':         return s.placedPieces.length < this.prevPlaced;
       case 'confirm':         return this.confirmed;
+      case 'ghostCovers':     return this.ghostCoversCell(step.advanceOn.cell);
     }
     return false;
   }
@@ -232,6 +233,7 @@ export class TutorialController extends Component {
       const bbox = this.cardBBox(pt.fromCard);
       const cellH = this.footprintHoleAt(pt.to[0], pt.to[1], bbox[0], bbox[1]);
       if (!cellH) return null;
+      if (pt.bad) cellH.bad = true;                          // 错误示范:目标格标红
       const cardH = this.nodeHole(`card_${pt.fromCard}`);   // 被拖的卡片也高亮
       holes = cardH ? [cellH, cardH] : [cellH];
       handTo = new Vec3(cellH.x, cellH.y, 0);
@@ -319,6 +321,21 @@ export class TutorialController extends Component {
     const local = this.toOverlay(ui.convertToWorldSpaceAR(new Vec3(cx, cy, 0)));
     const px = layout().cell;
     return { x: local.x, y: local.y, hw: (cols * px) / 2, hh: (rows * px) / 2 };
+  }
+
+  /** 当前 ghost 的 footprint(shape ∪ open)是否盖住了某格。 */
+  private ghostCoversCell(cell: [number, number]): boolean {
+    const g = this.getGhost();
+    const sel = gameStore.getState().selectedOption;
+    if (!g || !g.isPositioned() || !sel) return false;
+    const opt = resolveOption(sel);
+    if (!opt) return false;
+    const t = transformOption(opt, sel.rotation, sel.mirrored);
+    const [oR, oC] = g.getOrigin();
+    for (const [r, c] of [...t.shape, ...t.open_spaces]) {
+      if (oR + r === cell[0] && oC + c === cell[1]) return true;
+    }
+    return false;
   }
 
   /** 当前 ghost(选中家具)所在 footprint 的洞。 */
