@@ -25,6 +25,8 @@ export type PointTarget =
   // 旋转步「目标终点」:第 cardIndex 件家具在 origin、转到 rotation 时的 footprint。
   | { kind: 'goal'; cardIndex: number; rotation: number; origin: [number, number] }
   | { kind: 'openCells' }                                   // 所有已放家具的开放格(讲解用)
+  // 红色错误格:引导玩家把家具拖去盖住它(会变红)。fromCard 时同时高亮卡片、手从卡片滑过去。
+  | { kind: 'badCell'; cell: [number, number]; fromCard?: number }
   | { kind: 'none' };                                       // 纯文字步:不挖洞、不显示手
 
 /** 本步只放行的动作(强锁步)。 */
@@ -49,7 +51,9 @@ export type AdvanceRule =
   | { on: 'demolishModeOff' }                               // demolishMode 变 false(退出拆除模式)
   | { on: 'removed' }                                       // placedPieces 数量减少
   | { on: 'confirm' }                                       // 玩家点了教程气泡上的「确定」
-  | { on: 'ghostCovers'; cell: [number, number] };          // 当前 ghost 的 footprint 盖住了某格
+  | { on: 'ghostCovers'; cell: [number, number] }           // 当前 ghost 的 footprint 盖住了某格
+  // 盖住某格(变红)后,气泡下出现「我知道了」,点了才推进(错误示范:不帮玩家改对)。
+  | { on: 'ackCovers'; cell: [number, number] };
 
 /** 运行时玩家动作——InputHandler / RoomPanel 调 gate() 时传入。 */
 export type GateAction =

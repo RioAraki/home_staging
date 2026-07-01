@@ -136,23 +136,29 @@ export class TutorialController extends Component {
       const hasTarget = vis.holes.length > 0;
       this.hand.setVisible(hasTarget);       // 纯文字步隐藏示意手
 
+      // 「我知道了」按钮(每帧判定):confirm 步一直显示;ackCovers 步在 ghost 盖住
+      // 目标格(变红)后才显示;其余步隐藏。
+      const ao = step.advanceOn;
+      if (ao.on === 'confirm') {
+        this.overlay.showConfirm(() => { this.confirmed = true; });
+      } else if (ao.on === 'ackCovers') {
+        if (this.ghostCoversCell(ao.cell)) this.overlay.showConfirm(() => { this.confirmed = true; });
+        else this.overlay.hideConfirm();
+      } else {
+        this.overlay.hideConfirm();
+      }
+
       if (this.startedIdx !== this.idx) {
         this.startedIdx = this.idx;
-        // 放置步:把家具吸附到目标格并锁定(下方 allowsMove 阻止再拖动),
-        // 使「放置」一直有效、引导清晰。
+        // 放置步:把家具吸附到目标格并锁定,使「放置」一直有效、引导清晰。
         if (step.gate.action === 'place' && step.gate.fixedGoal) {
           const fg = step.gate.fixedGoal;
           this.getGhost()?.setOrigin(fg.origin[0], fg.origin[1]);
         }
-        // 讲解步/收尾步:显示「我知道了」按钮;其余步隐藏。
-        if (step.advanceOn.on === 'confirm') {
-          this.overlay.showConfirm(() => { this.confirmed = true; });
-          if (hasTarget) this.hand.setPos(vis.handTo);
-        } else {
-          this.overlay.hideConfirm();
-          if (step.hand === 'drag' && vis.handFrom) this.hand.playDrag(vis.handFrom, vis.handTo);
-          else this.hand.playTap(vis.handTo);   // tap / rotate / drag-without-source
-        }
+        // 进入拆除步前,清掉可能残留的 ghost(错误示范里粉植物一直没落子)。
+        if (step.gate.action === 'demolishToggle') gameStore.getState().clearSelection();
+        if (step.hand === 'drag' && vis.handFrom) this.hand.playDrag(vis.handFrom, vis.handTo);
+        else this.hand.playTap(vis.handTo);   // tap / rotate / drag-without-source
       } else if (step.hand !== 'drag' && hasTarget) {
         this.hand.setPos(vis.handTo);       // 目标动了就同步位置(脉冲继续)
       }
@@ -185,6 +191,7 @@ export class TutorialController extends Component {
       case 'removed':         return s.placedPieces.length < this.prevPlaced;
       case 'confirm':         return this.confirmed;
       case 'ghostCovers':     return this.ghostCoversCell(step.advanceOn.cell);
+      case 'ackCovers':       return this.confirmed;   // 盖住变红后点「我知道了」
     }
     return false;
   }
@@ -262,6 +269,17 @@ export class TutorialController extends Component {
       holes = this.openCellHoles();
       if (holes.length === 0) return null;
       handTo = new Vec3(holes[0].x, holes[0].y, 0);
+    } else if (pt.kind === 'badCell') {
+      // 错误示范:把目标格标红,引导玩家把家具拖去盖住它(盖住会变红)。
+      const bad = this.footprintHoleAt(pt.cell[0], pt.cell[1], 1, 1);
+      if (!bad) return null;
+      bad.bad = true;
+      holes = [bad];
+      handTo = new Vec3(bad.x, bad.y, 0);
+      if (pt.fromCard !== undefined) {
+        const cardH = this.nodeHole(`card_${pt.fromCard}`);
+        if (cardH) { holes.push(cardH); handFrom = new Vec3(cardH.x, cardH.y, 0); }
+      }
     } else if (pt.kind === 'none') {
       // 纯文字步(收尾):整屏变暗、不挖洞、不显示手。
       holes = []; handTo = new Vec3(0, 0, 0);

@@ -126,26 +126,31 @@
         "advanceOn": { "on": "placed", "sharesOpenCell": true }
       },
       {
-        "id": "plant-try-cover", "text": "家具不能压住别的家具的开放格！先试试把粉植物拖去盖住桌椅旁的圆点——会发现放不下（变红）", "hand": "drag",
-        "pointTo": { "kind": "dragPath", "fromCard": 4, "to": [6, 7], "bad": true },
+        "id": "plant-cover-open", "text": "家具不能压住别的家具的开放格！把粉植物拖去盖住桌椅旁的圆点试试——变红就是放不下", "hand": "drag",
+        "pointTo": { "kind": "badCell", "cell": [6, 7], "fromCard": 4 },
         "gate": { "action": "drag", "cardIndex": 4 },
-        "advanceOn": { "on": "ghostCovers", "cell": [6, 7] }
+        "advanceOn": { "on": "ackCovers", "cell": [6, 7] }
       },
       {
-        "id": "plant-place-ok", "text": "看，红色就是放不下。我帮你挪到旁边的合法格，按「放置」", "hand": "tap",
-        "pointTo": { "kind": "button", "name": "放置" },
-        "gate": { "action": "place", "cardIndex": 4,
-          "fixedGoal": { "cardIndex": 4, "rotation": 0, "origin": [4, 7] } },
-        "advanceOn": { "on": "placed" }
+        "id": "plant-rotate-vert", "text": "还有一种放不下：先点一下，把粉植物转成竖着的", "hand": "rotate",
+        "pointTo": { "kind": "ghost" },
+        "gate": { "action": "rotate", "minTimes": 1 },
+        "advanceOn": { "on": "rotatedAtLeast", "times": 1 }
       },
       {
-        "id": "demolish-on", "text": "位置不好？先点「拆除」", "hand": "tap",
+        "id": "plant-block-door", "text": "把竖着的粉植物拖去堵住大门——这样所有家具的开放格都到不了门口，同样放不下（变红）", "hand": "drag",
+        "pointTo": { "kind": "badCell", "cell": [7, 8] },
+        "gate": { "action": "drag", "cardIndex": 4 },
+        "advanceOn": { "on": "ackCovers", "cell": [7, 8] }
+      },
+      {
+        "id": "demolish-on", "text": "想拿走已经放好的家具？先点「拆除」", "hand": "tap",
         "pointTo": { "kind": "button", "name": "拆除" },
         "gate": { "action": "demolishToggle" },
         "advanceOn": { "on": "demolishModeOn" }
       },
       {
-        "id": "demolish-cell", "text": "再点刚放的家具，它会回到列表", "hand": "tap",
+        "id": "demolish-cell", "text": "再点一件已放的家具，它就会回到列表", "hand": "tap",
         "pointTo": { "kind": "lastPlaced" },
         "gate": { "action": "demolishCell" },
         "advanceOn": { "on": "removed" }
