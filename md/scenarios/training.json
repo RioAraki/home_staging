@@ -144,7 +144,7 @@
         "advanceOn": { "on": "ackCovers", "cell": [6, 8] }
       },
       {
-        "id": "plant-discard", "text": "这个粉植物哪都放不下——把它拖出户型图外面，就能丢掉它", "hand": "drag",
+        "id": "plant-discard", "text": "我们先把这个粉植物移开——把它拖出户型图外面就行", "hand": "drag",
         "pointTo": { "kind": "ghost" },
         "gate": { "action": "drag", "cardIndex": 4 },
         "advanceOn": { "on": "selectionCleared" }
