@@ -270,8 +270,9 @@ export class TutorialController extends Component {
       if (holes.length === 0) return null;
       handTo = new Vec3(holes[0].x, holes[0].y, 0);
     } else if (pt.kind === 'badCell') {
-      // 错误示范:把目标格标红,引导玩家把家具拖去盖住它(盖住会变红)。
-      const bad = this.footprintHoleAt(pt.cell[0], pt.cell[1], 1, 1);
+      // 错误示范:把目标 footprint 标红,引导玩家把家具拖去盖住它(盖住会变红)。
+      const bb = pt.bbox ?? [1, 1];
+      const bad = this.footprintHoleAt(pt.cell[0], pt.cell[1], bb[0], bb[1]);
       if (!bad) return null;
       bad.bad = true;
       holes = [bad];

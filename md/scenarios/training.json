@@ -138,10 +138,10 @@
         "advanceOn": { "on": "rotatedAtLeast", "times": 1 }
       },
       {
-        "id": "plant-block-door", "text": "把竖着的粉植物拖去堵住大门——这样所有家具的开放格都到不了门口，同样放不下（变红）", "hand": "drag",
-        "pointTo": { "kind": "badCell", "cell": [7, 8] },
+        "id": "plant-block-door", "text": "把竖着的粉植物拖到大门内侧的这两格——它会切断所有家具开放格通往大门的路，同样放不下（变红）", "hand": "drag",
+        "pointTo": { "kind": "badCell", "cell": [5, 8], "bbox": [2, 1] },
         "gate": { "action": "drag", "cardIndex": 4 },
-        "advanceOn": { "on": "ackCovers", "cell": [7, 8] }
+        "advanceOn": { "on": "ackCovers", "cell": [6, 8] }
       },
       {
         "id": "demolish-on", "text": "想拿走已经放好的家具？先点「拆除」", "hand": "tap",

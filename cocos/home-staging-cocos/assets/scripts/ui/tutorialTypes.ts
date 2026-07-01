@@ -25,8 +25,9 @@ export type PointTarget =
   // 旋转步「目标终点」:第 cardIndex 件家具在 origin、转到 rotation 时的 footprint。
   | { kind: 'goal'; cardIndex: number; rotation: number; origin: [number, number] }
   | { kind: 'openCells' }                                   // 所有已放家具的开放格(讲解用)
-  // 红色错误格:引导玩家把家具拖去盖住它(会变红)。fromCard 时同时高亮卡片、手从卡片滑过去。
-  | { kind: 'badCell'; cell: [number, number]; fromCard?: number }
+  // 红色错误格:引导玩家把家具拖去盖住它(会变红)。cell=footprint 左上角原点,
+  // bbox 省略=1×1。fromCard 时同时高亮卡片、手从卡片滑过去。
+  | { kind: 'badCell'; cell: [number, number]; bbox?: [number, number]; fromCard?: number }
   | { kind: 'none' };                                       // 纯文字步:不挖洞、不显示手
 
 /** 本步只放行的动作(强锁步)。 */
