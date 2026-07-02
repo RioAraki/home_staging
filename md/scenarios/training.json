@@ -145,7 +145,7 @@
       },
       {
         "id": "plant-discard", "text": "我们先把这个粉植物移开——把它拖出户型图外面就行", "hand": "drag",
-        "pointTo": { "kind": "ghost" },
+        "pointTo": { "kind": "dragOut" },
         "gate": { "action": "drag", "cardIndex": 4 },
         "advanceOn": { "on": "selectionCleared" }
       },

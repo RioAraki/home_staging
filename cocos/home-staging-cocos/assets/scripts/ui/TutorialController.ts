@@ -252,6 +252,14 @@ export class TutorialController extends Component {
       const h = this.ghostHole();
       if (!h) return null;
       holes = [h]; handTo = new Vec3(h.x, h.y, 0);
+    } else if (pt.kind === 'dragOut') {
+      // 「挪走」:高亮当前 ghost,示意手从它向右平移滑出户型图右缘。
+      const gh = this.ghostHole();
+      if (!gh) return null;
+      holes = [gh];
+      handFrom = new Vec3(gh.x, gh.y, 0);
+      const outX = this.planRightOverlayX();
+      handTo = new Vec3((outX ?? gh.x + 240) + 70, gh.y, 0);
     } else if (pt.kind === 'lastPlaced') {
       const h = this.lastPlacedHole();
       if (!h) return null;
@@ -326,6 +334,16 @@ export class TutorialController extends Component {
 
   private toOverlay(world: Vec3): Vec3 {
     return this.overlay.node.getComponent(UITransform)!.convertToNodeSpaceAR(world);
+  }
+
+  /** 户型图右边缘的 overlay 本地 x(用于把示意手滑出图外)。 */
+  private planRightOverlayX(): number | null {
+    const fp = this.floorPlan;
+    if (!fp || !fp.isValid) return null;
+    const ui = fp.getComponent(UITransform);
+    if (!ui) return null;
+    const world = ui.convertToWorldSpaceAR(new Vec3(layout().w / 2, 0, 0));
+    return this.toOverlay(world).x;
   }
 
   /** 网格对齐洞:左上角原点 (oR,oC),大小 rows×cols 格。 */

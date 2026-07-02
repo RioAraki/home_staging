@@ -21,6 +21,7 @@ export type PointTarget =
   // 卡片→某格(to=footprint 左上角原点)。bad:true 时目标格高亮为红色(引导玩家去试「错误」位置)。
   | { kind: 'dragPath'; fromCard: number; to: [number, number]; bad?: boolean }
   | { kind: 'ghost' }                                       // 当前 ghost(选中家具)所在 footprint
+  | { kind: 'dragOut' }                                     // 高亮 ghost;示意手从它向右平移滑出户型图(表示「挪走」)
   | { kind: 'lastPlaced' }                                  // 最近放下的家具 footprint(位置无关)
   // 旋转步「目标终点」:第 cardIndex 件家具在 origin、转到 rotation 时的 footprint。
   | { kind: 'goal'; cardIndex: number; rotation: number; origin: [number, number] }
