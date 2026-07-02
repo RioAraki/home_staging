@@ -65,7 +65,14 @@
     "drawing": [],
     "scoring": []
   },
-  "bonus_points": [],
+  "bonus_points": [
+    {
+      "text_zh": "放好全部家具",
+      "text_en": "All furniture placed",
+      "points": 3,
+      "condition": { "all_placed_in_room": { "room_slot": "I" } }
+    }
+  ],
   "tutorial": {
     "steps": [
       {
@@ -190,6 +197,18 @@
         "pointTo": { "kind": "button", "name": "完成房间" }, "noDim": true,
         "gate": { "action": "free" },
         "advanceOn": { "on": "roomCompleted" }
+      },
+      {
+        "id": "settle-score-rule", "text": "结算啦！每件家具的得分 = 它占了几格——家具越大，分越高。", "hand": "tap",
+        "pointTo": { "kind": "none" }, "noDim": true,
+        "gate": { "action": "none" },
+        "advanceOn": { "on": "confirm" }
+      },
+      {
+        "id": "settle-bonus", "text": "还有奖励：这一关「放好全部家具」额外 +3 分！完成关卡里的奖励条件能多拿分。", "hand": "tap",
+        "pointTo": { "kind": "none" }, "noDim": true,
+        "gate": { "action": "none" },
+        "advanceOn": { "on": "confirm" }
       }
     ]
   }

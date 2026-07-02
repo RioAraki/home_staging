@@ -163,6 +163,18 @@ export function evaluateBonusCondition(
       const placedNums = placedPieces.map((p) => p.number);
       return { earned: required.every((n) => placedNums.includes(n)), evaluator: key };
     }
+    case 'all_placed_in_room': {
+      // 放好房间里的全部家具(按数量:已放数 ≥ 该房间的卡片数)。适用于命名家具。
+      const slot = arg.room_slot as RoomSlot;
+      const room = scenario.rooms.find((r) => r.slot === slot);
+      const required = room?.furniture?.length ?? room?.furniture_numbers?.length ?? 0;
+      const placed = placedPieces.filter((p) => p.roomSlot === slot).length;
+      return {
+        earned: required > 0 && placed >= required,
+        evaluator: key,
+        note: `${placed}/${required} placed in room ${slot}`,
+      };
+    }
     case 'at_least_one_per_card': {
       const cards = (arg.cards as number[]) ?? [];
       const placedNums = new Set(placedPieces.map((p) => p.number));
