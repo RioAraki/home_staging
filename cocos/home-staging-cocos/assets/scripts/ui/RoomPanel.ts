@@ -841,14 +841,21 @@ export class RoomPanel extends Component {
     const isWindow = s.windowMode;
     const HL = new Color(70, 120, 200, 255);
     const DIM = new Color(110, 120, 135, 255);
-    // Single-room floor plans have no interior door to add — show 窗 only.
     const singleRoom = !!s.scenario && s.scenario.rooms.length === 1;
-    if (!singleRoom) {
-      this.makeButton(-220, 0, '门', isWindow ? DIM : HL, true, () => {
-        const st = gameStore.getState(); if (st.windowMode) st.toggleWindowMode();
-      });
+    if (singleRoom) {
+      // 单房间:没有内门可装,只装窗;三个按钮整体居中。
+      this.makeButton(-165, 0, '安装窗户', HL, true, () => {
+        const st = gameStore.getState(); if (!st.windowMode) st.toggleWindowMode();
+      }, 140);
+      this.makeButton(15, 0, '完成房间', GREEN, true,
+        () => gameStore.getState().completeRoom(), 180);
+      this.addUndoButton(s, 180, 0);
+      return;
     }
-    this.makeButton(-90, 0, '窗', singleRoom || isWindow ? HL : DIM, true, () => {
+    this.makeButton(-220, 0, '门', isWindow ? DIM : HL, true, () => {
+      const st = gameStore.getState(); if (st.windowMode) st.toggleWindowMode();
+    });
+    this.makeButton(-90, 0, '窗', isWindow ? HL : DIM, true, () => {
       const st = gameStore.getState(); if (!st.windowMode) st.toggleWindowMode();
     });
     this.makeButton(80, 0, '完成房间', GREEN, true,

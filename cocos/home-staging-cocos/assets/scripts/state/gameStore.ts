@@ -648,11 +648,15 @@ export const gameStore = createStore<GameState>((set, get) => {
             nextSkipped.add(k);
           }
         }
+        // 单房间没有内墙可砌,直接进入门/窗步并锁为「装窗」模式(跳过砌墙阶段)。
+        const singleRoom = scenario.rooms.length === 1;
         set({
           revealedCardKeys: nextRevealed,
           skippedCardKeys: nextSkipped,
           selectedOption: null,
           demolishMode: false,   // leaving 摆放 → don't carry 拆除 mode into construction
+          wallPhase: singleRoom ? 'door' : get().wallPhase,
+          windowMode: singleRoom ? true : get().windowMode,
           lastError: null,
         });
       });
