@@ -1,6 +1,5 @@
 import { _decorator, Component, Label } from 'cc';
 import { gameStore } from '../state/gameStore';
-import { TutorialController } from './TutorialController';
 const { ccclass, property } = _decorator;
 
 @ccclass('WallModeBanner')
@@ -27,8 +26,7 @@ export class WallModeBanner extends Component {
     if (s.frontDoorMode) this.set('点击外墙放置大门');
     // 单房间是「只能加窗」的固定模式,不再显示这条提示。
     else if (s.windowMode && !singleRoom) this.set('点击外墙添加/移除窗户');
-    // 教程进行时让位给教程气泡,不显示拆除提示。
-    else if (s.demolishMode && !TutorialController.instance?.isRunning()) this.set('点家具 / 墙 / 门 / 窗 拆除');
+    // 拆除提示已取消(不再显示「点家具/墙/门/窗拆除」)。
     else if (this.node) this.node.active = false;
   }
   private set(text: string) {

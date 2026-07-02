@@ -40,25 +40,30 @@ export class InputHandler extends Component {
       this.startX = p.x; this.startY = p.y;
       return;
     }
-    const hit = this.hitTest(e);
-    if (hit.kind === 'cell') {
-      if (s.demolishMode) {
-        e.propagationStopped = true;
+    // 拆除模式:用「包含点的格子」判定(无边缘死区),所以点到家具格里的任何位置
+    // ——哪怕是该格的透明背景/靠近格线——都能拆掉它。砌墙阶段若这一点没拆到家具,
+    // 再回退到拆边(墙/门/窗)。
+    if (s.demolishMode) {
+      e.propagationStopped = true;
+      const c = this.cellAt(e);
+      if (c) {
         const tc = TutorialController.instance;
-        if (tc && !tc.gate({ kind: 'demolishCell', cell: [hit.row, hit.col] })) return;
-        s.demolishAtCell([hit.row, hit.col]);
+        if (tc && !tc.gate({ kind: 'demolishCell', cell: [c.row, c.col] })) return;
+        const before = s.placedPieces.length;
+        s.demolishAtCell([c.row, c.col]);
+        if (gameStore.getState().placedPieces.length !== before) return;  // 拆到家具了
+      }
+      if (getRoomPhase(s) === 'construction') {
+        const hit = this.hitTest(e);
+        if (hit.kind === 'edge') s.demolishAtEdge(hit.key);   // 摆放阶段不拆边
       }
       return;
     }
+
+    const hit = this.hitTest(e);
+    if (hit.kind === 'cell') return;
     if (hit.kind === 'edge') {
       e.propagationStopped = true;
-      if (s.demolishMode) {
-        // 拆除 mode removes edges (walls/doors/windows) ONLY during the
-        // construction phase. In the furniture (摆放) phase it's a
-        // furniture-only "remove" tool, so edge taps are ignored.
-        if (getRoomPhase(s) === 'construction') s.demolishAtEdge(hit.key);
-        return;
-      }
       this.routeEdge(hit);
     }
   }
