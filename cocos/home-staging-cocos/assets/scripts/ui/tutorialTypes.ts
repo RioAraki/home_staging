@@ -11,6 +11,8 @@ export interface TutorialStep {
   hand: 'drag' | 'tap' | 'rotate';
   gate: GateRule;
   advanceOn: AdvanceRule;
+  /** true=覆盖层不变暗(仅高亮边框),用于需要玩家自由操作的过渡步。 */
+  noDim?: boolean;
 }
 
 /** 示意手指向的目标。 */
@@ -42,7 +44,8 @@ export type GateRule =
       fixedGoal?: { cardIndex: number; rotation: number; origin: [number, number] } }
   | { action: 'demolishToggle' }                            // 点「拆除」进入拆除模式
   | { action: 'demolishCell'; cell?: [number, number] }     // 点已放家具退回(cell 省略=任意一件)
-  | { action: 'none' };                                     // 讲解步:不放行任何游戏操作
+  | { action: 'none' }                                      // 讲解步:不放行任何游戏操作
+  | { action: 'free' };                                     // 过渡步:放行所有操作(自由摆放/装窗等)
 
 /** 满足即跳下一步。 */
 export type AdvanceRule =
@@ -56,7 +59,10 @@ export type AdvanceRule =
   | { on: 'ghostCovers'; cell: [number, number] }           // 当前 ghost 的 footprint 盖住了某格
   // 盖住某格(变红)后,气泡下出现「我知道了」,点了才推进(错误示范:不帮玩家改对)。
   | { on: 'ackCovers'; cell: [number, number] }
-  | { on: 'selectionCleared' };                             // 选中被清空(玩家把 ghost 拖出户型图丢掉)
+  | { on: 'selectionCleared' }                              // 选中被清空(玩家把 ghost 拖出户型图丢掉)
+  | { on: 'constructionPhase' }                             // 进入建造阶段(点了「完成摆放」)
+  | { on: 'windowPlaced' }                                  // 装上了至少一扇窗
+  | { on: 'roomCompleted' };                                // 完成了房间(点了「完成房间」)
 
 /** 运行时玩家动作——InputHandler / RoomPanel 调 gate() 时传入。 */
 export type GateAction =

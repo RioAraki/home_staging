@@ -61,10 +61,12 @@ export class TutorialOverlay extends Component {
   /** 变暗整屏,并给【多个】目标挖亮洞 + 金色高亮边框。
    *  洞坐标用本节点本地坐标(中心原点),{x,y} 中心、{hw,hh} 半尺寸。
    *  用「水平分带 + 每带挖洞 x 区间」实现任意多洞(Graphics 不能布尔挖洞)。 */
-  setHoles(holes: { x: number; y: number; hw: number; hh: number; bad?: boolean }[]) {
+  setHoles(holes: { x: number; y: number; hw: number; hh: number; bad?: boolean }[], dim = true) {
     const vs = view.getVisibleSize();
     const W = vs.width, H = vs.height;
     const g = this.g; g.clear();
+    // noDim(dim=false):不画暗色底,只留高亮边框——用于需要看清整个户型图自由操作的步。
+    if (!dim) { this.strokeHoleBorders(holes); return; }
     g.fillColor = new Color(0, 0, 0, 150);
     if (holes.length === 0) { g.rect(-W / 2, -H / 2, W, H); g.fill(); return; }
 
@@ -89,7 +91,12 @@ export class TutorialOverlay extends Component {
       if (cursor < W / 2) { g.rect(cursor, yb0, W / 2 - cursor, yb1 - yb0); g.fill(); }
     }
 
-    // 高亮边框:正常金色;bad=true(错误示范)用红色。
+    this.strokeHoleBorders(holes);
+  }
+
+  /** 高亮边框:正常金色;bad=true(错误示范)用红色。 */
+  private strokeHoleBorders(holes: { x: number; y: number; hw: number; hh: number; bad?: boolean }[]) {
+    const g = this.g;
     g.lineWidth = 3;
     for (const h of holes) {
       g.strokeColor = h.bad ? new Color(255, 80, 80, 235) : new Color(255, 224, 130, 220);

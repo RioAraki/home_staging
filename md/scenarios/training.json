@@ -168,10 +168,28 @@
         "advanceOn": { "on": "demolishModeOff" }
       },
       {
-        "id": "all-done", "text": "以上就是全部操作啦！现在试着把所有家具都摆进房间吧。", "hand": "tap",
+        "id": "finish-furniture", "text": "以上就是摆家具的操作啦！把剩下的家具也摆进房间，然后点「完成摆放」", "hand": "tap",
+        "pointTo": { "kind": "none" }, "noDim": true,
+        "gate": { "action": "free" },
+        "advanceOn": { "on": "constructionPhase" }
+      },
+      {
+        "id": "install-window", "text": "给房间装一扇窗——点房间四周任意一段外墙就行", "hand": "tap",
+        "pointTo": { "kind": "button", "name": "安装窗户" }, "noDim": true,
+        "gate": { "action": "free" },
+        "advanceOn": { "on": "windowPlaced" }
+      },
+      {
+        "id": "window-reward", "text": "小提示：有些房间装上窗户会有额外奖励，不过这一关不影响哦～", "hand": "tap",
         "pointTo": { "kind": "none" },
         "gate": { "action": "none" },
         "advanceOn": { "on": "confirm" }
+      },
+      {
+        "id": "complete-room", "text": "最后点「完成房间」，收尾！", "hand": "tap",
+        "pointTo": { "kind": "button", "name": "完成房间" }, "noDim": true,
+        "gate": { "action": "free" },
+        "advanceOn": { "on": "roomCompleted" }
       }
     ]
   }

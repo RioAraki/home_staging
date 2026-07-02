@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Vec3, UITransform, director } from 'cc';
-import { gameStore, pieceOpenCells, type GameState } from '../state/gameStore';
+import { gameStore, pieceOpenCells, getRoomPhase, type GameState } from '../state/gameStore';
 import { resolveOption } from '../core/pieces';
 import { transformOption } from '../core/geometry';
 import { roomItemAt } from '../core/roomItems';
@@ -86,7 +86,7 @@ export class TutorialController extends Component {
   allowsMove(): boolean {
     if (!this.active()) return true;
     const a = this.cur()!.gate.action;
-    return a === 'drag' || a === 'rotate';
+    return a === 'drag' || a === 'rotate' || a === 'free';
   }
 
   // ── 强锁步门控 ──
@@ -115,6 +115,8 @@ export class TutorialController extends Component {
           && (!g.cell || (a.cell[0] === g.cell[0] && a.cell[1] === g.cell[1])); break;
       case 'none':
         ok = false; break;   // 讲解步:任何游戏操作都不放行
+      case 'free':
+        ok = true; break;    // 过渡步:放行一切
     }
     if (!ok && this.hand) this.hand.shake();
     return ok;
@@ -131,7 +133,7 @@ export class TutorialController extends Component {
     const step = this.cur()!;
     const vis = this.stepVisual(step);
     if (vis) {
-      this.overlay.setHoles(vis.holes);
+      this.overlay.setHoles(vis.holes, !step.noDim);
       this.overlay.setBubble(step.text, vis.bubbleAt);
       const hasTarget = vis.holes.length > 0;
       this.hand.setVisible(hasTarget);       // 纯文字步隐藏示意手
@@ -191,6 +193,9 @@ export class TutorialController extends Component {
       case 'ghostCovers':     return this.ghostCoversCell(step.advanceOn.cell);
       case 'ackCovers':       return this.confirmed;   // 盖住变红后点「我知道了」
       case 'selectionCleared': return s.selectedOption === null;   // 拖出户型图丢掉
+      case 'constructionPhase': return getRoomPhase(s) === 'construction';
+      case 'windowPlaced':      return Object.keys(s.windows).length > 0;
+      case 'roomCompleted':     return s.completedRoomSlots.size > 0;
     }
     return false;
   }
