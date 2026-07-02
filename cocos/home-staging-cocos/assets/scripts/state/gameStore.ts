@@ -1226,6 +1226,11 @@ export const gameStore = createStore<GameState>((set, get) => {
           lastError: null,
         });
       });
+      // 所有房间已封闭、且大门是固定的(预画,无需玩家再放/移)→ 直接结算,
+      // 省掉多余的「结算」按钮点击,点「完成房间」即进入结算界面。
+      if (allRoomsSealed(get()) && get().frontDoorEdge && frontDoorFixed(get())) {
+        get().finishGame();
+      }
       return true;
     },
 
