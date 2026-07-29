@@ -8,6 +8,17 @@
 - 与用户全程使用**中文**交流。
 - Commit message 用中文或英文均可,简明描述做了什么。
 
+## 代码库定位:只有 Cocos 是正品
+
+| 目录 | 定位 | 该怎么对待 |
+| --- | --- | --- |
+| `cocos/home-staging-cocos/` | **唯一交付端**,目标打包成微信小游戏 | 所有功能/渲染/交互改动都落在这里 |
+| `app/` | React + SVG 网页版,当初用来验证规则可行性,Cocos 的规则逻辑从它移植而来 | **已冻结,相当长一段时间不会再动**。只当规则参照物读,**不要**为了"保持同步"去改它;用户明说要改才动 |
+
+- 原先的 `wechat_mini_game/` 是微信官方「飞机大战」示例模板、与本项目无任何代码关系,**已删除**。
+  日后真做小游戏打包时,从 Cocos 的构建流程走,不要复活那个模板目录。
+- 推论:讨论"要不要两端都改"时,默认答案是**只改 cocos**。
+
 ## Git:每完成一个阶段就 commit + push
 
 不要靠"我觉得这算不算一个阶段"来判断——这种判断在小改动和续作上会失灵。改用下面的**硬触发点**。
@@ -54,7 +65,7 @@
 - 拼装工具:`http://localhost:8777/tools/assembler/index.html`
 - 关卡编辑器:`http://localhost:8777/tools/level-editor/index.html`(编辑/新建关卡,保存到 `md/scenarios/<id>.json` 并自动重建 maps_data)
 - 静态服务器:`python tools/server.py`(替代 `python -m http.server`,增加 `/api/crop`、`/api/sheets`、`/api/scenarios`、`/api/scenario` 接口)
-- 游戏网页:`http://localhost:8778/`(由 `cd app && npx vite --port 8778` 提供)
+- ~~游戏网页:`http://localhost:8778/`(由 `cd app && npx vite --port 8778` 提供)~~ —— `app/` 已冻结,见上文「代码库定位」
 
 ## 关卡数据(源 → 成品)
 
