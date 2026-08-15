@@ -82,6 +82,7 @@
   "rules": {
     "hallway": {
       "required": false,
+      "hub": "III",
       "notes_zh": "无走廊，所有房间直接与用餐区相连。",
       "notes_en": "No hallway; all rooms connect directly to the dining area."
     },

@@ -107,7 +107,7 @@ export function emptyModel(rows = 16, cols = 16) {
     doors: [], windows: [], walls: [], markers: [],
     frontDoor: null,   // edge key of the building's front door (大门), or null
     rooms: [],
-    rules: { hallway_required: true, front_door: { mode: 'anywhere', forced_edges: [], forced_cells: [], width: 1 }, drawing: [] },
+    rules: { hallway_required: true, hallway_hub: null, hallway_notes: {}, front_door: { mode: 'anywhere', forced_edges: [], forced_cells: [], width: 1 }, drawing: [] },
     bonus_points: [],
     theme: Object.fromEntries(THEME_KEYS.map((k) => [k, null])),
     _raw: {},
@@ -142,6 +142,13 @@ export function parseScenario(s) {
     })),
     rules: {
       hallway_required: s.rules?.hallway?.required !== false,
+      // 模式③(客厅枢纽)的枢纽房间 slot + 原文备注。编辑器不编辑它们,
+      // 但必须原样带出去,否则保存一次就被抹掉。
+      hallway_hub: s.rules?.hallway?.hub || null,
+      hallway_notes: {
+        zh: s.rules?.hallway?.notes_zh,
+        en: s.rules?.hallway?.notes_en,
+      },
       front_door: {
         mode,
         forced_edges: fd.forced_edges || [],
@@ -176,8 +183,12 @@ export function buildScenario(m) {
   const front_door = { on_exterior_wall_anywhere: fd.mode === 'anywhere', forced_cells: fd.mode === 'forced_cells' ? fd.forced_cells : [] };
   if (fd.mode === 'forced_edges') front_door.forced_edges = fd.forced_edges;
   if (fd.width && fd.width !== 1) front_door.width = fd.width;
+  const hallway = { required: m.rules.hallway_required };
+  if (!m.rules.hallway_required && m.rules.hallway_hub) hallway.hub = m.rules.hallway_hub;
+  if (m.rules.hallway_notes?.zh !== undefined) hallway.notes_zh = m.rules.hallway_notes.zh;
+  if (m.rules.hallway_notes?.en !== undefined) hallway.notes_en = m.rules.hallway_notes.en;
   const rules = {
-    hallway: { required: m.rules.hallway_required },
+    hallway,
     front_door,
     drawing: m.rules.drawing || [],
     scoring: m._raw.rules?.scoring || [],

@@ -142,7 +142,18 @@ export interface DrawingRule {
 }
 
 export interface ScenarioRules {
-  hallway: { required: boolean; notes_zh?: string; notes_en?: string };
+  hallway: {
+    required: boolean;
+    /** Living-room-hub mode (only meaningful when `required` is false): the
+     *  slot of the room the front door opens into, which doubles as the hub.
+     *  Every other room must open onto THIS room — rooms still never chain
+     *  through one another. Omit to leave the scenario unchecked (legacy
+     *  data, or scenarios that genuinely allow room-to-room openings such as
+     *  essen_spiel_2023). */
+    hub?: RoomSlot;
+    notes_zh?: string;
+    notes_en?: string;
+  };
   front_door: {
     on_exterior_wall_anywhere: boolean;
     forced_edges?: WallEdge[];

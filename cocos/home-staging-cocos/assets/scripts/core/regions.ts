@@ -277,6 +277,9 @@ export function analyseAccessibility(
   const regionToRoom = new Map<RegionId, RoomSlot>();
   for (const [s, r] of roomToRegion) regionToRoom.set(r, s);
   const hallwayRequired = scenario.rules?.hallway?.required !== false;
+  // Mode ③: no hallway, but every room must hang off one designated hub room.
+  // Only consulted when the hallway requirement is waived.
+  const hubSlot = hallwayRequired ? undefined : scenario.rules?.hallway?.hub;
 
   // The "lobby" region — the indoor region the front door opens directly
   // into. A room's door is allowed to open into this region even if it's
@@ -339,6 +342,19 @@ export function analyseAccessibility(
         doorIssues.push({
           edgeKey, roomSlot: owner,
           reason: `Room ${owner}'s door opens directly into Room ${otherRoom} — this scenario requires every room door to face the hallway / lobby, not another non-lobby room.`,
+        });
+      }
+    } else if (hubSlot !== undefined && owner !== hubSlot) {
+      // Living-room-hub mode: there is no hallway, the front door opens into
+      // the hub room, and every OTHER room hangs directly off that hub. Doors
+      // may face the hub, open space, or straight outside — but never another
+      // room, so rooms cannot chain (bedroom → bathroom → living room).
+      const otherSide = a === ownerReg ? b : a;
+      const otherRoom = otherSide === OUTSIDE ? undefined : regionToRoom.get(otherSide);
+      if (otherRoom !== undefined && otherRoom !== owner && otherRoom !== hubSlot) {
+        doorIssues.push({
+          edgeKey, roomSlot: owner,
+          reason: `Room ${owner}'s door opens directly into Room ${otherRoom} — this scenario has no hallway, so every room must open onto the hub room ${hubSlot} instead of chaining through another room.`,
         });
       }
     }

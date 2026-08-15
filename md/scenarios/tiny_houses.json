@@ -69,6 +69,7 @@
   "rules": {
     "hallway": {
       "required": false,
+      "hub": "I",
       "notes_zh": "无走廊；浴室直接连到起居/餐厅",
       "notes_en": "No hallway; bathroom connects directly to the living/dining room"
     },

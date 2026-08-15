@@ -107,6 +107,7 @@
   "rules": {
     "hallway": {
       "required": false,
+      "hub": "II",
       "notes_zh": "无内部隔断（除浴室外）。三层共同视作起居/餐厅。",
       "notes_en": "No interior partition walls (except the bathroom). All three floors are treated as one living/dining area."
     },

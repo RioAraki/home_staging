@@ -46,6 +46,21 @@ describe('level-editor model', () => {
     }
   });
 
+  it('keeps hallway.hub and notes when a scenario passes through the editor', () => {
+    // castle_cafe is mode ③: hallway.required=false + hub "III" (用餐区).
+    // The editor UI does not expose either field, so it must carry them through
+    // untouched — a save used to silently drop them.
+    const s = readScenario('castle_cafe');
+    expect(s.rules.hallway.hub).toBe('III');
+    expect(buildScenario(parseScenario(s)).rules.hallway).toEqual(s.rules.hallway);
+  });
+
+  it('omits hub for hallway-required scenarios', () => {
+    const b = buildScenario(parseScenario(readScenario('training')));
+    expect(b.rules.hallway.required).toBe(true);
+    expect('hub' in b.rules.hallway).toBe(false);
+  });
+
   it('validate flags bad id, empty indoor, and unknown furniture (by name)', () => {
     const m = emptyModel(4, 4);
     let issues = validate(m, new Set(['长沙发 1A-1']));

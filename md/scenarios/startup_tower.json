@@ -83,6 +83,7 @@
   "rules": {
     "hallway": {
       "required": false,
+      "hub": "IV",
       "notes_zh": "无走廊，所有房间都连到办公区",
       "notes_en": "No hallway all rooms connect to office space"
     },

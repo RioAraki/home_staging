@@ -61,6 +61,7 @@
   "rules": {
     "hallway": {
       "required": false,
+      "hub": "III",
       "notes_zh": "无走廊，小屋直接通向花园",
       "notes_en": "No hallway small houses connect directly to garden"
     },

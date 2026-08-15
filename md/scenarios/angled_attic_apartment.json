@@ -84,6 +84,7 @@
   "rules": {
     "hallway": {
       "required": false,
+      "hub": "III",
       "notes_zh": "无走廊；其余所有房间都只连到起居/餐厅",
       "notes_en": "No hallway all other rooms connect only to the living-dining room"
     },
