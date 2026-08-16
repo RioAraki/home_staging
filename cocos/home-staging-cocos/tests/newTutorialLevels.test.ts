@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { computeRegions } from '../assets/scripts/core/regions';
-import { preDrawnWallEdges, preDrawnRoomDoors, hasPrebuiltLayout } from '../assets/scripts/core/prebuilt';
+import { preDrawnWallEdges, preDrawnRoomDoors, hasPrebuiltWalls, hasPrebuiltDoors } from '../assets/scripts/core/prebuilt';
 import { furnitureOptionByName, setLoadedData } from '../assets/scripts/core/dataLoader';
 import type { Scenario, MapsData, FurnitureData } from '../assets/scripts/core/types';
 
@@ -40,7 +40,7 @@ describe('新增教学关：一室一厅 (mode ③, pre-built)', () => {
   const s = readScenario('living_room_and_bedroom');
 
   it('ships a pre-built layout', () => {
-    expect(hasPrebuiltLayout(s)).toBe(true);
+    expect(hasPrebuiltWalls(s)).toBe(true);
     expect(preDrawnWallEdges(s)).toEqual(['v:5:8', 'v:6:8', 'v:7:8', 'v:8:8', 'v:9:8']);
   });
 
@@ -138,6 +138,85 @@ describe('新增教学关：走廊人家 (mode ①, pre-built)', () => {
   });
 });
 
+describe('新增缓冲关：一大一小 (mode ③, 空间悬殊)', () => {
+  const s = readScenario('big_room_small_room');
+
+  it('splits 30 cells into a roomy 20 and a tight 10', () => {
+    expect(indoorCount(s)).toBe(30);
+    expect(regionsOf(s).regions.size).toBe(2);
+    expect(cellsOf(s, 7, 5)).toHaveLength(20);    // 客厅 cols 5-8
+    expect(cellsOf(s, 7, 10)).toHaveLength(10);   // 储物间 cols 9-10
+  });
+
+  it('the small room is genuinely tight but still solvable', () => {
+    const used = (s.rooms.find((r) => r.slot === 'II')!.furniture ?? [])
+      .reduce((n, name) => {
+        const o = furnitureOptionByName(name)!;
+        return n + o.shape.length + o.open_spaces.length;
+      }, 0);
+    expect(used).toBeLessThanOrEqual(10);   // fits …
+    expect(used).toBeGreaterThanOrEqual(7); // … but only just — that's the lesson
+  });
+
+  it('every piece is narrow enough for the 2-wide room', () => {
+    // The storage room is only 2 columns wide, so nothing may need 3+ cells
+    // in BOTH directions — otherwise it cannot be placed even rotated.
+    for (const name of s.rooms.find((r) => r.slot === 'II')!.furniture ?? []) {
+      const o = furnitureOptionByName(name)!;
+      expect(Math.min(o.bbox[0], o.bbox[1]), name).toBeLessThanOrEqual(2);
+    }
+  });
+});
+
+describe('新增缓冲关：L 形公寓 (不规则轮廓)', () => {
+  const s = readScenario('l_shaped_flat');
+
+  it('is genuinely L-shaped, not a rectangle', () => {
+    expect(indoorCount(s)).toBe(27);
+    const rows = s.grid.ascii.split('\n');
+    const width = (r: number) => (rows[r].match(/I/g) ?? []).length;
+    expect(width(5)).toBe(6);    // horizontal arm
+    expect(width(9)).toBe(3);    // vertical arm — narrower, hence the L
+  });
+
+  it('splits into 客厅18 / 卧室9 with the bedroom on the wide arm', () => {
+    expect(regionsOf(s).regions.size).toBe(2);
+    expect(cellsOf(s, 9, 5)).toHaveLength(18);   // 客厅 spans both arms
+    expect(cellsOf(s, 6, 9)).toHaveLength(9);    // 卧室 sits in the wide arm
+  });
+
+  it('puts the front door on the far end of the vertical arm', () => {
+    const fd = s.pre_drawn.doors.find((d) => d.target === 'front_door')!;
+    expect(fd.cell).toEqual([10, 5]);
+    // …which is indoor, and its west neighbour is outdoor (a real exterior wall)
+    const rows = s.grid.ascii.split('\n');
+    expect(rows[10][5]).toBe('I');
+    expect(rows[10][4]).toBe('.');
+  });
+});
+
+describe('新增缓冲关：只差一扇门 (墙给定,门是练习)', () => {
+  const s = readScenario('just_one_door');
+  const src = readScenario('three_rooms_one_hall');
+
+  it('reuses 三室一厅\'s plan and walls', () => {
+    expect(s.grid.ascii).toBe(src.grid.ascii);
+    expect(s.pre_drawn.walls_interior).toEqual(src.pre_drawn.walls_interior);
+    expect(hasPrebuiltWalls(s)).toBe(true);
+  });
+
+  it('ships NO room doors — that is the exercise', () => {
+    expect(preDrawnRoomDoors(s)).toEqual({});
+    expect(hasPrebuiltDoors(s)).toBe(false);
+    // The front door is still given, so the only new skill is cutting doors.
+    expect(s.pre_drawn.doors.filter((d) => d.target === 'front_door')).toHaveLength(1);
+  });
+
+  it('still carves three separate rooms, so doors are actually needed', () => {
+    expect(regionsOf(s).regions.size).toBe(3);
+  });
+});
+
 describe('自由版：同户型、无预置', () => {
   it.each([
     ['living_room_and_bedroom_free', 'living_room_and_bedroom'],
@@ -147,7 +226,7 @@ describe('自由版：同户型、无预置', () => {
     const src = readScenario(srcId);
     expect(free.grid.ascii).toBe(src.grid.ascii);
     expect(free.rooms).toEqual(src.rooms);
-    expect(hasPrebuiltLayout(free)).toBe(false);
+    expect(hasPrebuiltWalls(free)).toBe(false);
     expect(preDrawnRoomDoors(free)).toEqual({});
     // The front door stays given, so the only new skill is drawing walls.
     expect(free.pre_drawn.doors.filter((d) => d.target === 'front_door')).toHaveLength(1);

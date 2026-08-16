@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { preDrawnWallEdges, preDrawnRoomDoors, hasPrebuiltLayout } from '../assets/scripts/core/prebuilt';
+import { preDrawnWallEdges, preDrawnRoomDoors, hasPrebuiltWalls } from '../assets/scripts/core/prebuilt';
 import type { Scenario } from '../assets/scripts/core/types';
 
 const scen = (pre: Partial<Scenario['pre_drawn']>): Scenario => ({
@@ -62,18 +62,19 @@ describe('preDrawnRoomDoors', () => {
   });
 });
 
-describe('hasPrebuiltLayout', () => {
+describe('hasPrebuiltWalls', () => {
   it('is true only when interior walls are shipped', () => {
-    expect(hasPrebuiltLayout(scen({ walls_interior: [[5, 7, 5, 8]] }))).toBe(true);
-    expect(hasPrebuiltLayout(scen({}))).toBe(false);
-    expect(hasPrebuiltLayout(null)).toBe(false);
+    expect(hasPrebuiltWalls(scen({ walls_interior: [[5, 7, 5, 8]] }))).toBe(true);
+    expect(hasPrebuiltWalls(scen({}))).toBe(false);
+    expect(hasPrebuiltWalls(null)).toBe(false);
   });
 
-  it('is true for exactly the three pre-built tutorial levels', async () => {
+  it('is true for exactly the six pre-built tutorial levels', async () => {
     // Guards both directions: the flag must skip the wall phase for the new
     // tutorial levels, and must NOT start skipping it for any older level.
     const PREBUILT = new Set([
       'living_room_and_bedroom', 'three_rooms_one_hall', 'corridor_home',
+      'big_room_small_room', 'l_shaped_flat', 'just_one_door',
     ]);
     const { readFileSync, readdirSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
@@ -81,7 +82,7 @@ describe('hasPrebuiltLayout', () => {
     const dir = resolve(dirname(fileURLToPath(import.meta.url)), '../../../md/scenarios');
     for (const f of readdirSync(dir).filter((n) => n.endsWith('.json') && n !== '_index.json')) {
       const s = JSON.parse(readFileSync(resolve(dir, f), 'utf-8'));
-      expect(hasPrebuiltLayout(s), f).toBe(PREBUILT.has(s.id));
+      expect(hasPrebuiltWalls(s), f).toBe(PREBUILT.has(s.id));
     }
   });
 });

@@ -2,7 +2,10 @@ import { createStore } from './zustandVanilla';
 import type { RoomSlot, Scenario } from '../core/types';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology, doorEdgeKey } from '../core/walls';
 import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
-import { preDrawnWallEdges, preDrawnRoomDoors, hasPrebuiltLayout } from '../core/prebuilt';
+import {
+  preDrawnWallEdges, preDrawnRoomDoors,
+  hasPrebuiltWalls, hasPrebuiltDoors, isPreDrawnWall,
+} from '../core/prebuilt';
 import { resolveOption, pieceShapeCells, pieceFootprintCells } from '../core/pieces';
 import { transformOption } from '../core/geometry';
 import { roomItemCount, roomItemAt } from '../core/roomItems';
@@ -356,9 +359,8 @@ function freshRunState(scenario: Scenario) {
   for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
   const chosen: Record<number, Variant> = {};
   for (const n of nums) chosen[n] = pickRandomVariant();
-  const prebuiltWalls = preDrawnWallEdges(scenario);
   const walls: Record<string, true> = {};
-  for (const k of prebuiltWalls) walls[k] = true;
+  for (const k of preDrawnWallEdges(scenario)) walls[k] = true;
   return {
     ...blank,
     chosenVariants: chosen,
@@ -369,7 +371,10 @@ function freshRunState(scenario: Scenario) {
     demolishMode: false,
     frontDoorEdge: autoFrontDoor(scenario),
     walls,
-    lockedWalls: new Set(prebuiltWalls),
+    // NOTE: pre-built walls deliberately do NOT go into lockedWalls —
+    // that set also blocks setDoor, and a scenario may ship walls while
+    // leaving the doors as the exercise. toggleWall guards them separately
+    // via isPreDrawnWall.
     doors: preDrawnRoomDoors(scenario),
   };
 }
@@ -648,16 +653,18 @@ export const gameStore = createStore<GameState>((set, get) => {
             nextSkipped.add(k);
           }
         }
-        // 没有内墙可砌时直接进入门/窗步并锁为「装窗」模式(跳过砌墙阶段):
-        // 单房间(本来就没有内墙),或关卡自带成品户型(墙已预置且锁定)。
-        const skipWalls = scenario.rooms.length === 1 || hasPrebuiltLayout(scenario);
+        // 没有内墙可砌 → 直接进门/窗步:单房间(本来就没有内墙),
+        // 或关卡自带内墙。此时若门也预置了,再锁成「装窗」模式;
+        // 只给墙不给门的关卡(教开门)要留在开门模式。
+        const skipWalls = scenario.rooms.length === 1 || hasPrebuiltWalls(scenario);
+        const noDoorsToCut = scenario.rooms.length === 1 || hasPrebuiltDoors(scenario);
         set({
           revealedCardKeys: nextRevealed,
           skippedCardKeys: nextSkipped,
           selectedOption: null,
           demolishMode: false,   // leaving 摆放 → don't carry 拆除 mode into construction
           wallPhase: skipWalls ? 'door' : get().wallPhase,
-          windowMode: skipWalls ? true : get().windowMode,
+          windowMode: skipWalls && noDoorsToCut ? true : get().windowMode,
           lastError: null,
         });
       });
@@ -745,6 +752,12 @@ export const gameStore = createStore<GameState>((set, get) => {
         set({ lastError: '已完成房间的墙不能直接抹掉，请使用拆除模式。' });
         return;
       }
+      if (isRemoving && isPreDrawnWall(scenario, edgeKey)) {
+        // The scenario handed this layout over — the player may cut doors
+        // into it, but not tear it down.
+        set({ lastError: '这是关卡给定的墙，不能拆。' });
+        return;
+      }
       // A player wall is an INTERIOR partition: both cells it separates must be
       // indoor. This forbids drawing on the building's exterior outline (one
       // side outdoor — already a wall) or out in the open (both sides outdoor).
@@ -813,9 +826,9 @@ export const gameStore = createStore<GameState>((set, get) => {
     setWallPhase: (phase) => {
       if (constructionLocked()) return;
       // 没有内门可加时,进入门/窗步直接锁定为「加窗」模式:
-      // 单房间,或关卡自带成品户型(门也已预置)。
+      // 单房间,或关卡把房间门也预置了。只给墙不给门的关卡不锁。
       const scen = get().scenario;
-      const noPlayerDoors = scen?.rooms.length === 1 || hasPrebuiltLayout(scen);
+      const noPlayerDoors = scen?.rooms.length === 1 || hasPrebuiltDoors(scen);
       set({
         wallPhase: phase,
         windowMode: phase === 'door' && noPlayerDoors ? true : get().windowMode,

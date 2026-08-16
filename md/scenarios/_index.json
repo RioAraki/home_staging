@@ -1,9 +1,12 @@
 [
   "training",
   "living_room_and_bedroom",
+  "big_room_small_room",
   "three_rooms_one_hall",
   "corridor_home",
+  "l_shaped_flat",
   "rehearsal_room_old_barn",
+  "just_one_door",
   "living_room_and_bedroom_free",
   "corridor_home_free",
   "photo_studio_freespace",

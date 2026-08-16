@@ -40,9 +40,26 @@ export function preDrawnRoomDoors(scenario: Scenario): Record<string, RoomSlot> 
   return out;
 }
 
-/** True when the scenario hands the player a finished floor plan. Such runs
- *  skip the wall-drawing and door-cutting phases entirely, the same way
- *  single-room scenarios do. */
-export function hasPrebuiltLayout(scenario: Scenario | null | undefined): boolean {
+/** True when the scenario ships its interior walls — the player never draws
+ *  walls in such a run, so the wall phase is skipped. */
+export function hasPrebuiltWalls(scenario: Scenario | null | undefined): boolean {
   return !!scenario?.pre_drawn?.walls_interior?.length;
+}
+
+/** True when the scenario also ships the room doors, so the player has no
+ *  doors left to cut and the door phase locks straight into window mode.
+ *  Deliberately separate from {@link hasPrebuiltWalls}: a scenario may hand
+ *  over the walls but leave the doors as the exercise. */
+export function hasPrebuiltDoors(scenario: Scenario | null | undefined): boolean {
+  return !!scenario && Object.keys(preDrawnRoomDoors(scenario)).length > 0;
+}
+
+/** Is this edge one of the scenario's given walls? Those cannot be demolished
+ *  — but they CAN have doors cut into them, which is why pre-built walls are
+ *  kept out of `lockedWalls` (that set also blocks door placement). */
+export function isPreDrawnWall(
+  scenario: Scenario | null | undefined, edgeKey: string,
+): boolean {
+  if (!scenario) return false;
+  return preDrawnWallEdges(scenario).includes(edgeKey);
 }
