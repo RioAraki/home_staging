@@ -2,6 +2,7 @@ import { createStore } from './zustandVanilla';
 import type { RoomSlot, Scenario } from '../core/types';
 import { exteriorWallEdges as exteriorWallEdgesFromScenario, validateWallTopology, doorEdgeKey } from '../core/walls';
 import { frontDoorOpensIntoRoom, computeRegions, assignRoomsToRegions } from '../core/regions';
+import { preDrawnWallEdges, preDrawnRoomDoors, hasPrebuiltLayout } from '../core/prebuilt';
 import { resolveOption, pieceShapeCells, pieceFootprintCells } from '../core/pieces';
 import { transformOption } from '../core/geometry';
 import { roomItemCount, roomItemAt } from '../core/roomItems';
@@ -346,6 +347,33 @@ function autoFrontDoor(scenario: Scenario): string | null {
   return doorEdgeKey(d.cell, d.edge);
 }
 
+/** Blank state for a fresh run of `scenario`. Shared by initRun (when there
+ *  is no save to restore) and resetCurrentScenario. Scenarios shipping a
+ *  pre-built layout start with those walls already drawn AND locked, so the
+ *  player cannot demolish the floor plan they were given. */
+function freshRunState(scenario: Scenario) {
+  const nums = new Set<number>();
+  for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
+  const chosen: Record<number, Variant> = {};
+  for (const n of nums) chosen[n] = pickRandomVariant();
+  const prebuiltWalls = preDrawnWallEdges(scenario);
+  const walls: Record<string, true> = {};
+  for (const k of prebuiltWalls) walls[k] = true;
+  return {
+    ...blank,
+    chosenVariants: chosen,
+    past: [],
+    scenario,
+    frontDoorMode: false,
+    windowMode: false,
+    demolishMode: false,
+    frontDoorEdge: autoFrontDoor(scenario),
+    walls,
+    lockedWalls: new Set(prebuiltWalls),
+    doors: preDrawnRoomDoors(scenario),
+  };
+}
+
 const initialAudioSettings = loadAudioSettings();
 
 export const gameStore = createStore<GameState>((set, get) => {
@@ -418,21 +446,7 @@ export const gameStore = createStore<GameState>((set, get) => {
         });
         return;
       }
-      const nums = new Set<number>();
-      for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
-      const chosen: Record<number, Variant> = {};
-      for (const n of nums) chosen[n] = pickRandomVariant();
-      const lockedFrontDoor = autoFrontDoor(scenario);
-      set({
-        ...blank,
-        chosenVariants: chosen,
-        past: [],
-        scenario,
-        frontDoorMode: false,
-        windowMode: false,
-        demolishMode: false,
-        frontDoorEdge: lockedFrontDoor,
-      });
+      set(freshRunState(scenario));
     },
 
     resetCurrentScenario: () => {
@@ -441,21 +455,7 @@ export const gameStore = createStore<GameState>((set, get) => {
       // clearSavedState helper in lib/persistence).
       const { scenario } = get();
       if (!scenario) return;
-      const nums = new Set<number>();
-      for (const room of scenario.rooms) for (const n of room.furniture_numbers) nums.add(n);
-      const chosen: Record<number, Variant> = {};
-      for (const n of nums) chosen[n] = pickRandomVariant();
-      const lockedFrontDoor = autoFrontDoor(scenario);
-      set({
-        ...blank,
-        chosenVariants: chosen,
-        past: [],
-        scenario,
-        frontDoorMode: false,
-        windowMode: false,
-        demolishMode: false,
-        frontDoorEdge: lockedFrontDoor,
-      });
+      set(freshRunState(scenario));
     },
 
     selectRoom: (slot) => {
@@ -648,15 +648,16 @@ export const gameStore = createStore<GameState>((set, get) => {
             nextSkipped.add(k);
           }
         }
-        // 单房间没有内墙可砌,直接进入门/窗步并锁为「装窗」模式(跳过砌墙阶段)。
-        const singleRoom = scenario.rooms.length === 1;
+        // 没有内墙可砌时直接进入门/窗步并锁为「装窗」模式(跳过砌墙阶段):
+        // 单房间(本来就没有内墙),或关卡自带成品户型(墙已预置且锁定)。
+        const skipWalls = scenario.rooms.length === 1 || hasPrebuiltLayout(scenario);
         set({
           revealedCardKeys: nextRevealed,
           skippedCardKeys: nextSkipped,
           selectedOption: null,
           demolishMode: false,   // leaving 摆放 → don't carry 拆除 mode into construction
-          wallPhase: singleRoom ? 'door' : get().wallPhase,
-          windowMode: singleRoom ? true : get().windowMode,
+          wallPhase: skipWalls ? 'door' : get().wallPhase,
+          windowMode: skipWalls ? true : get().windowMode,
           lastError: null,
         });
       });
@@ -811,11 +812,13 @@ export const gameStore = createStore<GameState>((set, get) => {
 
     setWallPhase: (phase) => {
       if (constructionLocked()) return;
-      // 单房间没有内门可加:进入门/窗步直接锁定为「加窗」模式。
-      const singleRoom = get().scenario?.rooms.length === 1;
+      // 没有内门可加时,进入门/窗步直接锁定为「加窗」模式:
+      // 单房间,或关卡自带成品户型(门也已预置)。
+      const scen = get().scenario;
+      const noPlayerDoors = scen?.rooms.length === 1 || hasPrebuiltLayout(scen);
       set({
         wallPhase: phase,
-        windowMode: phase === 'door' && singleRoom ? true : get().windowMode,
+        windowMode: phase === 'door' && noPlayerDoors ? true : get().windowMode,
         lastError: null,
       });
     },

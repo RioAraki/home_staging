@@ -396,16 +396,12 @@ export function drawPreDrawn(g: Graphics, scenario: Scenario) {
   const L = layout().cell;
   const isIndoor = makeIsIndoor(scenario);
 
-  // Pre-drawn interior walls — same colour as player walls but thinner.
-  if (pd.walls_interior?.length) {
-    g.strokeColor = themeColor(scenario.theme?.wall, COL_WALL);
-    g.lineWidth = WALL_WIDTH - 1;
-    for (const [r1, c1, r2, c2] of pd.walls_interior) {
-      g.moveTo(edgeX(c1), edgeY(r1));
-      g.lineTo(edgeX(c2), edgeY(r2));
-    }
-    g.stroke();
-  }
+  // NOTE: pre_drawn.walls_interior is NOT drawn here. initRun seeds those
+  // edges into the `walls` state (locked), so drawWalls paints them along
+  // with every other wall — one code path, one appearance. The old block
+  // here drew each entry as a line between two *cell* coordinates, which
+  // rendered vertical edges as horizontal strokes; it never showed because
+  // no shipped scenario used the field.
 
   // Pre-drawn doors — swing symbol in pre-drawn colour.
   if (pd.doors?.length) {

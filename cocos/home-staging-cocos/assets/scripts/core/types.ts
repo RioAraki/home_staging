@@ -85,6 +85,11 @@ export interface PreDrawnDoor {
   cell: [number, number];
   edge: 'N' | 'S' | 'E' | 'W';
   target?: string;
+  /** Slot of the room this door belongs to. Set it on scenarios that ship a
+   *  pre-built layout (walls + doors given, player only places furniture):
+   *  initRun then seeds `doors` with it so accessibility scoring sees a real
+   *  room door. Omit on decorative doors and on `target: "front_door"`. */
+  room?: RoomSlot;
   notes?: string;
   notes_zh?: string;
   notes_en?: string;
