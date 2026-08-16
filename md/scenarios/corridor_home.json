@@ -1,0 +1,172 @@
+{
+  "id": "corridor_home",
+  "title_zh": "走廊人家",
+  "title_en": "",
+  "chapter_zh": "入门",
+  "difficulty": "training",
+  "pages_in_book": [],
+  "page_image": "",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "卧室",
+      "name_en": "",
+      "furniture": [
+        "双人床",
+        "床头柜",
+        "大植物"
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "起居室",
+      "name_en": "",
+      "furniture": [
+        "沙发2",
+        "桌椅组合2",
+        "猫"
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n................\n................\n.....IIIIIII....\n.....IIIIIII....\n.....IIIIIII....\n.....IIIIIII....\n.....IIIIIII....\n................\n................\n................\n................\n................\n................",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    }
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [
+      {
+        "cell": [
+          6,
+          8
+        ],
+        "edge": "W",
+        "room": "I"
+      },
+      {
+        "cell": [
+          8,
+          9
+        ],
+        "edge": "W",
+        "room": "II"
+      },
+      {
+        "cell": [
+          9,
+          8
+        ],
+        "edge": "S",
+        "target": "front_door"
+      }
+    ],
+    "windows": [],
+    "walls_interior": [
+      [
+        5,
+        7,
+        5,
+        8
+      ],
+      [
+        6,
+        7,
+        6,
+        8
+      ],
+      [
+        7,
+        7,
+        7,
+        8
+      ],
+      [
+        8,
+        7,
+        8,
+        8
+      ],
+      [
+        9,
+        7,
+        9,
+        8
+      ],
+      [
+        5,
+        8,
+        5,
+        9
+      ],
+      [
+        6,
+        8,
+        6,
+        9
+      ],
+      [
+        7,
+        8,
+        7,
+        9
+      ],
+      [
+        8,
+        8,
+        8,
+        9
+      ],
+      [
+        9,
+        8,
+        9,
+        9
+      ]
+    ]
+  },
+  "rules": {
+    "hallway": {
+      "required": true
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          9,
+          8
+        ]
+      ]
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "卧室的家具全部放好",
+      "text_en": "",
+      "points": 3,
+      "condition": {
+        "all_placed_in_room": {
+          "room_slot": "I"
+        }
+      }
+    },
+    {
+      "text_zh": "起居室的家具全部放好",
+      "text_en": "",
+      "points": 3,
+      "condition": {
+        "all_placed_in_room": {
+          "room_slot": "II"
+        }
+      }
+    }
+  ]
+}

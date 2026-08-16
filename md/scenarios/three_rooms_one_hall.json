@@ -1,0 +1,178 @@
+{
+  "id": "three_rooms_one_hall",
+  "title_zh": "三室一厅",
+  "title_en": "",
+  "chapter_zh": "入门",
+  "difficulty": "training",
+  "pages_in_book": [],
+  "page_image": "",
+  "rooms": [
+    {
+      "slot": "I",
+      "name_zh": "客厅",
+      "name_en": "",
+      "furniture": [
+        "沙发2",
+        "桌椅组合2",
+        "大植物",
+        "小花"
+      ]
+    },
+    {
+      "slot": "II",
+      "name_zh": "卧室",
+      "name_en": "",
+      "furniture": [
+        "单人床",
+        "床头柜"
+      ]
+    },
+    {
+      "slot": "III",
+      "name_zh": "浴室",
+      "name_en": "",
+      "furniture": [
+        "浴缸",
+        "马桶"
+      ]
+    }
+  ],
+  "grid": {
+    "ascii": "................\n................\n................\n................\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n.....IIIIII.....\n................\n................\n................\n................\n................\n................",
+    "legend": {
+      ".": {
+        "terrain": "outdoor"
+      },
+      "I": {
+        "terrain": "indoor"
+      }
+    }
+  },
+  "zones": {},
+  "pre_drawn": {
+    "doors": [
+      {
+        "cell": [
+          5,
+          8
+        ],
+        "edge": "W",
+        "room": "II"
+      },
+      {
+        "cell": [
+          8,
+          8
+        ],
+        "edge": "W",
+        "room": "III"
+      },
+      {
+        "cell": [
+          6,
+          5
+        ],
+        "edge": "W",
+        "target": "front_door"
+      }
+    ],
+    "windows": [],
+    "walls_interior": [
+      [
+        4,
+        7,
+        4,
+        8
+      ],
+      [
+        5,
+        7,
+        5,
+        8
+      ],
+      [
+        6,
+        7,
+        6,
+        8
+      ],
+      [
+        7,
+        7,
+        7,
+        8
+      ],
+      [
+        8,
+        7,
+        8,
+        8
+      ],
+      [
+        9,
+        7,
+        9,
+        8
+      ],
+      [
+        6,
+        8,
+        7,
+        8
+      ],
+      [
+        6,
+        9,
+        7,
+        9
+      ],
+      [
+        6,
+        10,
+        7,
+        10
+      ]
+    ]
+  },
+  "rules": {
+    "hallway": {
+      "required": false,
+      "hub": "I",
+      "notes_zh": "无走廊；卧室和浴室都直接连到客厅。",
+      "notes_en": ""
+    },
+    "front_door": {
+      "on_exterior_wall_anywhere": false,
+      "forced_cells": [
+        [
+          6,
+          5
+        ]
+      ]
+    },
+    "drawing": [],
+    "scoring": []
+  },
+  "bonus_points": [
+    {
+      "text_zh": "卧室的家具全部放好",
+      "text_en": "",
+      "points": 2,
+      "condition": {
+        "all_placed_in_room": {
+          "room_slot": "II"
+        }
+      }
+    },
+    {
+      "text_zh": "浴室的家具全部放好",
+      "text_en": "",
+      "points": 2,
+      "condition": {
+        "all_placed_in_room": {
+          "room_slot": "III"
+        }
+      }
+    }
+  ]
+}

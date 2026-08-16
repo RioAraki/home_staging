@@ -69,16 +69,19 @@ describe('hasPrebuiltLayout', () => {
     expect(hasPrebuiltLayout(null)).toBe(false);
   });
 
-  it('is false for every currently shipped scenario', async () => {
-    // None of the 28 levels use pre-built layouts yet, so this flag must not
-    // start skipping the wall phase for any of them.
+  it('is true for exactly the three pre-built tutorial levels', async () => {
+    // Guards both directions: the flag must skip the wall phase for the new
+    // tutorial levels, and must NOT start skipping it for any older level.
+    const PREBUILT = new Set([
+      'living_room_and_bedroom', 'three_rooms_one_hall', 'corridor_home',
+    ]);
     const { readFileSync, readdirSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const { dirname, resolve } = await import('node:path');
     const dir = resolve(dirname(fileURLToPath(import.meta.url)), '../../../md/scenarios');
     for (const f of readdirSync(dir).filter((n) => n.endsWith('.json') && n !== '_index.json')) {
       const s = JSON.parse(readFileSync(resolve(dir, f), 'utf-8'));
-      expect(hasPrebuiltLayout(s), f).toBe(false);
+      expect(hasPrebuiltLayout(s), f).toBe(PREBUILT.has(s.id));
     }
   });
 });
