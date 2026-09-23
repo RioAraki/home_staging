@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>独居室 · 家具调色板托盘 (移动端布局 mockup)</title>
+<style>
+  :root{
+    --bg:#000; --gold:#ffe169; --gold-dim:#caa84a;
+    --panel:#23272e; --panel2:#1b1f24; --line:#3a4049;
+    --tile:#16233f; --tile-line:#2f4a78;
+    --txt:#e6e9ee; --muted:#8b95a1;
+    --place:#50a05a; --undo-c:#c0563c; --finish:#8a7a52;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:#0c0d10;color:var(--txt);
+    font:15px/1.5 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    overflow-x:hidden;min-height:100vh;}
+  body{display:flex;flex-direction:column;align-items:center;padding:18px 12px 28px;gap:14px;}
+
+  .cap{color:var(--muted);font-size:13px;text-align:center;max-width:430px;}
+  .cap b{color:var(--gold-dim);}
+
+  /* portrait phone frame to PROVE the bar works at mobile width */
+  .phone{width:100%;max-width:390px;height:min(78vh,760px);background:var(--bg);
+    border:8px solid #16181d;border-radius:30px;overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:0 18px 50px rgba(0,0,0,.6);position:relative;}
+
+  .topbar{text-align:center;padding:14px 10px 6px;flex:0 0 auto;}
+  .topbar .t{color:var(--gold);font-weight:700;font-size:17px;}
+  .topbar .s{color:var(--muted);font-size:12px;margin-top:2px;}
+
+  .stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;opacity:.5;}
+  .plan{width:72%;aspect-ratio:8/7;border:2px solid #5a6ac6;background:#efece6;border-radius:2px;}
+  .plan .plant{font-size:30px;padding:6px 0 0 6px;}
+
+  /* ── the new tray (pinned to phone bottom) ── */
+  .tray{background:var(--panel);border-top:1px solid var(--line);padding:9px 10px 12px;flex:0 0 auto;}
+  .tray-head{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
+  .tray-head .name{color:var(--gold);font-weight:700;font-size:16px;}
+  .tray-head .prog{color:var(--gold-dim);font-size:13px;font-variant-numeric:tabular-nums;}
+  .tray-head .hint{color:var(--muted);font-size:11px;margin-left:auto;white-space:nowrap;}
+  .tray-body{display:flex;gap:8px;align-items:stretch;min-width:0;}
+
+  .palette-wrap{position:relative;flex:1;min-width:0;}
+  .palette{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:3px 2px 9px;
+    -webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;
+    scroll-snap-type:x proximity;}
+  .palette::-webkit-scrollbar{height:6px;}
+  .palette::-webkit-scrollbar-thumb{background:#4a515c;border-radius:6px;}
+  .palette::-webkit-scrollbar-track{background:#171a1f;border-radius:6px;}
+  .fade{position:absolute;top:0;bottom:9px;width:20px;pointer-events:none;z-index:2;}
+  .fade.l{left:0;background:linear-gradient(90deg,var(--panel),transparent);}
+  .fade.r{right:0;background:linear-gradient(270deg,var(--panel),transparent);}
+
+  /* card: min 64px wide so ~3 fit a phone column + clearly scrollable; big touch target */
+  .card{flex:0 0 auto;width:84px;scroll-snap-align:start;background:var(--panel2);border:1px solid var(--line);
+    border-radius:9px;padding:6px 5px 7px;cursor:pointer;user-select:none;transition:transform .08s,border-color .1s;}
+  .card:active{transform:scale(.96);}
+  .thumb{height:70px;border-radius:6px;background:var(--tile);border:1px solid var(--tile-line);
+    display:flex;align-items:center;justify-content:center;font-size:34px;position:relative;}
+  .cname{margin-top:5px;text-align:center;font-size:11px;color:#cfd6df;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  .card.selected{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 12px rgba(255,225,105,.35);}
+  .card.selected .cname{color:var(--gold);font-weight:600;}
+  .card.placed{opacity:.45;cursor:default;}
+  .card.placed:active{transform:none;}
+  .card.placed .thumb::after{content:"✓";position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+    background:var(--place);color:#0b1a0f;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--panel2);}
+
+  /* right action column — fixed, never squeezed */
+  .actions{display:flex;flex-direction:column;gap:7px;flex:0 0 78px;justify-content:center;}
+  .btn{border:none;border-radius:8px;padding:10px 6px;font-size:14px;font-weight:700;color:#10140d;cursor:pointer;line-height:1.15;}
+  .btn:active{filter:brightness(1.12);}
+  .btn.place{background:var(--place);}
+  .btn.place:disabled{background:#3a4f3d;color:#7d8a80;}
+  .btn.undo{background:var(--undo-c);color:#fff;}
+  .btn.finish{background:var(--finish);color:#1b1508;}
+  .btn small{display:block;font-weight:500;font-size:9px;opacity:.8;color:#2a2410;margin-top:1px;}
+
+  /* reviewer context (outside the phone) */
+  .note{max-width:430px;padding:10px 14px;border:1px dashed #4a515c;border-radius:10px;color:var(--muted);font-size:12.5px;line-height:1.7;}
+  .note b{color:var(--gold-dim);}
+  .note .strike{color:#7a5a52;text-decoration:line-through;}
+  .note ul{margin:6px 0 0 18px;}
+</style>
+</head>
+<body>
+  <div class="cap">移动端竖屏预览(手机框内即真机宽度)。横向 bar 触摸可滑、惯性滚动、不撑破页面。</div>
+
+  <div class="phone">
+    <div class="topbar">
+      <div class="t">奖励目标</div>
+      <div class="s">○ +0　放入了 5 件家具</div>
+    </div>
+    <div class="stage"><div class="plan"><div class="plant">🌿</div></div></div>
+
+    <!-- NEW TRAY -->
+    <div class="tray">
+      <div class="tray-head">
+        <span class="name">独居室</span>
+        <span class="prog" id="prog">已放 2 / 共 11</span>
+        <span class="hint">← 滑动看全部 →</span>
+      </div>
+      <div class="tray-body">
+        <div class="palette-wrap">
+          <div class="fade l"></div>
+          <div class="palette" id="palette"></div>
+          <div class="fade r"></div>
+        </div>
+        <div class="actions">
+          <button class="btn place" id="placeBtn">放置</button>
+          <button class="btn undo">撤销</button>
+          <button class="btn finish">完成<small>放完封顶</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>移动端适配</b>(按你的批注):手机竖屏宽度下,横向调色板用触摸 <b>pan-x</b> 惯性滚动、
+    <b>overscroll-contain</b> 不连带翻页、卡片一屏约 3 张并明显可滑、按钮列固定 78px 不被挤压、页面无横向溢出。
+    <ul>
+      <li>点未放置卡 → 选中(金色)→ 拖到 floor plan / 按「放置」,<b>任意顺序</b></li>
+      <li>已放置卡 <b>灰显 + ✓</b>;放完按「完成」进入封顶</li>
+      <li>右侧不再有 <span class="strike">跳过</span></li>
+      <li>缩略图为 emoji 占位,真机用 tile 美术</li>
+    </ul>
+  </div>
+
+<script>
+  const FURNITURE = [
+    {name:'兰花', icon:'🌿', placed:true},
+    {name:'折叠沙发', icon:'🛋️', selected:true},
+    {name:'岛台1', icon:'🧱'},
+    {name:'浴缸1', icon:'🛁'},
+    {name:'马桶', icon:'🚽', placed:true},
+    {name:'猫', icon:'🐱'},
+    {name:'猫爬架', icon:'🪜'},
+    {name:'猫砂', icon:'🟫'},
+    {name:'床头柜', icon:'🗄️'},
+    {name:'单人床', icon:'🛏️'},
+    {name:'办公桌', icon:'🖥️'},
+  ];
+  const pal=document.getElementById('palette'),placeBtn=document.getElementById('placeBtn'),prog=document.getElementById('prog');
+  function render(){
+    pal.innerHTML='';
+    FURNITURE.forEach((f)=>{
+      const c=document.createElement('div');
+      c.className='card'+(f.placed?' placed':'')+(f.selected?' selected':'');
+      c.innerHTML=`<div class="thumb">${f.icon}</div><div class="cname">${f.name}</div>`;
+      if(!f.placed) c.onclick=()=>{FURNITURE.forEach(x=>x.selected=false);f.selected=true;render();};
+      pal.appendChild(c);
+    });
+    placeBtn.disabled=!FURNITURE.some(f=>f.selected&&!f.placed);
+    prog.textContent=`已放 ${FURNITURE.filter(f=>f.placed).length} / 共 ${FURNITURE.length}`;
+  }
+  render();
+</script>
+</body>
+</html>

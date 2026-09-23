@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>手机端 UI 改善 · Review</title>
+<style>
+  :root{
+    --bg:#0c0d10; --ink:#e6e9ee; --muted:#8b95a1; --gold:#ffe169; --gold-dim:#caa84a;
+    --panel:#23272e; --panel2:#1b1f24; --line:#3a4049; --navy:#16233f; --navy-line:#2f4a78;
+    --green:#50a05a; --red:#c0563c; --tan:#8a7a52; --bad:#ff6b6b; --warn:#ffb648;
+    --floor:#efece6; --terrain:#9c9786; --roomline:#5a6ac6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;padding:22px 16px 60px;}
+  .wrap{max-width:1080px;margin:0 auto;}
+  h1{font-size:22px;color:var(--gold);margin-bottom:4px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px;}
+  h2{font-size:15px;color:var(--gold-dim);text-transform:uppercase;letter-spacing:.06em;margin:26px 0 12px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+
+  /* current vs target phone mockups */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+  @media(max-width:680px){.compare{grid-template-columns:1fr;}}
+  .col h3{font-size:13px;color:var(--muted);margin-bottom:8px;text-align:center;}
+  .phone{width:100%;max-width:300px;margin:0 auto;aspect-ratio:750/1334;background:#000;border:6px solid #16181d;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;}
+  /* CURRENT */
+  .c-header{height:9%;display:flex;align-items:center;justify-content:space-between;padding:0 8px;font-size:9px;}
+  .c-badge{background:#10141c;border:1px solid var(--line);border-radius:4px;padding:3px 6px;color:var(--muted);}
+  .c-goal{color:var(--gold);font-weight:700;text-align:center;font-size:10px;}
+  .c-gear{width:16px;height:16px;border-radius:50%;background:#2a3550;}
+  .c-gap{height:11%;}
+  .c-floorwrap{flex:1;display:flex;align-items:center;justify-content:center;}
+  .c-floor{width:62%;aspect-ratio:8/7;background:var(--terrain);padding:7%;}
+  .c-room{width:100%;height:100%;background:var(--floor);border:1.5px solid var(--roomline);}
+  .c-tray{height:20%;display:flex;align-items:center;gap:5px;padding:4px 6px;}
+  .c-card{height:70%;background:var(--navy);border:1px solid var(--navy-line);border-radius:3px;}
+  .c-card.w{width:24%;} .c-card.s{width:17%;} .c-card.t{width:14%;height:88%;}
+  .c-btns{margin-left:auto;display:flex;flex-direction:column;gap:3px;}
+  .c-btn{width:34px;height:13px;border-radius:3px;font-size:7px;display:flex;align-items:center;justify-content:center;color:#10140d;}
+  /* TARGET */
+  .t-header{height:11%;display:flex;align-items:center;gap:6px;padding:0 8px;background:linear-gradient(#1a1f27,#14181e);border-bottom:1px solid var(--line);font-size:9px;}
+  .t-header .rp{color:var(--ink);font-weight:600;}
+  .t-header .goal{margin-left:auto;color:var(--gold-dim);font-size:8px;text-align:right;}
+  .t-header .ic{width:14px;height:14px;border-radius:5px;background:#2a3550;}
+  .t-floorwrap{flex:1;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#101820,#0a0d10);padding:3% 2%;}
+  .t-floor{width:96%;aspect-ratio:8/7;background:var(--terrain);padding:4%;border-radius:4px;box-shadow:0 0 0 1px #2a2f37;}
+  .t-room{width:100%;height:100%;background:var(--floor);border:1.5px solid var(--roomline);}
+  .t-tray{height:26%;background:linear-gradient(#23272e,#1b1f24);border-top:1px solid var(--line);padding:5px 7px;}
+  .t-trayhead{display:flex;justify-content:center;gap:6px;font-size:8px;color:var(--gold);font-weight:700;margin-bottom:4px;}
+  .t-trayrow{display:flex;gap:5px;align-items:center;height:74%;}
+  .t-cards{flex:1;display:flex;gap:5px;overflow:hidden;}
+  .t-card{flex:0 0 30%;background:var(--navy);border:1px solid var(--navy-line);border-radius:5px;}
+  .t-acts{display:flex;flex-direction:column;gap:3px;}
+  .t-act{width:36px;height:15px;border-radius:4px;font-size:7px;display:flex;align-items:center;justify-content:center;color:#10140d;font-weight:700;}
+  .place{background:var(--green);} .undo{background:var(--red);color:#fff;} .finish{background:var(--gold);}
+  .lab{font-size:10px;color:var(--muted);text-align:center;margin-top:6px;}
+  .lab b{color:var(--gold-dim);}
+
+  /* checklist */
+  .grp{margin-bottom:18px;}
+  .grp-h{font-size:14px;color:var(--gold);font-weight:700;margin:18px 0 8px;}
+  .item{display:flex;gap:10px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+  .item .id{flex:0 0 34px;color:var(--gold-dim);font-weight:700;font-variant-numeric:tabular-nums;}
+  .item .body .t{font-weight:600;margin-bottom:2px;}
+  .item .body .why{color:var(--muted);font-size:13px;}
+  .item.big{border-left-color:var(--green);}
+  .tag{display:inline-block;font-size:11px;color:var(--bg);background:var(--gold-dim);border-radius:4px;padding:0 6px;margin-left:6px;vertical-align:middle;}
+  .note{background:#161a20;border:1px dashed var(--line);border-radius:8px;padding:10px 14px;color:var(--muted);font-size:13px;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>手机端 UI 改善 · Review</h1>
+  <div class="sub">基于「独居室」真实运行截图(750×1334 竖屏)。在每条上圈选 / 批注:要做、不做、改法。</div>
+
+  <h2>现状 vs 建议目标布局</h2>
+  <div class="compare">
+    <div class="col">
+      <h3>现状(问题)</h3>
+      <div class="phone">
+        <div class="c-header"><span class="c-badge">○ 独居室</span><span class="c-goal">奖励目标<br>+0 放入5件</span><span class="c-gear"></span></div>
+        <div class="c-gap"></div>
+        <div class="c-floorwrap"><div class="c-floor"><div class="c-room"></div></div></div>
+        <div class="c-tray">
+          <div class="c-card w"></div><div class="c-card s"></div><div class="c-card t"></div>
+          <div class="c-btns"><div class="c-btn" style="background:#bbb">放置</div><div class="c-btn" style="background:var(--red);color:#fff">撤销</div><div class="c-btn" style="background:#bbb">完成</div></div>
+        </div>
+      </div>
+      <div class="lab">顶栏混搭 · <b>大块黑色空隙</b> · floor plan 小+左右黑边 · 卡片忽大忽小浮在黑底 · 各区块无边界</div>
+    </div>
+    <div class="col">
+      <h3>建议目标</h3>
+      <div class="phone">
+        <div class="t-header"><span class="ic"></span><span class="rp">独居室</span><span class="goal">奖励 +0 · 5件家具</span><span class="ic"></span></div>
+        <div class="t-floorwrap"><div class="t-floor"><div class="t-room"></div></div></div>
+        <div class="t-tray">
+          <div class="t-trayhead"><span>独居室</span><span>0 / 11</span></div>
+          <div class="t-trayrow">
+            <div class="t-cards"><div class="t-card"></div><div class="t-card"></div><div class="t-card"></div></div>
+            <div class="t-acts"><div class="t-act place">放置</div><div class="t-act undo">撤销</div><div class="t-act finish">完成</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="lab">三段式:<b>Header 11% / 主游戏 63% / 托盘 26%</b> · floor plan 放大铺满 · 每区块有明确容器风格 · 卡片统一框</div>
+    </div>
+  </div>
+
+  <h2>改善清单</h2>
+
+  <div class="grp-h">A · 空间与布局(让主游戏区更大)</div>
+  <div class="item big"><div class="id">A1</div><div class="body"><div class="t">压缩顶栏 + 消除顶栏与 floor plan 间的黑色空隙<span class="tag">高收益</span></div><div class="why">现状顶栏下方有约 1/9 屏高的纯黑空白,白白浪费。压扁后把空间还给主游戏。</div></div></div>
+  <div class="item big"><div class="id">A2</div><div class="body"><div class="t">floor plan 横向铺满,去掉左右黑边</div><div class="why">现状网格只占约 62% 宽、两侧大黑边。铺满后房间/家具看得更清。</div></div></div>
+  <div class="item big"><div class="id">A3</div><div class="body"><div class="t">主游戏区(floor plan)放大到约 60–65% 屏高<span class="tag">你的核心诉求</span></div><div class="why">这是玩家主要交互区,应是视觉主体。</div></div></div>
+  <div class="item"><div class="id">A4</div><div class="body"><div class="t">确立清晰三段式比例:Header ~11% / 主游戏 ~63% / 托盘 ~26%</div><div class="why">固定结构,各机型一致,排列有秩序。</div></div></div>
+
+  <div class="grp-h">B · 区块化 & 风格统一(秩序感)</div>
+  <div class="item"><div class="id">B1</div><div class="body"><div class="t">每个区块给明确的容器/背景与边界</div><div class="why">现状三块都浮在纯黑、无边框,糊成一团。各区块应一眼可分。</div></div></div>
+  <div class="item"><div class="id">B2</div><div class="body"><div class="t">顶栏统一成一行有序 Header</div><div class="why">现状 房间进度(面板)+ 奖励目标(裸金字)+ 齿轮(按钮)三种风格混搭。统一面板风格、左右对齐。</div></div></div>
+  <div class="item"><div class="id">B3</div><div class="body"><div class="t">托盘做成明确「调色板面板」</div><div class="why">深色圆角背景 + 标题行 + 卡片行 + 按钮列,而不是浮在黑底上的零散元素。</div></div></div>
+  <div class="item"><div class="id">B4</div><div class="body"><div class="t">家具卡统一尺寸(固定卡框 + 图等比居中)</div><div class="why">现状卡片按占地大小忽大忽小(兰花宽、岛台高),很乱。统一后整齐可扫读。</div></div></div>
+
+  <div class="grp-h">C · 视觉层级 & 配色</div>
+  <div class="item"><div class="id">C1</div><div class="body"><div class="t">把视觉焦点让给主游戏;奖励目标降级</div><div class="why">现状金色「奖励目标」居中最抢眼,比主游戏还突出,层级反了。</div></div></div>
+  <div class="item"><div class="id">C2</div><div class="body"><div class="t">定义统一配色 token,跨区块一致</div><div class="why">背景/面板/强调金/分隔线统一,避免每块各自为政。</div></div></div>
+  <div class="item"><div class="id">C3</div><div class="body"><div class="t">按钮语义配色 + 清晰禁用态</div><div class="why">放置=绿(主操作)、完成摆放=金、撤销=红;现状放置/完成都灰,语义不清。</div></div></div>
+
+  <div class="grp-h">D · 其它发现</div>
+  <div class="item"><div class="id">D1</div><div class="body"><div class="t">release 构建关掉 FPS 调试面板</div><div class="why">debug 构建的 FPS 浮层会盖住托盘左侧(已实测)。release 应关闭。</div></div></div>
+  <div class="item"><div class="id">D2</div><div class="body"><div class="t">触控目标尺寸够大(卡片 / 按钮)</div><div class="why">微信小游戏竖屏触屏,卡片与按钮要适合拇指点按。</div></div></div>
+  <div class="item"><div class="id">D3</div><div class="body"><div class="t">菜单(☰)/ 设置齿轮归入 Header 一致区</div><div class="why">现状顶部控件分散;统一到 Header 右侧。</div></div></div>
+
+  <div class="grp-h">E · 背景与氛围(按你的反馈新增)</div>
+  <div class="item big"><div class="id">E1</div><div class="body"><div class="t">用符合主题的背景替代纯黑,增加活力<span class="tag">你新增</span></div><div class="why">现状大面积纯黑略单调。换成"家居/装修"主题的<b>低对比暗色氛围背景</b>(柔和渐变 / 微纹理 / 虚化室内场景),让画面有生气。<br><b>关键约束</b>:必须够暗、够弱,不抢主游戏 floor plan 的视觉焦点、不影响可读性;并控制微信小游戏的体积/性能(优先程序化渐变+轻纹理,慎用大图)。</div></div></div>
+  <div class="item"><div class="id">E2</div><div class="body"><div class="t">可选:背景随房间主题微调色调</div><div class="why">每关/房间已有 theme 配色(如独居室偏奶白)。背景可跟着主题做轻微 tint,让不同关卡氛围有别。</div></div></div>
+  <div class="note">设计方向:沿用游戏自身的<b>深色 + 金色</b>风格(非另起一套)。布局比例为示意,像素在实现时按预览微调。<br>背景图(E1)涉及口味,落地前我会先给你<b>几个具体方向的对比</b>再选。</div>
+</div>
+</body>
+</html>
